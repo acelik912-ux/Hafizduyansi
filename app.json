@@ -1,11 +1,15 @@
 {
   "expo": {
     "name": "Hafız Dünyası",
-    "slug": "hafiz-dunyasi-gezgin",
+    "slug": "hafizdunyasi",
+    "owner": "hfzahmets-team",
     "version": "1.0.0",
     "orientation": "default",
     "userInterfaceStyle": "dark",
     "android": { "package": "com.hafizdunyasi.gezgin" },
-    "ios": { "bundleIdentifier": "com.hafizdunyasi.gezgin" }
+    "ios": { "bundleIdentifier": "com.hafizdunyasi.gezgin" },
+    "extra": {
+      "eas": { "projectId": "c1bc53fb-99c1-4b8c-ad09-a7b8544952f2" }
+    }
   }
 }
