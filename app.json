@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "Hafız Dünyası",
+    "slug": "hafiz-dunyasi-gezgin",
+    "version": "1.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "dark",
+    "android": { "package": "com.hafizdunyasi.gezgin" },
+    "ios": { "bundleIdentifier": "com.hafizdunyasi.gezgin" }
+  }
+}
