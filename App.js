@@ -68,8 +68,11 @@ const ANCH = [
   { k: 'stuck', t: 'Takıldım', c: '#FF5C6C' },
   { k: 'repeat', t: 'Tekrar et', c: '#FFB020' },
   { k: 'solid', t: 'Pekiştirdim', c: '#35C98A' },
+  { k: 'custom', t: '✏ Kendi çıpam', c: '#4F8CFF' },
 ];
+const PALETTE = ['#4F8CFF', '#A06BFF', '#FF6BB5', '#FF8A3D', '#FFD23F', '#35C98A', '#2EC4D6', '#FFFFFF'];
 const anchColor = (k) => (ANCH.find((a) => a.k === k) || ANCH[0]).c;
+const anchColorOf = (a) => (a.type === 'custom' && a.color ? a.color : anchColor(a.type));
 const MIN_SIZE = 0.05;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -583,7 +586,9 @@ function Editor({ image, images, onBack, onPlay, onChange, onUploadNew, onPickSo
 function AnchorSheet({ edit, onSave, onDelete, onClose, insets }) {
   const [type, setType] = useState('stuck');
   const [note, setNote] = useState('');
-  useEffect(() => { if (edit) { setType(edit.a.type || 'stuck'); setNote(edit.a.note || ''); } }, [edit]);
+  const [title, setTitle] = useState('');
+  const [color, setColor] = useState('#4F8CFF');
+  useEffect(() => { if (edit) { setType(edit.a.type || 'stuck'); setNote(edit.a.note || ''); setTitle(edit.a.title || ''); setColor(edit.a.color || '#4F8CFF'); } }, [edit]);
   if (!edit) return null;
   return (
     <Modal transparent visible animationType="slide" onRequestClose={onClose}>
@@ -593,23 +598,37 @@ function AnchorSheet({ edit, onSave, onDelete, onClose, insets }) {
           <View style={[s.sheet, { paddingBottom: insets.bottom + 14 }]}>
             <View style={s.grab} />
             <Text style={s.h2}>📌 Hafız çıpası</Text>
+            <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 460 }}>
             <Text style={s.secTitle}>Bu yer senin için ne?</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {ANCH.map((a) => (
                 <Pressable key={a.k} onPress={() => setType(a.k)}
-                  style={[s.chip, { borderColor: a.c }, type === a.k && { backgroundColor: a.c }]}>
+                  style={[s.chip, { borderColor: a.k === 'custom' ? color : a.c }, type === a.k && { backgroundColor: a.k === 'custom' ? color : a.c }]}>
                   <Text style={{ color: '#fff', fontWeight: '700' }}>{a.t}</Text>
                 </Pressable>
               ))}
             </View>
+            {type === 'custom' && (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>
+                {PALETTE.map((c) => (
+                  <Pressable key={c} onPress={() => setColor(c)}
+                    style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: c, borderWidth: color === c ? 3 : 1, borderColor: color === c ? '#fff' : C.line }} />
+                ))}
+              </View>
+            )}
+            <Text style={s.secTitle}>Çıpa adı (kendin yaz, isteğe bağlı)</Text>
+            <TextInput
+              value={title} onChangeText={setTitle} maxLength={30} placeholder="Örn: Sure geçişi"
+              placeholderTextColor={C.sub} style={s.input} />
             <Text style={s.secTitle}>Not (isteğe bağlı)</Text>
             <TextInput
               value={note} onChangeText={setNote} multiline placeholder="Örn: 3. satırda hep karıştırıyorum"
               placeholderTextColor={C.sub} style={[s.input, { height: 90, paddingTop: 12, textAlignVertical: 'top' }]} />
+            </ScrollView>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
               {!edit.isNew && <Btn title="Sil" kind="danger" onPress={onDelete} style={{ flex: 1 }} />}
               <Btn title="Vazgeç" kind="ghost" onPress={onClose} style={{ flex: 1 }} />
-              <Btn title="Kaydet" onPress={() => onSave({ ...edit.a, type, note: note.trim() })} style={{ flex: 1 }} />
+              <Btn title="Kaydet" onPress={() => onSave({ ...edit.a, type, note: note.trim(), title: title.trim(), color })} style={{ flex: 1 }} />
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -648,9 +667,10 @@ function AnchorList({ visible, anchors, images, onJump, onRemove, onClose, inset
           ListEmptyComponent={<Text style={{ color: C.sub, textAlign: 'center', marginTop: 40, lineHeight: 22 }}>Henüz çıpa yok.{'\n'}Bir sayfada ekrana uzun basıp "Buraya çıpa koy" de.</Text>}
           renderItem={({ item }) => (
             <Pressable onPress={() => onJump(item)} style={s.aRow}>
-              <View style={[s.aDot, { backgroundColor: anchColor(item.type) }]} />
+              <View style={[s.aDot, { backgroundColor: anchColorOf(item) }]} />
               <View style={{ flex: 1 }}>
-                <Text style={s.rowTitle} numberOfLines={1}>{item.pname}</Text>
+                <Text style={s.rowTitle} numberOfLines={1}>{item.title || item.pname}</Text>
+                {!!item.title && <Text style={s.rowSub} numberOfLines={1}>{item.pname}</Text>}
                 {!!item.note && <Text style={s.rowSub} numberOfLines={2}>{item.note}</Text>}
               </View>
               <Pressable onPress={() => onRemove(item)} hitSlop={10}><Text style={{ color: C.danger, fontSize: 18 }}>✕</Text></Pressable>
@@ -770,6 +790,11 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onE
   const removeAnchor = (pid, id) =>
     onUser((u) => ({ ...u, anchors: { ...(u.anchors || {}), [pid]: ((u.anchors || {})[pid] || []).filter((x) => x.id !== id) } }));
 
+  const openMenuAt = (e) => {
+    const { pageX, pageY } = e.nativeEvent;
+    setPress({ x: (pageX - rect.x) / rect.w, y: (pageY - rect.y) / rect.h });
+    setMenu(true);
+  };
   const showHints = () => { setMenu(false); setHints(true); setTimeout(() => setHints(false), 2500); };
   const lastOk = user.last && user.last !== cur && images.find((i) => i.id === user.last);
 
@@ -777,17 +802,13 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onE
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       <Pressable
         style={{ flex: 1 }} delayLongPress={600}
-        onLongPress={(e) => {
-          const { pageX, pageY } = e.nativeEvent;
-          setPress({ x: (pageX - rect.x) / rect.w, y: (pageY - rect.y) / rect.h });
-          setMenu(true);
-        }}>
+        onLongPress={openMenuAt}>
         <Animated.View style={{ flex: 1, opacity: fade, transform: [{ translateX: slide }] }}>
           <View style={{ position: 'absolute', left: rect.x, top: rect.y, width: rect.w, height: rect.h }}>
             <Image source={srcOf(img)} style={{ width: '100%', height: '100%' }} resizeMode="stretch" />
             {img.buttons.map((b) => (
               <Pressable
-                key={b.id} onPress={() => go(b)}
+                key={b.id} onPress={() => go(b)} onLongPress={openMenuAt} delayLongPress={600}
                 style={{
                   position: 'absolute', left: b.x * rect.w, top: b.y * rect.h, width: b.w * rect.w, height: b.h * rect.h,
                   backgroundColor: hints ? 'rgba(79,140,255,0.35)' : 'transparent',
@@ -796,10 +817,15 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onE
             ))}
             {!user.hide && pageAnchors.map((a) => (
               <Pressable
-                key={a.id} hitSlop={8}
+                key={a.id} hitSlop={8} onLongPress={openMenuAt} delayLongPress={600}
                 onPress={() => setAnchorEdit({ pid: img.id, a, isNew: false })}
-                style={[s.pin, { left: a.x * rect.w - 15, top: a.y * rect.h - 15, backgroundColor: anchColor(a.type) }]}>
+                style={[s.pin, { left: a.x * rect.w - 15, top: a.y * rect.h - 15, backgroundColor: anchColorOf(a) }]}>
                 <Text style={{ fontSize: 14 }}>{a.note ? '📝' : '📌'}</Text>
+                {!!a.title && (
+                  <View pointerEvents="none" style={[s.pinTag, a.x > 0.55 ? { right: 34 } : { left: 34 }, { backgroundColor: anchColorOf(a) }]}>
+                    <Text style={{ color: anchColorOf(a) === '#FFFFFF' || anchColorOf(a) === '#FFD23F' ? '#111' : '#fff', fontSize: 12, fontWeight: '800' }} numberOfLines={1}>{a.title}</Text>
+                  </View>
+                )}
               </Pressable>
             ))}
           </View>
@@ -1665,6 +1691,7 @@ const s = StyleSheet.create({
   more: { position: 'absolute', top: 8, right: 8, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, paddingBottom: 100 },
   bottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingTop: 12, backgroundColor: C.card, borderTopWidth: 1, borderTopColor: C.line },
+  pinTag: { position: 'absolute', top: 3, maxWidth: 150, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
   pin: { position: 'absolute', width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 4, elevation: 5 },
   tip: { position: 'absolute', alignSelf: 'center', backgroundColor: 'rgba(11,16,32,0.88)', paddingHorizontal: 18, paddingVertical: 12, borderRadius: 16, borderWidth: 1, borderColor: C.accent },
   aRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.card, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.line },
