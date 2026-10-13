@@ -1,5 +1,6 @@
 // ============================================================================
-//  HAFIZ DÜNYASI – GÖRSEL GEZGİN  v3   (tek dosya: App.js)
+//  HAFIZ DÜNYASI – GÖRSEL GEZGİN  v4   (tek dosya: App.js)
+//  v4: 30 sabit bölümlü ANA EKRAN, profil, Yazar şifresi, logo
 //
 //  TAMAMEN TELEFONDA ÇALIŞIR:
 //   1) YAZAR  : Resimleri yükle, butonları yerleştir, "Paketi dışa aktar" ile
@@ -41,6 +42,21 @@ catch (e) { FileSystem = require('expo-file-system'); }    // eski SDK
 const STORE_KEY = 'gorsel_gezgin_v2';
 const USER_KEY = 'gorsel_gezgin_user_v1';
 const MODE_KEY = 'gorsel_gezgin_mode_v1';
+const PASS_KEY = 'gorsel_gezgin_pass_v1';
+const SEC_N = 30;
+const isSec = (id) => /^sec\d+$/.test(String(id));
+const hashPw = (p) => { let h = 5381; const s2 = String(p); for (let i = 0; i < s2.length; i++) h = ((h << 5) + h + s2.charCodeAt(i)) | 0; return String(h); };
+const greeting = () => { const h = new Date().getHours(); return h < 6 ? 'İyi geceler' : h < 12 ? 'Günaydın' : h < 18 ? 'İyi günler' : 'İyi akşamlar'; };
+// 30 sabit bölüm = kimliği sec1..sec30 olan klasörler (eksikse tamamlanır)
+function ensureSections(d) {
+  const folders = d.folders || [];
+  const secs = [];
+  for (let i = 1; i <= SEC_N; i++) {
+    const found = folders.find((f) => f.id === 'sec' + i);
+    secs.push(found || { id: 'sec' + i, name: 'Bölüm ' + i, cover: null });
+  }
+  return { ...d, folders: [...secs, ...folders.filter((f) => !isSec(f.id))] };
+}
 const DIR = FileSystem.documentDirectory + 'sayfalar/';
 const ADIR = FileSystem.documentDirectory + 'sesler/';
 const C = {
@@ -134,7 +150,8 @@ async function exportPackage(data, onProgress) {
     return { name: snd.name, file: soundMap[snd.file] };
   };
   const meta = {
-    version: 3, startId: data.startId, folders: data.folders || [],
+    version: 4, startId: data.startId,
+    folders: (data.folders || []).map((f) => ({ id: f.id, name: f.name, cover: f.cover ? safeName(f.id) + '.' + extOf(f.cover) : null })),
     images: data.images.map((im) => ({
       id: im.id, name: im.name, w: im.w, h: im.h, folder: im.folder || null,
       buttons: im.buttons.map((b) => (b.sound ? { ...b, sound: mapSound(b.sound) } : b)),
@@ -142,6 +159,13 @@ async function exportPackage(data, onProgress) {
     })),
   };
   zip.file('project.json', JSON.stringify(meta));
+  for (const f of data.folders || []) {
+    if (!f.cover) continue;
+    try {
+      const cb = await FileSystem.readAsStringAsync(DIR + f.cover, { encoding: 'base64' });
+      zip.file('covers/' + safeName(f.id) + '.' + extOf(f.cover), cb, { base64: true });
+    } catch (e) { /* eksik kapak atlanır */ }
+  }
   for (let i = 0; i < data.images.length; i++) {
     const im = data.images[i];
     onProgress && onProgress(i + 1, data.images.length);
@@ -208,7 +232,19 @@ async function readPackage(onProgress) {
   }
   if (!images.length) throw new Error('Paketteki resimler okunamadı.');
   const startId = images.find((x) => x.id === meta.startId) ? meta.startId : images[0].id;
-  const folders = Array.isArray(meta.folders) ? meta.folders.filter((f) => f && f.id && f.name) : [];
+  const folders = [];
+  for (const f of Array.isArray(meta.folders) ? meta.folders : []) {
+    if (!f || !f.id || !f.name) continue;
+    let cover = null;
+    if (f.cover) {
+      const cf = zip.file('covers/' + f.cover);
+      if (cf) {
+        cover = stamp + '_cv_' + safeName(f.cover);
+        await FileSystem.writeAsStringAsync(DIR + cover, await cf.async('base64'), { encoding: 'base64' });
+      }
+    }
+    folders.push({ id: f.id, name: f.name, cover });
+  }
   const fset = new Set(folders.map((f) => f.id));
   images.forEach((im) => { if (im.folder && !fset.has(im.folder)) im.folder = null; });
   return { images, startId, folders };
@@ -255,8 +291,7 @@ function Welcome({ insets, readerEmpty, onAuthor, onReader, onOpen, onBack }) {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <View style={[s.center, { gap: 14 }]}>
-        <Text style={{ fontSize: 54 }}>📖</Text>
-        <Text style={[s.title, { textAlign: 'center' }]}>Hafız Dünyası</Text>
+        <Image source={require('./logo.png')} style={{ width: 190, height: 190 }} resizeMode="contain" />
         {readerEmpty ? (
           <>
             <Text style={{ color: C.sub, textAlign: 'center', lineHeight: 22 }}>
@@ -276,7 +311,7 @@ function Welcome({ insets, readerEmpty, onAuthor, onReader, onOpen, onBack }) {
             <Pressable onPress={onAuthor} style={[s.dialog, { alignItems: 'center' }]}>
               <Text style={{ fontSize: 30 }}>✎</Text>
               <Text style={s.h2}>Yazar</Text>
-              <Text style={{ color: C.sub, textAlign: 'center' }}>Resim yükle, buton yerleştir, paket üretip paylaş</Text>
+              <Text style={{ color: C.sub, textAlign: 'center' }}>Resim yükle, buton yerleştir, paket üretip paylaş (şifreli)</Text>
             </Pressable>
           </>
         )}
@@ -679,8 +714,12 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onE
     let next = null, back = false;
     if (t.type === 'image') next = t.id;
     else if (t.type === 'home') next = homeId;
-    else if (t.type === 'next') next = images[idx + 1] && images[idx + 1].id;
-    else if (t.type === 'prev') { next = images[idx - 1] && images[idx - 1].id; back = true; }
+    else if (t.type === 'next' || t.type === 'prev') {
+      const seq = images.filter((i) => (i.folder || null) === (img.folder || null));   // sadece aynı bölümde
+      const sp = seq.findIndex((i) => i.id === img.id);
+      if (t.type === 'next') next = seq[sp + 1] && seq[sp + 1].id;
+      else { next = seq[sp - 1] && seq[sp - 1].id; back = true; }
+    }
     else if (t.type === 'back') {
       if (!stack.current.length) return;
       next = stack.current[stack.current.length - 1]; back = true;
@@ -712,8 +751,7 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onE
       if (anchorEdit || listOpen) return false;
       if (menu) { setMenu(false); return true; }
       if (goBack()) return true;
-      if (authorMode) { onExit(); return true; }
-      return false;                       // okuyucu: uygulamadan çıkar
+      onExit(); return true;              // ana ekrana (ya da yazar ekranına) dön
     });
     return () => sub.remove();
   });
@@ -796,7 +834,7 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onE
               {authorMode && <Btn title="✎ Bu sayfayı düzenle" kind="ghost" style={s.menuBtn} onPress={() => onEdit(cur)} />}
               {authorMode && <Btn title="✕ Denemeyi kapat" style={s.menuBtn} onPress={onExit} />}
               {!authorMode && <Btn title="📦 Başka paket aç" kind="ghost" style={s.menuBtn} onPress={() => { setMenu(false); onImport(); }} />}
-              {!authorMode && <Btn title="⚙ Mod seç" kind="ghost" style={s.menuBtn} onPress={() => { setMenu(false); onResetMode(); }} />}
+              {!authorMode && <Btn title="🏠 Ana ekran" style={s.menuBtn} onPress={() => { setMenu(false); onExit(); }} />}
             </View>
           </ScrollView>
         </Pressable>
@@ -863,11 +901,11 @@ function PasteModal({ visible, images, clipCount, onApply, onClose, insets }) {
 }
 
 // ------------------------------------------------------------------ LİSTE
-function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetStart, onRemove, onCopy, onPasteOne, onOpenPaste, onSort, onExport, onImport, onResetMode, onSetFolder, onNewFolder, onRenameFolder, onDeleteFolder }) {
+function Library({ initialFold, onHome, data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetStart, onRemove, onCopy, onPasteOne, onOpenPaste, onSort, onExport, onImport, onResetMode, onSetFolder, onNewFolder, onRenameFolder, onDeleteFolder }) {
   const { width } = useWindowDimensions();
   const [actionImg, setActionImg] = useState(null);
   const [q, setQ] = useState('');
-  const [fold, setFold] = useState(null);          // null = tümü, 'none' = klasörsüz, yoksa klasör kimliği
+  const [fold, setFold] = useState(initialFold || null);          // null = tümü, 'none' = klasörsüz, yoksa klasör kimliği
   const [folderMenu, setFolderMenu] = useState(null);
   const [moveImg, setMoveImg] = useState(null);
   const folders = data.folders || [];
@@ -889,6 +927,7 @@ function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetSta
         <Text style={{ color: C.sub, marginTop: 2 }}>{data.images.length} sayfa · dokun: düzenle · basılı tut: seçenekler</Text>
         <TextInput value={q} onChangeText={setQ} placeholder="Sayfa ara…" placeholderTextColor={C.sub} style={[s.input, { marginTop: 12 }]} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }} contentContainerStyle={{ gap: 8 }}>
+          <Pressable style={s.pill} onPress={onHome}><Text style={s.pillText}>🏠 Ana ekran</Text></Pressable>
           <Pressable style={[s.pill, !data.images.length && { opacity: 0.4 }, { backgroundColor: C.accent }]} disabled={!data.images.length} onPress={onExport}>
             <Text style={[s.pillText, { color: '#1A1500' }]}>⬆ Paketi dışa aktar (.zip)</Text>
           </Pressable>
@@ -906,7 +945,7 @@ function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetSta
           {folders.map((f) => (
             <Pressable key={f.id} style={[s.pill, cf === f.id && { backgroundColor: C.accent }]}
               onPress={() => setFold(f.id)} onLongPress={() => setFolderMenu(f)}>
-              <Text style={[s.pillText, cf === f.id && { color: '#1A1500' }]}>📁 {f.name} ({countIn(f.id)})</Text>
+              <Text style={[s.pillText, cf === f.id && { color: '#1A1500' }]}>{isSec(f.id) ? f.name : '📁 ' + f.name} ({countIn(f.id)})</Text>
             </Pressable>
           ))}
           {folders.length > 0 && (
@@ -914,11 +953,8 @@ function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetSta
               <Text style={[s.pillText, cf === 'none' && { color: '#1A1500' }]}>Klasörsüz ({noneCount})</Text>
             </Pressable>
           )}
-          <Pressable style={[s.pill, { borderWidth: 1, borderColor: C.accent }]} onPress={onNewFolder}>
-            <Text style={s.pillText}>＋ Klasör</Text>
-          </Pressable>
         </ScrollView>
-        {folders.length > 0 && <Text style={{ color: C.sub, fontSize: 12, marginTop: 6 }}>Klasör adına basılı tut: yeniden adlandır / sil</Text>}
+        {folders.length > 0 && <Text style={{ color: C.sub, fontSize: 12, marginTop: 6 }}>Bölüm adına basılı tut: yeniden adlandır</Text>}
       </View>
 
       {data.images.length === 0 ? (
@@ -984,13 +1020,6 @@ function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetSta
                   onPress={() => { onSetFolder(moveImg.id, f.id); setMoveImg(null); }} />
               ))}
             </ScrollView>
-            <Btn title="＋ Yeni klasör aç ve taşı" kind="ghost" style={s.menuBtn}
-              onPress={async () => {
-                const im = moveImg; setMoveImg(null);
-                await new Promise((r) => setTimeout(r, 250));
-                const id = await onNewFolder();
-                if (id) onSetFolder(im.id, id);
-              }} />
           </View>
         </Pressable>
       </Modal>
@@ -1001,8 +1030,177 @@ function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetSta
             <Text style={s.h2} numberOfLines={1}>📁 {folderMenu && folderMenu.name}</Text>
             <Btn title="Aa Yeniden adlandır" kind="ghost" style={s.menuBtn}
               onPress={() => { const f = folderMenu; setFolderMenu(null); setTimeout(() => onRenameFolder(f.id), 250); }} />
-            <Btn title="🗑 Klasörü sil (resimler silinmez)" kind="danger" style={s.menuBtn}
-              onPress={() => { const f = folderMenu; setFolderMenu(null); if (fold === f.id) setFold(null); setTimeout(() => onDeleteFolder(f.id), 250); }} />
+            {folderMenu && !isSec(folderMenu.id) && <Btn title="🗑 Klasörü sil (resimler silinmez)" kind="danger" style={s.menuBtn}
+              onPress={() => { const f = folderMenu; setFolderMenu(null); if (fold === f.id) setFold(null); setTimeout(() => onDeleteFolder(f.id), 250); }} />}
+          </View>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
+// ------------------------------------------------------------- ŞİFRE PENCERESİ
+function PassModal({ prompt, onDone }) {
+  const [a, setA] = useState('');
+  const [b, setB] = useState('');
+  const [err, setErr] = useState('');
+  useEffect(() => { setA(''); setB(''); setErr(''); }, [prompt]);
+  if (!prompt) return null;
+  const create = prompt.mode === 'create';
+  const submit = () => {
+    if (create) {
+      if (a.length < 4) return setErr('En az 4 karakter olmalı.');
+      if (a !== b) return setErr('İki şifre aynı değil.');
+      onDone(a);
+    } else if (prompt.check && !prompt.check(a)) setErr('Şifre yanlış.');
+    else onDone(a || 'ok');
+  };
+  return (
+    <Modal transparent animationType="fade" visible onRequestClose={() => onDone(null)}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.center, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+        <View style={s.dialog}>
+          <Text style={s.h2}>{create ? '🔒 Yazar şifresi oluştur' : '🔒 Yazar şifresi'}</Text>
+          <Text style={{ color: C.sub, marginBottom: 10, lineHeight: 19 }}>
+            {create ? 'Yazar moduna girerken bu şifre sorulacak. Unutursan uygulama verisini silmek gerekir; bir yere not et.' : 'Yazar moduna girmek için şifreni yaz.'}
+          </Text>
+          <TextInput value={a} onChangeText={(v) => { setA(v); setErr(''); }} autoFocus secureTextEntry
+            placeholder="Şifre" placeholderTextColor={C.sub} style={s.input} onSubmitEditing={create ? undefined : submit} />
+          {create && <TextInput value={b} onChangeText={(v) => { setB(v); setErr(''); }} secureTextEntry
+            placeholder="Şifre (tekrar)" placeholderTextColor={C.sub} style={[s.input, { marginTop: 8 }]} onSubmitEditing={submit} />}
+          {!!err && <Text style={{ color: C.danger, marginTop: 8 }}>{err}</Text>}
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+            <Btn title="Vazgeç" kind="ghost" onPress={() => onDone(null)} style={{ flex: 1 }} />
+            <Btn title="Tamam" onPress={submit} style={{ flex: 1 }} />
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+// ---------------------------------------------------------------- PROFİL PENCERESİ
+function ProfileModal({ visible, profile, onSave, onPhoto, onRemovePhoto, onAuthor, onClose }) {
+  const [name, setName] = useState('');
+  useEffect(() => { if (visible) setName(profile.name || ''); }, [visible]);
+  return (
+    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.center, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+        <View style={s.dialog}>
+          <Text style={s.h2}>Profilim</Text>
+          <View style={{ alignItems: 'center', marginBottom: 12 }}>
+            <Pressable onPress={onPhoto} style={s.avatarBig}>
+              {profile.photo ? <Image source={{ uri: profile.photo }} style={{ width: '100%', height: '100%' }} /> : <Text style={{ fontSize: 40 }}>🎓</Text>}
+            </Pressable>
+            <Text style={{ color: C.sub, fontSize: 12, marginTop: 6 }}>Fotoğraf için dokun</Text>
+            {!!profile.photo && <Pressable onPress={onRemovePhoto}><Text style={{ color: C.danger, fontSize: 12, marginTop: 4 }}>Fotoğrafı kaldır</Text></Pressable>}
+          </View>
+          <TextInput value={name} onChangeText={setName} placeholder="Adın" placeholderTextColor={C.sub} style={s.input} />
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+            <Btn title="Kapat" kind="ghost" onPress={onClose} style={{ flex: 1 }} />
+            <Btn title="Kaydet" onPress={() => onSave(name.trim())} style={{ flex: 1 }} />
+          </View>
+          {onAuthor && (
+            <Pressable onPress={onAuthor} style={{ alignSelf: 'center', marginTop: 16, padding: 6 }}>
+              <Text style={{ color: C.sub, fontSize: 12 }}>🔒 Yazar girişi</Text>
+            </Pressable>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+// ----------------------------------------------------------------- ANA EKRAN (30 bölüm)
+function Home({ data, user, author, insets, onPlay, onProfile, onLibrary, onExport, onImport, onPassword, onResetMode, onCover, onRenameSec, onAddTo }) {
+  const { width } = useWindowDimensions();
+  const [menu, setMenu] = useState(null);
+  const profile = user.profile || {};
+  const secs = (data.folders || []).filter((f) => isSec(f.id));
+  const countOf = (id) => data.images.filter((i) => i.folder === id).length;
+  const firstOf = (id) => { const im = data.images.find((i) => i.folder === id); return im ? im.id : null; };
+  const tw = (width - 32 - 24) / 3;
+  const last = user.last && data.images.find((i) => i.id === user.last);
+  const tap = (f) => {
+    const st = firstOf(f.id);
+    if (st) onPlay(st);
+    else if (author) setMenu(f);
+    else Alert.alert(f.name, 'Bu bölüm henüz boş.');
+  };
+  const act = (fn) => { const f = menu; setMenu(null); setTimeout(() => fn(f), 250); };
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 30 }} showsVerticalScrollIndicator={false}>
+        <Pressable onPress={onProfile} style={[s.homeHead, { paddingTop: insets.top + 14 }]}>
+          <View style={s.avatar}>
+            {profile.photo ? <Image source={{ uri: profile.photo }} style={{ width: '100%', height: '100%' }} /> : <Text style={{ fontSize: 28 }}>🎓</Text>}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: C.sub, fontSize: 15 }}>{greeting()} ☀️</Text>
+            <Text style={{ color: C.text, fontSize: 21, fontWeight: '800' }} numberOfLines={1}>{profile.name || 'Profilini oluştur'}</Text>
+          </View>
+          <Text style={{ color: C.sub, fontSize: 22 }}>⋯</Text>
+        </Pressable>
+
+        <Image source={require('./logo.png')} style={{ width: '100%', height: 190, marginTop: 6 }} resizeMode="contain" />
+
+        {!!last && (
+          <Pressable onPress={() => onPlay(last.id)} style={s.resume}>
+            <Text style={{ fontSize: 26 }}>↩</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '800' }}>Kaldığın yerden devam et</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 2 }} numberOfLines={1}>{last.name}</Text>
+            </View>
+          </Pressable>
+        )}
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
+          {author ? (
+            <>
+              <Pressable style={[s.pill, { backgroundColor: C.accent }]} onPress={() => onLibrary(null)}><Text style={[s.pillText, { color: '#1A1500' }]}>✎ Tüm resimler</Text></Pressable>
+              <Pressable style={s.pill} onPress={onExport}><Text style={s.pillText}>⬆ Dışa aktar</Text></Pressable>
+              <Pressable style={s.pill} onPress={onImport}><Text style={s.pillText}>⬇ İçe aktar</Text></Pressable>
+              <Pressable style={s.pill} onPress={onPassword}><Text style={s.pillText}>🔒 Şifre</Text></Pressable>
+              <Pressable style={s.pill} onPress={onResetMode}><Text style={s.pillText}>⚙ Mod seç</Text></Pressable>
+            </>
+          ) : (
+            <Pressable style={[s.pill, { backgroundColor: C.accent }]} onPress={onImport}><Text style={[s.pillText, { color: '#1A1500' }]}>📦 Paket aç (.zip)</Text></Pressable>
+          )}
+        </ScrollView>
+
+        <Text style={[s.secTitle, { marginHorizontal: 16, marginTop: 22 }]}>Bölümler</Text>
+        {!author && !data.images.length && (
+          <Text style={{ color: C.sub, marginHorizontal: 16, marginBottom: 10, lineHeight: 20 }}>
+            Sana gönderilen .zip paketini yukarıdaki "Paket aç" ile seç. Bölümler dolacak.
+          </Text>
+        )}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 12 }}>
+          {secs.map((f, i) => {
+            const n = countOf(f.id);
+            return (
+              <Pressable key={f.id} onPress={() => tap(f)} onLongPress={author ? () => setMenu(f) : undefined} delayLongPress={450}
+                style={({ pressed }) => [s.tile, { width: tw, height: tw * 1.15, opacity: pressed ? 0.8 : n || author ? 1 : 0.5 }]}>
+                {f.cover
+                  ? <Image source={{ uri: DIR + f.cover }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                  : <View style={[StyleSheet.absoluteFill, s.center, { padding: 0 }]}><Text style={{ color: C.line, fontSize: 44, fontWeight: '900' }}>{i + 1}</Text></View>}
+                <View style={s.tileNum}><Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>{i + 1}</Text></View>
+                {author && <View style={s.tileCnt}><Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>{n}</Text></View>}
+                <View style={s.tileName}><Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }} numberOfLines={1}>{f.name}</Text></View>
+              </Pressable>
+            );
+          })}
+        </View>
+        {author && <Text style={{ color: C.sub, fontSize: 12, textAlign: 'center', marginTop: 14 }}>Bölüme basılı tut: kapak resmi, ad, resim ekle</Text>}
+      </ScrollView>
+
+      <Modal transparent visible={!!menu} animationType="fade" onRequestClose={() => setMenu(null)}>
+        <Pressable style={[s.center, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setMenu(null)}>
+          <View style={s.dialog}>
+            <Text style={s.h2} numberOfLines={1}>{menu && menu.name}</Text>
+            <Btn title="🖼 Kapak resmi seç" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onCover(f.id))} />
+            <Btn title="Aa Adını değiştir" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onRenameSec(f.id))} />
+            <Btn title="＋ Bu bölüme resim ekle" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onAddTo(f.id))} />
+            <Btn title="✎ Bu bölümün resimlerini düzenle" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onLibrary(f.id))} />
+            {menu && !!firstOf(menu.id) && <Btn title="▶ Bölümü aç" style={s.menuBtn} onPress={() => act((f) => onPlay(firstOf(f.id)))} />}
           </View>
         </Pressable>
       </Modal>
@@ -1018,7 +1216,9 @@ function Root() {
   const [mode, setMode] = useState(null);             // null | 'author' | 'reader'
   const [data, setData] = useState({ images: [], startId: null });
   const [user, setUser] = useState({ anchors: {}, last: null, seen: false, hide: false });
-  const [screen, setScreen] = useState({ name: 'library' });
+  const [screen, setScreen] = useState({ name: 'home' });
+  const [passPrompt, setPassPrompt] = useState(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [namePrompt, setNamePrompt] = useState(null);
   const [clip, setClip] = useState(null);
   const [pasteOpen, setPasteOpen] = useState(false);
@@ -1034,16 +1234,10 @@ function Root() {
       try {
         await ensureDir();
         const raw = await AsyncStorage.getItem(STORE_KEY);
-        const d = raw ? JSON.parse(raw) : { images: [], startId: null };
+        const d = ensureSections(raw ? JSON.parse(raw) : { images: [], startId: null });
         setData(d);
         const m = await AsyncStorage.getItem(MODE_KEY);
-        if (m === 'author' || m === 'reader') {
-          setMode(m);
-          if (m === 'reader' && d.images && d.images.length) {
-            const st = d.images.find((i) => i.id === d.startId) ? d.startId : d.images[0].id;
-            setScreen({ name: 'viewer', id: st });
-          }
-        }
+        if (m === 'author' || m === 'reader') setMode(m);
         const u = await AsyncStorage.getItem(USER_KEY);
         if (u) setUser((p) => ({ ...p, ...JSON.parse(u) }));
       } catch (e) { /* ilk açılış */ }
@@ -1066,6 +1260,7 @@ function Root() {
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (AUTHOR && screen.name === 'editor') { setScreen({ name: 'library' }); return true; }
+      if (AUTHOR && screen.name === 'library') { setScreen({ name: 'home' }); return true; }
       return false;
     });
     return () => sub.remove();
@@ -1074,19 +1269,57 @@ function Root() {
   const promptName = (title, initial = '') => new Promise((res) => setNamePrompt({ title, initial, res }));
   const finishPrompt = (v) => { namePrompt.res(v); setNamePrompt(null); };
 
-  const chooseMode = (m) => {
+  const askPass = (kind, check) => new Promise((res) => setPassPrompt({ mode: kind, check, res }));
+  const finishPass = (v) => { passPrompt.res(v); setPassPrompt(null); };
+  const enterAuthor = async () => {
+    let stored = null;
+    try { stored = await AsyncStorage.getItem(PASS_KEY); } catch (e) {}
+    if (!stored) {
+      const p = await askPass('create');
+      if (!p) return false;
+      await AsyncStorage.setItem(PASS_KEY, hashPw(p));
+      return true;
+    }
+    return !!(await askPass('enter', (x) => hashPw(x) === stored));
+  };
+  const changePassword = async () => {
+    const stored = await AsyncStorage.getItem(PASS_KEY);
+    if (stored && !(await askPass('enter', (x) => hashPw(x) === stored))) return;
+    await new Promise((r) => setTimeout(r, 300));
+    const p = await askPass('create');
+    if (p) { await AsyncStorage.setItem(PASS_KEY, hashPw(p)); Alert.alert('Tamam', 'Şifre değiştirildi.'); }
+  };
+  const chooseMode = async (m) => {
+    if (m === 'author' && !(await enterAuthor())) return;
     setMode(m);
     AsyncStorage.setItem(MODE_KEY, m).catch(() => {});
-    const d = dataRef.current;
-    if (m === 'reader' && d.images.length) {
-      setScreen({ name: 'viewer', id: d.startId && d.images.find((i) => i.id === d.startId) ? d.startId : d.images[0].id });
-    } else setScreen({ name: 'library' });
+    setScreen({ name: 'home' });
   };
   const resetMode = () => {
     setMode(null);
     AsyncStorage.removeItem(MODE_KEY).catch(() => {});
-    setScreen({ name: 'library' });
+    setScreen({ name: 'home' });
   };
+
+  // ---- profil
+  const saveProfileName = (name) => { setUser((u) => ({ ...u, profile: { ...(u.profile || {}), name } })); setProfileOpen(false); };
+  const pickPhoto = async () => {
+    try {
+      const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.7 });
+      if (r.canceled || !r.assets || !r.assets.length) return;
+      const to = FileSystem.documentDirectory + 'profil_' + uid() + '.jpg';
+      await FileSystem.copyAsync({ from: r.assets[0].uri, to });
+      const old = (user.profile || {}).photo;
+      if (old) FileSystem.deleteAsync(old, { idempotent: true }).catch(() => {});
+      setUser((u) => ({ ...u, profile: { ...(u.profile || {}), photo: to } }));
+    } catch (e) { Alert.alert('Fotoğraf eklenemedi', e.message); }
+  };
+  const removePhoto = () => {
+    const old = (user.profile || {}).photo;
+    if (old) FileSystem.deleteAsync(old, { idempotent: true }).catch(() => {});
+    setUser((u) => ({ ...u, profile: { ...(u.profile || {}), photo: null } }));
+  };
+  const authorFromProfile = () => { setProfileOpen(false); setTimeout(() => chooseMode('author'), 300); };
 
   const importAssets = async (assets, names = []) => {
     await ensureDir();
@@ -1173,6 +1406,7 @@ function Root() {
   };
   const deleteFolder = (id) => {
     const f = (dataRef.current.folders || []).find((x) => x.id === id); if (!f) return;
+    if (isSec(id)) { Alert.alert('Silinemez', '30 bölüm sabittir. İstersen adını değiştirebilirsin.'); return; }
     Alert.alert('Klasörü sil', `"${f.name}" klasörü silinecek. İçindeki resimler silinmez, klasörsüz kalır.`, [
       { text: 'Vazgeç', style: 'cancel' },
       {
@@ -1186,6 +1420,18 @@ function Root() {
     ]);
   };
   const setFolder = (imgId, folderId) => updateImage(imgId, { folder: folderId });
+  const setCover = async (fid) => {
+    const assets = await pickImages(false);
+    if (!assets.length) return;
+    try {
+      await ensureDir();
+      const file = 'cv_' + uid() + '.' + extOf(assets[0].uri.split('?')[0]);
+      await FileSystem.copyAsync({ from: assets[0].uri, to: DIR + file });
+      const f = (dataRef.current.folders || []).find((x) => x.id === fid);
+      if (f && f.cover) FileSystem.deleteAsync(DIR + f.cover, { idempotent: true }).catch(() => {});
+      setData((d) => ({ ...d, folders: (d.folders || []).map((x) => (x.id === fid ? { ...x, cover: file } : x)) }));
+    } catch (e) { Alert.alert('Kapak eklenemedi', e.message); }
+  };
 
   const rename = async (id) => {
     const im = data.images.find((i) => i.id === id);
@@ -1252,8 +1498,8 @@ function Root() {
       try {
         const pkg = await readPackage((i, n) => setBusy(`Paket açılıyor… ${i}/${n}`));
         if (pkg) {
-          setData(pkg);
-          setScreen(AUTHOR ? { name: 'library' } : { name: 'viewer', id: pkg.startId });
+          setData(ensureSections(pkg));
+          setScreen({ name: 'home' });
           Alert.alert('Hazır', `${pkg.images.length} sayfa yüklendi.`);
         }
       } catch (e) { Alert.alert('Paket açılamadı', e.message); }
@@ -1268,53 +1514,66 @@ function Root() {
   };
 
   const homeId = data.startId && data.images.find((i) => i.id === data.startId) ? data.startId : (data.images[0] && data.images[0].id);
-  const play = (id) => setScreen({ name: 'viewer', id: id || homeId });
+  const play = (id, from = 'library') => setScreen({ name: 'viewer', id: id || homeId, from });
+  const secStart = (folder) => { const im = data.images.find((i) => (i.folder || null) === (folder || null)); return im ? im.id : null; };
 
   if (!ready) return <View style={[s.center, { backgroundColor: C.bg }]}><ActivityIndicator color={C.accent} size="large" /></View>;
 
   let body;
   if (!mode) {
     body = <Welcome insets={insets} onAuthor={() => chooseMode('author')} onReader={() => chooseMode('reader')} />;
-  } else if (!AUTHOR && !data.images.length) {
-    body = <Welcome insets={insets} readerEmpty onOpen={doImport} onBack={resetMode} />;
-  } else if (!AUTHOR || (screen.name === 'viewer' && data.images.length)) {
-    const vid = screen.name === 'viewer' && screen.id ? screen.id : homeId;
+  } else if (screen.name === 'viewer' && data.images.length) {
+    const vid = screen.id && data.images.find((i) => i.id === screen.id) ? screen.id : homeId;
+    const vimg = data.images.find((i) => i.id === vid);
     body = (
       <Viewer
-        key={vid} startId={vid} homeId={homeId} images={data.images}
+        key={vid} startId={vid} homeId={secStart(vimg && vimg.folder) || homeId} images={data.images}
         authorMode={AUTHOR} user={user} onUser={setUser} insets={insets}
-        onExit={() => setScreen({ name: 'library' })}
+        onExit={() => setScreen({ name: AUTHOR && screen.from === 'library' ? 'library' : 'home' })}
         onEdit={(id) => setScreen({ name: 'editor', id })}
         onImport={doImport} onResetMode={resetMode} />
     );
-  } else if (screen.name === 'editor' && data.images.find((i) => i.id === screen.id)) {
+  } else if (AUTHOR && screen.name === 'editor' && data.images.find((i) => i.id === screen.id)) {
     body = (
       <Editor
         key={screen.id} image={data.images.find((i) => i.id === screen.id)} images={data.images} insets={insets}
-        onBack={() => setScreen({ name: 'library' })} onPlay={() => play(screen.id)}
+        onBack={() => setScreen({ name: 'library' })} onPlay={() => play(screen.id, 'library')}
         onChange={updateImage} onUploadNew={uploadOne} onPickSound={pickSound} />
     );
-  } else {
+  } else if (AUTHOR && screen.name === 'library') {
     body = (
       <Library
+        key={screen.fold || 'all'} initialFold={screen.fold || null} onHome={() => setScreen({ name: 'home' })}
         data={data} insets={insets} clip={clip} onAdd={addMany}
-        onOpen={(id) => setScreen({ name: 'editor', id })} onPlay={play}
+        onOpen={(id) => setScreen({ name: 'editor', id })} onPlay={(id) => play(id, 'library')}
         onRename={rename} onSetStart={(id) => setData((d) => ({ ...d, startId: id }))} onRemove={removeImage}
         onCopy={copyButtons} onPasteOne={(id) => pasteTo([id], 'add')} onOpenPaste={() => setPasteOpen(true)}
         onSort={sortAll} onExport={doExport} onImport={doImport} onResetMode={resetMode}
         onSetFolder={setFolder} onNewFolder={newFolder} onRenameFolder={renameFolder} onDeleteFolder={deleteFolder} />
     );
+  } else {
+    body = (
+      <Home
+        data={data} user={user} author={AUTHOR} insets={insets}
+        onPlay={(id) => play(id, 'home')} onProfile={() => setProfileOpen(true)}
+        onLibrary={(fold) => setScreen({ name: 'library', fold })}
+        onExport={doExport} onImport={doImport} onPassword={changePassword} onResetMode={resetMode}
+        onCover={setCover} onRenameSec={renameFolder} onAddTo={(fid) => addMany(fid)} />
+    );
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <StatusBar hidden={screen.name === 'viewer' || (!AUTHOR && !!data.images.length)} barStyle="light-content" />
+      <StatusBar hidden={screen.name === 'viewer'} barStyle="light-content" />
       {body}
       {AUTHOR && (
         <PasteModal visible={pasteOpen} images={data.images} clipCount={clip ? clip.length : 0} insets={insets}
           onClose={() => setPasteOpen(false)} onApply={pasteTo} />
       )}
       <NameModal prompt={namePrompt} onDone={finishPrompt} />
+      <PassModal prompt={passPrompt} onDone={finishPass} />
+      <ProfileModal visible={profileOpen} profile={user.profile || {}} onSave={saveProfileName}
+        onPhoto={pickPhoto} onRemovePhoto={removePhoto} onAuthor={AUTHOR ? null : authorFromProfile} onClose={() => setProfileOpen(false)} />
       {!!busy && (
         <View style={[StyleSheet.absoluteFill, s.center, { backgroundColor: 'rgba(0,0,0,0.55)' }]}>
           <ActivityIndicator color="#fff" size="large" />
@@ -1376,5 +1635,13 @@ const s = StyleSheet.create({
   tip: { position: 'absolute', alignSelf: 'center', backgroundColor: 'rgba(11,16,32,0.88)', paddingHorizontal: 18, paddingVertical: 12, borderRadius: 16, borderWidth: 1, borderColor: C.accent },
   aRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.card, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.line },
   aDot: { width: 16, height: 16, borderRadius: 8 },
+  homeHead: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingBottom: 14, backgroundColor: '#152040' },
+  avatar: { width: 58, height: 58, borderRadius: 18, backgroundColor: '#2B2373', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  avatarBig: { width: 96, height: 96, borderRadius: 30, backgroundColor: '#2B2373', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  resume: { flexDirection: 'row', alignItems: 'center', gap: 14, marginHorizontal: 16, marginTop: 10, padding: 16, borderRadius: 18, backgroundColor: '#3E8E5A' },
+  tile: { borderRadius: 16, overflow: 'hidden', backgroundColor: C.card2, borderWidth: 1, borderColor: C.line },
+  tileNum: { position: 'absolute', top: 6, left: 6, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 9, minWidth: 22, height: 22, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
+  tileCnt: { position: 'absolute', top: 6, right: 6, backgroundColor: C.ok, borderRadius: 9, minWidth: 22, height: 22, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
+  tileName: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 8, paddingVertical: 6 },
   check: { width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: C.line, alignItems: 'center', justifyContent: 'center' },
 });

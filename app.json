@@ -3,13 +3,16 @@
     "name": "Hafız Dünyası",
     "slug": "hafizdunyasi",
     "owner": "hfzahmets-team",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "default",
     "userInterfaceStyle": "dark",
-    "android": { "package": "com.hafizdunyasi.gezgin" },
+    "icon": "./icon.png",
+    "splash": { "image": "./splash.png", "resizeMode": "contain", "backgroundColor": "#0B1020" },
+    "android": {
+      "package": "com.hafizdunyasi.gezgin",
+      "adaptiveIcon": { "foregroundImage": "./adaptive-icon.png", "backgroundColor": "#0B1020" }
+    },
     "ios": { "bundleIdentifier": "com.hafizdunyasi.gezgin" },
-    "extra": {
-      "eas": { "projectId": "c1bc53fb-99c1-4b8c-ad09-a7b8544952f2" }
-    }
+    "extra": { "eas": { "projectId": "c1bc53fb-99c1-4b8c-ad09-a7b8544952f2" } }
   }
 }
