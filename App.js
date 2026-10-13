@@ -8,6 +8,8 @@
 //               kendi çıpalarını (notlarını) ekler. Düzenleme yok.
 //   Yazar, paketi tekrar "içe aktarıp" düzenlemeye devam edebilir.
 //
+//  KLASÖR: Yazar modunda resimler klasörlere ayrılabilir (liste ekranında).
+//
 //  SES: Her butona bir ses dosyası bağlanabilir (butona basınca çalar). Ses
 //  dosyaları da pakete (.zip) girer.
 //
@@ -132,9 +134,9 @@ async function exportPackage(data, onProgress) {
     return { name: snd.name, file: soundMap[snd.file] };
   };
   const meta = {
-    version: 3, startId: data.startId,
+    version: 3, startId: data.startId, folders: data.folders || [],
     images: data.images.map((im) => ({
-      id: im.id, name: im.name, w: im.w, h: im.h,
+      id: im.id, name: im.name, w: im.w, h: im.h, folder: im.folder || null,
       buttons: im.buttons.map((b) => (b.sound ? { ...b, sound: mapSound(b.sound) } : b)),
       file: safeName(im.id) + '.' + extOf(im.file),
     })),
@@ -202,11 +204,14 @@ async function readPackage(onProgress) {
       }
       buttons.push(nb);
     }
-    images.push({ id: im.id, name: im.name, w: im.w, h: im.h, buttons, file });
+    images.push({ id: im.id, name: im.name, w: im.w, h: im.h, buttons, file, folder: im.folder || null });
   }
   if (!images.length) throw new Error('Paketteki resimler okunamadı.');
   const startId = images.find((x) => x.id === meta.startId) ? meta.startId : images[0].id;
-  return { images, startId };
+  const folders = Array.isArray(meta.folders) ? meta.folders.filter((f) => f && f.id && f.name) : [];
+  const fset = new Set(folders.map((f) => f.id));
+  images.forEach((im) => { if (im.folder && !fset.has(im.folder)) im.folder = null; });
+  return { images, startId, folders };
 }
 
 // ------------------------------------------------------------ küçük bileşenler
@@ -858,14 +863,24 @@ function PasteModal({ visible, images, clipCount, onApply, onClose, insets }) {
 }
 
 // ------------------------------------------------------------------ LİSTE
-function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetStart, onRemove, onCopy, onPasteOne, onOpenPaste, onSort, onExport, onImport, onResetMode }) {
+function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetStart, onRemove, onCopy, onPasteOne, onOpenPaste, onSort, onExport, onImport, onResetMode, onSetFolder, onNewFolder, onRenameFolder, onDeleteFolder }) {
   const { width } = useWindowDimensions();
   const [actionImg, setActionImg] = useState(null);
   const [q, setQ] = useState('');
+  const [fold, setFold] = useState(null);          // null = tümü, 'none' = klasörsüz, yoksa klasör kimliği
+  const [folderMenu, setFolderMenu] = useState(null);
+  const [moveImg, setMoveImg] = useState(null);
+  const folders = data.folders || [];
+  const fmap = {}; folders.forEach((f) => { fmap[f.id] = f.name; });
+  const cf = fold === null || fold === 'none' || fmap[fold] ? fold : null;
+  const countIn = (id) => data.images.filter((i) => i.folder === id).length;
+  const noneCount = data.images.filter((i) => !i.folder || !fmap[i.folder]).length;
   const cw = (width - 16 * 3) / 2;
   const act = (fn) => { const im = actionImg; setActionImg(null); setTimeout(() => fn(im), 250); };
   const ql = q.trim().toLowerCase();
-  const list = data.images.filter((i) => !ql || i.name.toLowerCase().includes(ql));
+  const list = data.images.filter((i) =>
+    (!ql || i.name.toLowerCase().includes(ql)) &&
+    (cf === null || (cf === 'none' ? (!i.folder || !fmap[i.folder]) : i.folder === cf)));
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: insets.top }}>
@@ -884,6 +899,26 @@ function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetSta
           </Pressable>
           <Pressable style={s.pill} onPress={onResetMode}><Text style={s.pillText}>⚙ Mod seç</Text></Pressable>
         </ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }} contentContainerStyle={{ gap: 8 }}>
+          <Pressable style={[s.pill, cf === null && { backgroundColor: C.accent }]} onPress={() => setFold(null)}>
+            <Text style={[s.pillText, cf === null && { color: '#1A1500' }]}>Tümü ({data.images.length})</Text>
+          </Pressable>
+          {folders.map((f) => (
+            <Pressable key={f.id} style={[s.pill, cf === f.id && { backgroundColor: C.accent }]}
+              onPress={() => setFold(f.id)} onLongPress={() => setFolderMenu(f)}>
+              <Text style={[s.pillText, cf === f.id && { color: '#1A1500' }]}>📁 {f.name} ({countIn(f.id)})</Text>
+            </Pressable>
+          ))}
+          {folders.length > 0 && (
+            <Pressable style={[s.pill, cf === 'none' && { backgroundColor: C.accent }]} onPress={() => setFold('none')}>
+              <Text style={[s.pillText, cf === 'none' && { color: '#1A1500' }]}>Klasörsüz ({noneCount})</Text>
+            </Pressable>
+          )}
+          <Pressable style={[s.pill, { borderWidth: 1, borderColor: C.accent }]} onPress={onNewFolder}>
+            <Text style={s.pillText}>＋ Klasör</Text>
+          </Pressable>
+        </ScrollView>
+        {folders.length > 0 && <Text style={{ color: C.sub, fontSize: 12, marginTop: 6 }}>Klasör adına basılı tut: yeniden adlandır / sil</Text>}
       </View>
 
       {data.images.length === 0 ? (
@@ -900,6 +935,7 @@ function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetSta
           initialNumToRender={8} windowSize={5} removeClippedSubviews
           contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
           columnWrapperStyle={{ gap: 16 }} ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+          ListEmptyComponent={<Text style={{ color: C.sub, textAlign: 'center', marginTop: 40, lineHeight: 22 }}>Burada resim yok.{'\n'}Bir resme basılı tutup "Klasöre taşı" seç.</Text>}
           renderItem={({ item }) => (
             <Pressable
               onPress={() => onOpen(item.id)} onLongPress={() => setActionImg(item)}
@@ -907,7 +943,7 @@ function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetSta
               <Image source={srcOf(item)} style={{ width: '100%', height: cw * 0.75 }} resizeMode="cover" />
               <View style={{ padding: 10 }}>
                 <Text style={s.cardName} numberOfLines={1}>{item.name}</Text>
-                <Text style={{ color: C.sub, fontSize: 12, marginTop: 2 }}>{item.buttons.length} buton</Text>
+                <Text style={{ color: C.sub, fontSize: 12, marginTop: 2 }} numberOfLines={1}>{item.buttons.length} buton{cf === null && item.folder && fmap[item.folder] ? ' · 📁 ' + fmap[item.folder] : ''}</Text>
               </View>
               {data.startId === item.id && <View style={s.badge}><Text style={s.badgeText}>⌂ Başlangıç</Text></View>}
               <Pressable style={s.more} onPress={() => setActionImg(item)} hitSlop={8}><Text style={{ color: '#fff', fontSize: 18 }}>⋯</Text></Pressable>
@@ -916,7 +952,7 @@ function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetSta
       )}
 
       <View style={[s.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
-        <Btn title="＋ Resim yükle" onPress={onAdd} style={{ flex: 1.4 }} />
+        <Btn title="＋ Resim yükle" onPress={() => onAdd(fmap[cf] ? cf : null)} style={{ flex: 1.4 }} />
         <Btn title="▶ Kullanıcı gibi dene" kind="ghost" disabled={!data.images.length} onPress={() => onPlay(null)} style={{ flex: 1.2 }} />
       </View>
 
@@ -929,8 +965,44 @@ function Library({ data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetSta
             <Btn title="📋 Butonlarını kopyala" kind="ghost" style={s.menuBtn} onPress={() => act((im) => onCopy(im.id))} />
             {clip && <Btn title={`📥 ${clip.length} butonu buna yapıştır`} kind="ghost" style={s.menuBtn} onPress={() => act((im) => onPasteOne(im.id))} />}
             <Btn title="Aa Yeniden adlandır" kind="ghost" style={s.menuBtn} onPress={() => act((im) => onRename(im.id))} />
+            <Btn title="📁 Klasöre taşı" kind="ghost" style={s.menuBtn} onPress={() => act((im) => setMoveImg(im))} />
             <Btn title="⌂ Başlangıç sayfası yap" kind="ghost" style={s.menuBtn} onPress={() => act((im) => onSetStart(im.id))} />
             <Btn title="🗑 Sil" kind="danger" style={s.menuBtn} onPress={() => act((im) => onRemove(im.id))} />
+          </View>
+        </Pressable>
+      </Modal>
+
+      <Modal transparent visible={!!moveImg} animationType="fade" onRequestClose={() => setMoveImg(null)}>
+        <Pressable style={[s.center, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setMoveImg(null)}>
+          <View style={s.dialog}>
+            <Text style={s.h2} numberOfLines={1}>📁 {moveImg && moveImg.name}</Text>
+            <ScrollView style={{ maxHeight: 340 }}>
+              <Btn title="Klasörsüz" kind={moveImg && (!moveImg.folder || !fmap[moveImg.folder]) ? 'primary' : 'ghost'} style={s.menuBtn}
+                onPress={() => { onSetFolder(moveImg.id, null); setMoveImg(null); }} />
+              {folders.map((f) => (
+                <Btn key={f.id} title={'📁 ' + f.name} kind={moveImg && moveImg.folder === f.id ? 'primary' : 'ghost'} style={s.menuBtn}
+                  onPress={() => { onSetFolder(moveImg.id, f.id); setMoveImg(null); }} />
+              ))}
+            </ScrollView>
+            <Btn title="＋ Yeni klasör aç ve taşı" kind="ghost" style={s.menuBtn}
+              onPress={async () => {
+                const im = moveImg; setMoveImg(null);
+                await new Promise((r) => setTimeout(r, 250));
+                const id = await onNewFolder();
+                if (id) onSetFolder(im.id, id);
+              }} />
+          </View>
+        </Pressable>
+      </Modal>
+
+      <Modal transparent visible={!!folderMenu} animationType="fade" onRequestClose={() => setFolderMenu(null)}>
+        <Pressable style={[s.center, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setFolderMenu(null)}>
+          <View style={s.dialog}>
+            <Text style={s.h2} numberOfLines={1}>📁 {folderMenu && folderMenu.name}</Text>
+            <Btn title="Aa Yeniden adlandır" kind="ghost" style={s.menuBtn}
+              onPress={() => { const f = folderMenu; setFolderMenu(null); setTimeout(() => onRenameFolder(f.id), 250); }} />
+            <Btn title="🗑 Klasörü sil (resimler silinmez)" kind="danger" style={s.menuBtn}
+              onPress={() => { const f = folderMenu; setFolderMenu(null); if (fold === f.id) setFold(null); setTimeout(() => onDeleteFolder(f.id), 250); }} />
           </View>
         </Pressable>
       </Modal>
@@ -1036,15 +1108,19 @@ function Root() {
     }
     return out;
   };
-  const appendImages = (imgs) =>
-    setData((d) => ({ ...d, images: [...d.images, ...imgs], startId: d.startId || imgs[0].id }));
+  const appendImages = (imgs, folder = null) =>
+    setData((d) => ({
+      ...d,
+      images: [...d.images, ...imgs.map((i) => (folder ? { ...i, folder } : i))],
+      startId: d.startId || imgs[0].id,
+    }));
 
-  const addMany = async () => {
+  const addMany = async (folder = null) => {
     const assets = await pickImages(true);
     if (!assets.length) return;
     assets.sort((a, b) => (a.fileName || '').localeCompare(b.fileName || '', 'tr', { numeric: true }));
     setBusy('Kaydediliyor…');
-    try { appendImages(await importAssets(assets)); }
+    try { appendImages(await importAssets(assets), folder); }
     catch (e) { Alert.alert('Hata', 'Resim kaydedilemedi: ' + e.message); }
     setBusy(false);
   };
@@ -1082,6 +1158,35 @@ function Root() {
       images: d.images.map((i) => (i.id !== id ? i : typeof fnOrPatch === 'function' ? fnOrPatch(i) : { ...i, ...fnOrPatch })),
     }));
 
+  // ---- klasörler
+  const newFolder = async () => {
+    const name = await promptName('Klasör adı', '');
+    if (!name) return null;
+    const id = 'f_' + uid();
+    setData((d) => ({ ...d, folders: [...(d.folders || []), { id, name }] }));
+    return id;
+  };
+  const renameFolder = async (id) => {
+    const f = (dataRef.current.folders || []).find((x) => x.id === id); if (!f) return;
+    const n = await promptName('Klasör adı', f.name);
+    if (n) setData((d) => ({ ...d, folders: (d.folders || []).map((x) => (x.id === id ? { ...x, name: n } : x)) }));
+  };
+  const deleteFolder = (id) => {
+    const f = (dataRef.current.folders || []).find((x) => x.id === id); if (!f) return;
+    Alert.alert('Klasörü sil', `"${f.name}" klasörü silinecek. İçindeki resimler silinmez, klasörsüz kalır.`, [
+      { text: 'Vazgeç', style: 'cancel' },
+      {
+        text: 'Sil', style: 'destructive',
+        onPress: () => setData((d) => ({
+          ...d,
+          folders: (d.folders || []).filter((x) => x.id !== id),
+          images: d.images.map((i) => (i.folder === id ? { ...i, folder: null } : i)),
+        })),
+      },
+    ]);
+  };
+  const setFolder = (imgId, folderId) => updateImage(imgId, { folder: folderId });
+
   const rename = async (id) => {
     const im = data.images.find((i) => i.id === id);
     const n = await promptName('Resmin adı', im ? im.name : '');
@@ -1100,7 +1205,7 @@ function Root() {
               ...i,
               buttons: i.buttons.map((b) => (b.target && b.target.type === 'image' && b.target.id === id ? { ...b, target: null } : b)),
             }));
-            return { images, startId: d.startId === id ? (images[0] ? images[0].id : null) : d.startId };
+            return { ...d, images, startId: d.startId === id ? (images[0] ? images[0].id : null) : d.startId };
           });
         },
       },
@@ -1196,7 +1301,8 @@ function Root() {
         onOpen={(id) => setScreen({ name: 'editor', id })} onPlay={play}
         onRename={rename} onSetStart={(id) => setData((d) => ({ ...d, startId: id }))} onRemove={removeImage}
         onCopy={copyButtons} onPasteOne={(id) => pasteTo([id], 'add')} onOpenPaste={() => setPasteOpen(true)}
-        onSort={sortAll} onExport={doExport} onImport={doImport} onResetMode={resetMode} />
+        onSort={sortAll} onExport={doExport} onImport={doImport} onResetMode={resetMode}
+        onSetFolder={setFolder} onNewFolder={newFolder} onRenameFolder={renameFolder} onDeleteFolder={deleteFolder} />
     );
   }
 
