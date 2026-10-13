@@ -1135,7 +1135,7 @@ function Home({ data, user, author, insets, onPlay, onProfile, onLibrary, onExpo
   const secs = (data.folders || []).filter((f) => isSec(f.id));
   const countOf = (id) => data.images.filter((i) => i.folder === id).length;
   const firstOf = (id) => { const im = data.images.find((i) => i.folder === id); return im ? im.id : null; };
-  const tw = (width - 32 - 24) / 3;
+  const tw = Math.floor((width - 32 - 14) / 2) - 1;   // 2 sütun, ekranı doldurur
   const last = user.last && data.images.find((i) => i.id === user.last);
   const tap = (f) => {
     const st = firstOf(f.id);
@@ -1190,18 +1190,18 @@ function Home({ data, user, author, insets, onPlay, onProfile, onLibrary, onExpo
             Sana gönderilen .zip paketini yukarıdaki "Paket aç" ile seç. Bölümler dolacak.
           </Text>
         )}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 12 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 14, justifyContent: 'space-between' }}>
           {secs.map((f, i) => {
             const n = countOf(f.id);
             return (
               <Pressable key={f.id} onPress={() => tap(f)} onLongPress={author ? () => setMenu(f) : undefined} delayLongPress={450}
-                style={({ pressed }) => [s.tile, { width: tw, height: tw * 1.15, opacity: pressed ? 0.8 : n || author ? 1 : 0.5 }]}>
+                style={({ pressed }) => [s.tile, { width: tw, height: Math.round(tw * 1.3), opacity: pressed ? 0.8 : n || author ? 1 : 0.5 }]}>
                 {f.cover
                   ? <Image source={{ uri: DIR + f.cover }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-                  : <View style={[StyleSheet.absoluteFill, s.center, { padding: 0 }]}><Text style={{ color: C.line, fontSize: 44, fontWeight: '900' }}>{i + 1}</Text></View>}
+                  : <View style={[StyleSheet.absoluteFill, s.center, { padding: 0 }]}><Text style={{ color: C.line, fontSize: 64, fontWeight: '900' }}>{i + 1}</Text></View>}
                 <View style={s.tileNum}><Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>{i + 1}</Text></View>
                 {author && <View style={s.tileCnt}><Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>{n}</Text></View>}
-                <View style={s.tileName}><Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }} numberOfLines={1}>{f.name}</Text></View>
+                <View style={s.tileName}><Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }} numberOfLines={1}>{f.name}</Text></View>
               </Pressable>
             );
           })}
