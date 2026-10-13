@@ -901,13 +901,14 @@ function PasteModal({ visible, images, clipCount, onApply, onClose, insets }) {
 }
 
 // ------------------------------------------------------------------ LİSTE
-function Library({ initialFold, onHome, data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetStart, onRemove, onCopy, onPasteOne, onOpenPaste, onSort, onExport, onImport, onResetMode, onSetFolder, onNewFolder, onRenameFolder, onDeleteFolder }) {
+function Library({ onMergeFolder, initialFold, onHome, data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetStart, onRemove, onCopy, onPasteOne, onOpenPaste, onSort, onExport, onImport, onResetMode, onSetFolder, onNewFolder, onRenameFolder, onDeleteFolder }) {
   const { width } = useWindowDimensions();
   const [actionImg, setActionImg] = useState(null);
   const [q, setQ] = useState('');
   const [fold, setFold] = useState(initialFold || null);          // null = tümü, 'none' = klasörsüz, yoksa klasör kimliği
   const [folderMenu, setFolderMenu] = useState(null);
   const [moveImg, setMoveImg] = useState(null);
+  const [mergeFrom, setMergeFrom] = useState(null);
   const folders = data.folders || [];
   const fmap = {}; folders.forEach((f) => { fmap[f.id] = f.name; });
   const cf = fold === null || fold === 'none' || fmap[fold] ? fold : null;
@@ -1024,12 +1025,28 @@ function Library({ initialFold, onHome, data, insets, clip, onAdd, onOpen, onPla
         </Pressable>
       </Modal>
 
+      <Modal transparent visible={!!mergeFrom} animationType="fade" onRequestClose={() => setMergeFrom(null)}>
+        <Pressable style={[s.center, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setMergeFrom(null)}>
+          <View style={s.dialog}>
+            <Text style={s.h2} numberOfLines={2}>"{mergeFrom && mergeFrom.name}" hangi bölüme taşınsın?</Text>
+            <ScrollView style={{ maxHeight: 380 }}>
+              {folders.filter((f) => isSec(f.id)).map((f) => (
+                <Btn key={f.id} title={f.name + ' (' + countIn(f.id) + ')'} kind="ghost" style={s.menuBtn}
+                  onPress={() => { const from = mergeFrom; setMergeFrom(null); setFold(f.id); onMergeFolder(from.id, f.id); }} />
+              ))}
+            </ScrollView>
+          </View>
+        </Pressable>
+      </Modal>
+
       <Modal transparent visible={!!folderMenu} animationType="fade" onRequestClose={() => setFolderMenu(null)}>
         <Pressable style={[s.center, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setFolderMenu(null)}>
           <View style={s.dialog}>
             <Text style={s.h2} numberOfLines={1}>📁 {folderMenu && folderMenu.name}</Text>
             <Btn title="Aa Yeniden adlandır" kind="ghost" style={s.menuBtn}
               onPress={() => { const f = folderMenu; setFolderMenu(null); setTimeout(() => onRenameFolder(f.id), 250); }} />
+            {folderMenu && !isSec(folderMenu.id) && <Btn title="➡ Tüm resimleri bir bölüme taşı" kind="ghost" style={s.menuBtn}
+              onPress={() => { const f = folderMenu; setFolderMenu(null); setTimeout(() => setMergeFrom(f), 250); }} />}
             {folderMenu && !isSec(folderMenu.id) && <Btn title="🗑 Klasörü sil (resimler silinmez)" kind="danger" style={s.menuBtn}
               onPress={() => { const f = folderMenu; setFolderMenu(null); if (fold === f.id) setFold(null); setTimeout(() => onDeleteFolder(f.id), 250); }} />}
           </View>
@@ -1420,6 +1437,23 @@ function Root() {
     ]);
   };
   const setFolder = (imgId, folderId) => updateImage(imgId, { folder: folderId });
+  const mergeFolder = (fromId, toId) => {
+    const from = (dataRef.current.folders || []).find((x) => x.id === fromId);
+    const to = (dataRef.current.folders || []).find((x) => x.id === toId);
+    if (!from || !to) return;
+    const n = dataRef.current.images.filter((i) => i.folder === fromId).length;
+    Alert.alert('Taşı', `"${from.name}" içindeki ${n} resim "${to.name}" bölümüne taşınacak ve eski klasör silinecek.`, [
+      { text: 'Vazgeç', style: 'cancel' },
+      {
+        text: 'Taşı',
+        onPress: () => setData((d) => ({
+          ...d,
+          images: d.images.map((i) => (i.folder === fromId ? { ...i, folder: toId } : i)),
+          folders: (d.folders || []).filter((x) => x.id !== fromId),
+        })),
+      },
+    ]);
+  };
   const setCover = async (fid) => {
     const assets = await pickImages(false);
     if (!assets.length) return;
@@ -1543,7 +1577,7 @@ function Root() {
   } else if (AUTHOR && screen.name === 'library') {
     body = (
       <Library
-        key={screen.fold || 'all'} initialFold={screen.fold || null} onHome={() => setScreen({ name: 'home' })}
+        key={screen.fold || 'all'} onMergeFolder={mergeFolder} initialFold={screen.fold || null} onHome={() => setScreen({ name: 'home' })}
         data={data} insets={insets} clip={clip} onAdd={addMany}
         onOpen={(id) => setScreen({ name: 'editor', id })} onPlay={(id) => play(id, 'library')}
         onRename={rename} onSetStart={(id) => setData((d) => ({ ...d, startId: id }))} onRemove={removeImage}
