@@ -783,7 +783,7 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onE
       const list = (u.anchors || {})[pid] || [];
       const has = list.some((x) => x.id === a.id);
       const nl = has ? list.map((x) => (x.id === a.id ? a : x)) : [...list, a];
-      return { ...u, anchors: { ...(u.anchors || {}), [pid]: nl } };
+      return { ...u, hide: false, anchors: { ...(u.anchors || {}), [pid]: nl } };
     });
     setAnchorEdit(null);
   };
@@ -815,22 +815,31 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onE
                   borderWidth: hints ? 2 : 0, borderColor: C.blue,
                 }} />
             ))}
-            {!user.hide && pageAnchors.map((a) => (
+          </View>
+        </Animated.View>
+        <View pointerEvents="box-none" style={{ position: 'absolute', left: rect.x, top: rect.y, width: rect.w, height: rect.h, zIndex: 50, elevation: 10 }}>
+          {!user.hide && pageAnchors.map((a) => (
               <Pressable
-                key={a.id} hitSlop={8} onLongPress={openMenuAt} delayLongPress={600}
+                key={a.id} hitSlop={14} onLongPress={openMenuAt} delayLongPress={600}
                 onPress={() => setAnchorEdit({ pid: img.id, a, isNew: false })}
-                style={[s.pin, { left: a.x * rect.w - 15, top: a.y * rect.h - 15, backgroundColor: anchColorOf(a) }]}>
-                <Text style={{ fontSize: 14 }}>{a.note ? '📝' : '📌'}</Text>
+                style={[s.pin, { left: a.x * rect.w - 10, top: a.y * rect.h - 10, backgroundColor: anchColorOf(a) }]}>
+                <Text style={{ fontSize: 10 }}>{a.note ? '📝' : '📌'}</Text>
                 {!!a.title && (
-                  <View pointerEvents="none" style={[s.pinTag, a.x > 0.55 ? { right: 34 } : { left: 34 }, { backgroundColor: anchColorOf(a) }]}>
-                    <Text style={{ color: anchColorOf(a) === '#FFFFFF' || anchColorOf(a) === '#FFD23F' ? '#111' : '#fff', fontSize: 12, fontWeight: '800' }} numberOfLines={1}>{a.title}</Text>
+                  <View pointerEvents="none" style={[s.pinTag, a.x > 0.55 ? { right: 24 } : { left: 24 }, { backgroundColor: anchColorOf(a) }]}>
+                    <Text style={{ color: anchColorOf(a) === '#FFFFFF' || anchColorOf(a) === '#FFD23F' ? '#111' : '#fff', fontSize: 10, fontWeight: '800' }} numberOfLines={1}>{a.title}</Text>
                   </View>
                 )}
               </Pressable>
             ))}
-          </View>
-        </Animated.View>
+        </View>
       </Pressable>
+
+      {pageAnchors.length > 0 && (
+        <Pressable onPress={() => onUser((u) => ({ ...u, hide: !u.hide }))} hitSlop={10}
+          style={{ position: 'absolute', right: 12, top: insets.top + 8, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.65)', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 }}>
+          <Text style={{ color: '#fff', fontWeight: '800' }}>{user.hide ? '🙈' : '📌'} {pageAnchors.length}</Text>
+        </Pressable>
+      )}
 
       {tip && (
         <View pointerEvents="none" style={[s.tip, { bottom: insets.bottom + 30 }]}>
@@ -1691,8 +1700,8 @@ const s = StyleSheet.create({
   more: { position: 'absolute', top: 8, right: 8, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, paddingBottom: 100 },
   bottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingTop: 12, backgroundColor: C.card, borderTopWidth: 1, borderTopColor: C.line },
-  pinTag: { position: 'absolute', top: 3, maxWidth: 150, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  pin: { position: 'absolute', width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 4, elevation: 5 },
+  pinTag: { position: 'absolute', top: -2, maxWidth: 130, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8 },
+  pin: { position: 'absolute', width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 4, elevation: 5 },
   tip: { position: 'absolute', alignSelf: 'center', backgroundColor: 'rgba(11,16,32,0.88)', paddingHorizontal: 18, paddingVertical: 12, borderRadius: 16, borderWidth: 1, borderColor: C.accent },
   aRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.card, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.line },
   aDot: { width: 16, height: 16, borderRadius: 8 },
