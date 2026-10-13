@@ -936,7 +936,7 @@ function PasteModal({ visible, images, clipCount, onApply, onClose, insets }) {
 }
 
 // ------------------------------------------------------------------ LİSTE
-function Library({ onMergeFolder, initialFold, onHome, data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetStart, onRemove, onCopy, onPasteOne, onOpenPaste, onSort, onExport, onImport, onResetMode, onSetFolder, onNewFolder, onRenameFolder, onDeleteFolder }) {
+function Library({ onMove, onMergeFolder, initialFold, onHome, data, insets, clip, onAdd, onOpen, onPlay, onRename, onSetStart, onRemove, onCopy, onPasteOne, onOpenPaste, onSort, onExport, onImport, onResetMode, onSetFolder, onNewFolder, onRenameFolder, onDeleteFolder }) {
   const { width } = useWindowDimensions();
   const [actionImg, setActionImg] = useState(null);
   const [q, setQ] = useState('');
@@ -952,6 +952,7 @@ function Library({ onMergeFolder, initialFold, onHome, data, insets, clip, onAdd
   const cw = (width - 16 * 3) / 2;
   const act = (fn) => { const im = actionImg; setActionImg(null); setTimeout(() => fn(im), 250); };
   const ql = q.trim().toLowerCase();
+  const reorder = !!cf && cf !== 'none' && !q.trim();       // bir bölüm seçiliyken sıra okları açılır
   const list = data.images.filter((i) =>
     (!ql || i.name.toLowerCase().includes(ql)) &&
     (cf === null || (cf === 'none' ? (!i.folder || !fmap[i.folder]) : i.folder === cf)));
@@ -968,7 +969,7 @@ function Library({ onMergeFolder, initialFold, onHome, data, insets, clip, onAdd
             <Text style={[s.pillText, { color: '#1A1500' }]}>⬆ Paketi dışa aktar (.zip)</Text>
           </Pressable>
           <Pressable style={s.pill} onPress={onImport}><Text style={s.pillText}>⬇ Paket içe aktar</Text></Pressable>
-          <Pressable style={s.pill} onPress={onSort}><Text style={s.pillText}>A→Z / 1→30 sırala</Text></Pressable>
+          <Pressable style={s.pill} onPress={() => onSort(cf)}><Text style={s.pillText}>{cf && cf !== 'none' ? 'Bu bölümü A→Z sırala' : 'A→Z / 1→30 sırala'}</Text></Pressable>
           <Pressable style={[s.pill, !clip && { opacity: 0.4 }]} disabled={!clip} onPress={onOpenPaste}>
             <Text style={s.pillText}>📥 Yapıştır{clip ? ` (${clip.length})` : ''}</Text>
           </Pressable>
@@ -990,7 +991,7 @@ function Library({ onMergeFolder, initialFold, onHome, data, insets, clip, onAdd
             </Pressable>
           )}
         </ScrollView>
-        {folders.length > 0 && <Text style={{ color: C.sub, fontSize: 12, marginTop: 6 }}>Bölüm adına basılı tut: yeniden adlandır</Text>}
+        {folders.length > 0 && <Text style={{ color: C.sub, fontSize: 12, marginTop: 6 }}>{cf && cf !== 'none' ? 'Sıra: ▲▼ oklarıyla değiştir. 1. sayfa bölüme girince ilk açılır.' : 'Bölüm adına basılı tut: yeniden adlandır'}</Text>}
       </View>
 
       {data.images.length === 0 ? (
@@ -1008,7 +1009,7 @@ function Library({ onMergeFolder, initialFold, onHome, data, insets, clip, onAdd
           contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
           columnWrapperStyle={{ gap: 16 }} ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
           ListEmptyComponent={<Text style={{ color: C.sub, textAlign: 'center', marginTop: 40, lineHeight: 22 }}>Burada resim yok.{'\n'}Bir resme basılı tutup "Klasöre taşı" seç.</Text>}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <Pressable
               onPress={() => onOpen(item.id)} onLongPress={() => setActionImg(item)}
               style={({ pressed }) => [s.card, { width: cw, opacity: pressed ? 0.85 : 1 }]}>
@@ -1017,6 +1018,15 @@ function Library({ onMergeFolder, initialFold, onHome, data, insets, clip, onAdd
                 <Text style={s.cardName} numberOfLines={1}>{item.name}</Text>
                 <Text style={{ color: C.sub, fontSize: 12, marginTop: 2 }} numberOfLines={1}>{item.buttons.length} buton{cf === null && item.folder && fmap[item.folder] ? ' · 📁 ' + fmap[item.folder] : ''}</Text>
               </View>
+              {reorder && (
+                <>
+                  <View style={[s.ordNum, { top: cw * 0.75 - 36 }]}><Text style={{ color: '#fff', fontWeight: '900', fontSize: 13 }}>{index + 1}</Text></View>
+                  <View style={s.ordBox}>
+                    <Pressable onPress={() => onMove(item.id, 'up')} hitSlop={6} style={[s.ordBtn, index === 0 && { opacity: 0.35 }]}><Text style={s.ordTxt}>▲</Text></Pressable>
+                    <Pressable onPress={() => onMove(item.id, 'down')} hitSlop={6} style={[s.ordBtn, index === list.length - 1 && { opacity: 0.35 }]}><Text style={s.ordTxt}>▼</Text></Pressable>
+                  </View>
+                </>
+              )}
               {data.startId === item.id && <View style={s.badge}><Text style={s.badgeText}>⌂ Başlangıç</Text></View>}
               <Pressable style={s.more} onPress={() => setActionImg(item)} hitSlop={8}><Text style={{ color: '#fff', fontSize: 18 }}>⋯</Text></Pressable>
             </Pressable>
@@ -1038,7 +1048,9 @@ function Library({ onMergeFolder, initialFold, onHome, data, insets, clip, onAdd
             {clip && <Btn title={`📥 ${clip.length} butonu buna yapıştır`} kind="ghost" style={s.menuBtn} onPress={() => act((im) => onPasteOne(im.id))} />}
             <Btn title="Aa Yeniden adlandır" kind="ghost" style={s.menuBtn} onPress={() => act((im) => onRename(im.id))} />
             <Btn title="📁 Klasöre taşı" kind="ghost" style={s.menuBtn} onPress={() => act((im) => setMoveImg(im))} />
-            <Btn title="⌂ Başlangıç sayfası yap" kind="ghost" style={s.menuBtn} onPress={() => act((im) => onSetStart(im.id))} />
+            <Btn title="⏫ Bölümün ilk sayfası yap (en başa)" kind="ghost" style={s.menuBtn} onPress={() => act((im) => onMove(im.id, 'top'))} />
+            <Btn title="⏬ En sona al" kind="ghost" style={s.menuBtn} onPress={() => act((im) => onMove(im.id, 'bottom'))} />
+            <Btn title="⌂ Uygulama başlangıç sayfası yap" kind="ghost" style={s.menuBtn} onPress={() => act((im) => onSetStart(im.id))} />
             <Btn title="🗑 Sil" kind="danger" style={s.menuBtn} onPress={() => act((im) => onRemove(im.id))} />
           </View>
         </Pressable>
@@ -1195,15 +1207,6 @@ function Home({ data, user, author, insets, onPlay, onProfile, onLibrary, onExpo
 
         <Image source={require('./logo.png')} style={{ width: '100%', height: 190, marginTop: 6 }} resizeMode="contain" />
 
-        {!!last && (
-          <Pressable onPress={() => onPlay(last.id)} style={s.resume}>
-            <Text style={{ fontSize: 26 }}>↩</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '800' }}>Kaldığın yerden devam et</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 2 }} numberOfLines={1}>{last.name}</Text>
-            </View>
-          </Pressable>
-        )}
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
           {author ? (
@@ -1527,8 +1530,33 @@ function Root() {
     ]);
   };
 
-  const sortAll = () =>
-    setData((d) => ({ ...d, images: [...d.images].sort((a, b) => a.name.localeCompare(b.name, 'tr', { numeric: true })) }));
+  const sortAll = (fold) =>
+    setData((d) => {
+      const cmp = (a, b) => a.name.localeCompare(b.name, 'tr', { numeric: true });
+      if (!fold || fold === 'none') return { ...d, images: [...d.images].sort(cmp) };
+      const slots = []; d.images.forEach((x, i) => { if (x.folder === fold) slots.push(i); });
+      const sorted = slots.map((i) => d.images[i]).sort(cmp);
+      const imgs = [...d.images]; slots.forEach((si, k) => { imgs[si] = sorted[k]; });
+      return { ...d, images: imgs };
+    });
+  // bir bölümün içinde sayfayı yukarı/aşağı/en başa/en sona taşır
+  const moveImage = (id, how) =>
+    setData((d) => {
+      const im = d.images.find((i) => i.id === id); if (!im) return d;
+      const key = im.folder || null;
+      const slots = []; d.images.forEach((x, i) => { if ((x.folder || null) === key) slots.push(i); });
+      const items = slots.map((i) => d.images[i]);
+      const pos = items.findIndex((x) => x.id === id);
+      let np = pos;
+      if (how === 'up') np = Math.max(0, pos - 1);
+      else if (how === 'down') np = Math.min(items.length - 1, pos + 1);
+      else if (how === 'top') np = 0;
+      else if (how === 'bottom') np = items.length - 1;
+      if (np === pos) return d;
+      const [it] = items.splice(pos, 1); items.splice(np, 0, it);
+      const imgs = [...d.images]; slots.forEach((si, k) => { imgs[si] = items[k]; });
+      return { ...d, images: imgs };
+    });
 
   const copyButtons = (id) => {
     const im = data.images.find((i) => i.id === id); if (!im) return;
@@ -1617,7 +1645,7 @@ function Root() {
         onOpen={(id) => setScreen({ name: 'editor', id })} onPlay={(id) => play(id, 'library')}
         onRename={rename} onSetStart={(id) => setData((d) => ({ ...d, startId: id }))} onRemove={removeImage}
         onCopy={copyButtons} onPasteOne={(id) => pasteTo([id], 'add')} onOpenPaste={() => setPasteOpen(true)}
-        onSort={sortAll} onExport={doExport} onImport={doImport} onResetMode={resetMode}
+        onSort={sortAll} onMove={moveImage} onExport={doExport} onImport={doImport} onResetMode={resetMode}
         onSetFolder={setFolder} onNewFolder={newFolder} onRenameFolder={renameFolder} onDeleteFolder={deleteFolder} />
     );
   } else {
@@ -1701,6 +1729,10 @@ const s = StyleSheet.create({
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, paddingBottom: 100 },
   bottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingTop: 12, backgroundColor: C.card, borderTopWidth: 1, borderTopColor: C.line },
   pinTag: { position: 'absolute', top: -2, maxWidth: 130, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8 },
+  ordNum: { position: 'absolute', left: 8, top: 8, minWidth: 28, height: 28, borderRadius: 14, paddingHorizontal: 6, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center' },
+  ordBox: { position: 'absolute', right: 8, bottom: 8, flexDirection: 'row', gap: 8 },
+  ordBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: C.accent, alignItems: 'center', justifyContent: 'center' },
+  ordTxt: { color: '#1A1500', fontWeight: '900', fontSize: 15 },
   pin: { position: 'absolute', width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 4, elevation: 5 },
   tip: { position: 'absolute', alignSelf: 'center', backgroundColor: 'rgba(11,16,32,0.88)', paddingHorizontal: 18, paddingVertical: 12, borderRadius: 16, borderWidth: 1, borderColor: C.accent },
   aRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.card, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.line },
