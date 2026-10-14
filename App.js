@@ -682,7 +682,7 @@ function AnchorList({ visible, anchors, images, onJump, onRemove, onClose, inset
 }
 
 // ----------------------------------------------------------------- OYNATICI
-function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onEdit, onImport, onResetMode, insets }) {
+function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onHome, onEdit, onImport, onResetMode, insets }) {
   const { width, height } = useWindowDimensions();
   const [cur, setCur] = useState(startId);
   const [menu, setMenu] = useState(false);
@@ -832,6 +832,13 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onE
               </Pressable>
             ))}
         </View>
+      </Pressable>
+
+      <Pressable onPress={onHome || onExit} hitSlop={10}
+        style={{ position: 'absolute', left: 12, top: insets.top + 8, zIndex: 70, flexDirection: 'row', alignItems: 'center', gap: 6,
+          backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 18, paddingHorizontal: 12, paddingVertical: 7, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }}>
+        <Text style={{ fontSize: 15 }}>🏠</Text>
+        <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>Ana ekran</Text>
       </Pressable>
 
       {pageAnchors.length > 0 && (
@@ -1627,6 +1634,7 @@ function Root() {
         key={vid} startId={vid} homeId={secStart(vimg && vimg.folder) || homeId} images={data.images}
         authorMode={AUTHOR} user={user} onUser={setUser} insets={insets}
         onExit={() => setScreen({ name: AUTHOR && screen.from === 'library' ? 'library' : 'home' })}
+        onHome={() => setScreen({ name: 'home' })}
         onEdit={(id) => setScreen({ name: 'editor', id })}
         onImport={doImport} onResetMode={resetMode} />
     );
