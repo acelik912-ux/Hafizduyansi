@@ -143,7 +143,15 @@ function targetLabel(t, images) {
 
 // ---------------------------------------------------------- PAKET (.zip) İŞLERİ
 // Paket içeriği:  project.json  +  images/<id>.<uzantı>
-async function exportPackage(data, onProgress) {
+async function exportPackage(data, onProgress, sectionId) {
+  let fname = 'hafiz_dunyasi_tum';
+  if (sectionId) {                           // yalnızca bu bölümü paketle
+    const f = (data.folders || []).find((x) => x.id === sectionId);
+    const imgs = data.images.filter((i) => i.folder === sectionId);
+    if (!f || !imgs.length) throw new Error('Bu bölümde resim yok.');
+    data = { startId: imgs[0].id, folders: [f], images: imgs };
+    fname = 'hafiz_' + safeName(sectionId) + '_' + safeName(f.name);
+  }
   const zip = new JSZip();
   const soundMap = {};                       // yerel dosya adı -> paketteki ad
   let sn = 0;
@@ -153,7 +161,7 @@ async function exportPackage(data, onProgress) {
     return { name: snd.name, file: soundMap[snd.file] };
   };
   const meta = {
-    version: 4, startId: data.startId,
+    version: 5, kind: sectionId ? 'section' : 'all', section: sectionId || null, startId: data.startId,
     folders: (data.folders || []).map((f) => ({ id: f.id, name: f.name, cover: f.cover ? safeName(f.id) + '.' + extOf(f.cover) : null })),
     images: data.images.map((im) => ({
       id: im.id, name: im.name, w: im.w, h: im.h, folder: im.folder || null,
@@ -183,7 +191,7 @@ async function exportPackage(data, onProgress) {
   }
   onProgress && onProgress(data.images.length, data.images.length, true);
   const out = await zip.generateAsync({ type: 'base64', compression: 'STORE' }); // resimler zaten sıkışık
-  const path = FileSystem.cacheDirectory + 'hafiz_dunyasi.zip';
+  const path = FileSystem.cacheDirectory + fname + '.zip';
   await FileSystem.writeAsStringAsync(path, out, { encoding: 'base64' });
   if (!(await Sharing.isAvailableAsync())) throw new Error('Bu cihazda paylaşım desteklenmiyor.');
   await Sharing.shareAsync(path, { mimeType: 'application/zip', dialogTitle: 'Paketi paylaş', UTI: 'public.zip-archive' });
@@ -191,7 +199,7 @@ async function exportPackage(data, onProgress) {
 
 // Kullanıcıya dosya seçtirir, paketi açar, resimleri uygulama klasörüne yazar.
 // Başarılıysa {images, startId} döner; iptalse null.
-async function readPackage(onProgress) {
+async function readPackage(onProgress, beforeWipe) {
   const r = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
   if (r.canceled || !r.assets || !r.assets.length) return null;
   const b64 = await FileSystem.readAsStringAsync(r.assets[0].uri, { encoding: 'base64' });
@@ -201,8 +209,12 @@ async function readPackage(onProgress) {
   const meta = JSON.parse(await pj.async('string'));
   if (!meta || !Array.isArray(meta.images) || !meta.images.length) throw new Error('Pakette resim yok.');
 
-  await FileSystem.deleteAsync(DIR, { idempotent: true });
-  await FileSystem.deleteAsync(ADIR, { idempotent: true });
+  const isSection = meta.kind === 'section';
+  if (!isSection) {                                   // tam paket: önce onay, sonra eski içeriği sil
+    if (beforeWipe && !(await beforeWipe())) return null;
+    await FileSystem.deleteAsync(DIR, { idempotent: true });
+    await FileSystem.deleteAsync(ADIR, { idempotent: true });
+  }
   await ensureDir();
   const stamp = Date.now().toString(36);          // önbellek sorunu olmasın diye her içe aktarmada yeni dosya adı
   const images = [];
@@ -250,7 +262,7 @@ async function readPackage(onProgress) {
   }
   const fset = new Set(folders.map((f) => f.id));
   images.forEach((im) => { if (im.folder && !fset.has(im.folder)) im.folder = null; });
-  return { images, startId, folders };
+  return { images, startId, folders, kind: isSection ? 'section' : 'all', section: meta.section || (folders[0] && folders[0].id) || null };
 }
 
 // ------------------------------------------------------------ küçük bileşenler
@@ -973,7 +985,7 @@ function Library({ onMove, onMergeFolder, initialFold, onHome, data, insets, cli
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }} contentContainerStyle={{ gap: 8 }}>
           <Pressable style={s.pill} onPress={onHome}><Text style={s.pillText}>🏠 Ana ekran</Text></Pressable>
           <Pressable style={[s.pill, !data.images.length && { opacity: 0.4 }, { backgroundColor: C.accent }]} disabled={!data.images.length} onPress={onExport}>
-            <Text style={[s.pillText, { color: '#1A1500' }]}>⬆ Paketi dışa aktar (.zip)</Text>
+            <Text style={[s.pillText, { color: '#1A1500' }]}>⬆ Tümünü dışa aktar (.zip)</Text>
           </Pressable>
           <Pressable style={s.pill} onPress={onImport}><Text style={s.pillText}>⬇ Paket içe aktar</Text></Pressable>
           <Pressable style={s.pill} onPress={() => onSort(cf)}><Text style={s.pillText}>{cf && cf !== 'none' ? 'Bu bölümü A→Z sırala' : 'A→Z / 1→30 sırala'}</Text></Pressable>
@@ -1182,7 +1194,7 @@ function ProfileModal({ visible, profile, onSave, onPhoto, onRemovePhoto, onAuth
 }
 
 // ----------------------------------------------------------------- ANA EKRAN (30 bölüm)
-function Home({ data, user, author, insets, onPlay, onProfile, onLibrary, onExport, onImport, onPassword, onResetMode, onCover, onRenameSec, onAddTo }) {
+function Home({ onExportSec, data, user, author, insets, onPlay, onProfile, onLibrary, onExport, onImport, onPassword, onResetMode, onCover, onRenameSec, onAddTo }) {
   const { width } = useWindowDimensions();
   const [menu, setMenu] = useState(null);
   const profile = user.profile || {};
@@ -1219,7 +1231,7 @@ function Home({ data, user, author, insets, onPlay, onProfile, onLibrary, onExpo
           {author ? (
             <>
               <Pressable style={[s.pill, { backgroundColor: C.accent }]} onPress={() => onLibrary(null)}><Text style={[s.pillText, { color: '#1A1500' }]}>✎ Tüm resimler</Text></Pressable>
-              <Pressable style={s.pill} onPress={onExport}><Text style={s.pillText}>⬆ Dışa aktar</Text></Pressable>
+              <Pressable style={s.pill} onPress={onExport}><Text style={s.pillText}>⬆ Tümünü dışa aktar</Text></Pressable>
               <Pressable style={s.pill} onPress={onImport}><Text style={s.pillText}>⬇ İçe aktar</Text></Pressable>
               <Pressable style={s.pill} onPress={onPassword}><Text style={s.pillText}>🔒 Şifre</Text></Pressable>
               <Pressable style={s.pill} onPress={onResetMode}><Text style={s.pillText}>⚙ Mod seç</Text></Pressable>
@@ -1262,6 +1274,7 @@ function Home({ data, user, author, insets, onPlay, onProfile, onLibrary, onExpo
             <Btn title="Aa Adını değiştir" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onRenameSec(f.id))} />
             <Btn title="＋ Bu bölüme resim ekle" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onAddTo(f.id))} />
             <Btn title="✎ Bu bölümün resimlerini düzenle" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onLibrary(f.id))} />
+            {menu && !!firstOf(menu.id) && <Btn title="📦 Bu bölümü dışa aktar (tek zip)" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onExportSec(f.id))} />}
             {menu && !!firstOf(menu.id) && <Btn title="▶ Bölümü aç" style={s.menuBtn} onPress={() => act((f) => onPlay(firstOf(f.id)))} />}
           </View>
         </Pressable>
@@ -1596,25 +1609,51 @@ function Root() {
     setBusy(false);
   };
 
-  const doImport = () => {
-    const run = async () => {
-      setBusy('Paket açılıyor…');
-      try {
-        const pkg = await readPackage((i, n) => setBusy(`Paket açılıyor… ${i}/${n}`));
-        if (pkg) {
-          setData(ensureSections(pkg));
-          setScreen({ name: 'home' });
-          Alert.alert('Hazır', `${pkg.images.length} sayfa yüklendi.`);
-        }
-      } catch (e) { Alert.alert('Paket açılamadı', e.message); }
-      setBusy(false);
-    };
-    if (dataRef.current.images.length) {
-      Alert.alert('Paket yükle', 'Şu anki içerik silinip seçeceğin paketle değiştirilecek. (Çıpaların korunur.)', [
-        { text: 'Vazgeç', style: 'cancel' },
-        { text: 'Devam', onPress: run },
-      ]);
-    } else run();
+  const doExportSection = async (fid) => {
+    setBusy('Bölüm hazırlanıyor…');
+    try {
+      await exportPackage(dataRef.current, (i, n, done) =>
+        setBusy(done ? 'Zip oluşturuluyor…' : `Bölüm hazırlanıyor… ${i}/${n}`), fid);
+    } catch (e) { Alert.alert('Dışa aktarılamadı', e.message); }
+    setBusy(false);
+  };
+
+  // tam pakette eski içerik silineceği için onay ister (bölüm paketi sormadan birleşir)
+  const confirmWipe = () => (!dataRef.current.images.length ? true : new Promise((res) =>
+    Alert.alert('Tam paket', 'Bu paket TÜM içeriği içeriyor. Şu anki içerik silinip yerine geçecek. (Çıpaların korunur.)', [
+      { text: 'Vazgeç', style: 'cancel', onPress: () => res(false) },
+      { text: 'Devam', onPress: () => res(true) },
+    ], { onDismiss: () => res(false) })));
+
+  const doImport = async () => {
+    setBusy('Paket açılıyor…');
+    try {
+      const pkg = await readPackage((i, n) => setBusy(`Paket açılıyor… ${i}/${n}`), confirmWipe);
+      if (pkg && pkg.kind === 'section') {
+        // sadece bu bölümü değiştir; diğer bölümlere dokunma
+        const d = dataRef.current, sid = pkg.section;
+        const nf = (pkg.folders || []).find((f) => f.id === sid) || { id: sid, name: 'Bölüm', cover: null };
+        const oldF = (d.folders || []).find((f) => f.id === sid);
+        const incoming = new Set(pkg.images.map((i) => i.id));
+        d.images.filter((i) => i.folder === sid).forEach((i) => {
+          FileSystem.deleteAsync(DIR + i.file, { idempotent: true }).catch(() => {});
+          (i.buttons || []).forEach((b) => { if (b.sound && b.sound.file) FileSystem.deleteAsync(ADIR + b.sound.file, { idempotent: true }).catch(() => {}); });
+        });
+        if (oldF && oldF.cover) FileSystem.deleteAsync(DIR + oldF.cover, { idempotent: true }).catch(() => {});
+        const keep = d.images.filter((i) => i.folder !== sid && !incoming.has(i.id));
+        const folders = (d.folders || []).some((f) => f.id === sid)
+          ? d.folders.map((f) => (f.id === sid ? { ...f, name: nf.name, cover: nf.cover } : f))
+          : [...(d.folders || []), nf];
+        setData(ensureSections({ ...d, images: [...keep, ...pkg.images], folders }));
+        setScreen({ name: 'home' });
+        Alert.alert('Hazır', `"${nf.name}" bölümü güncellendi (${pkg.images.length} sayfa). Diğer bölümlere dokunulmadı.`);
+      } else if (pkg) {
+        setData(ensureSections(pkg));
+        setScreen({ name: 'home' });
+        Alert.alert('Hazır', `${pkg.images.length} sayfa yüklendi.`);
+      }
+    } catch (e) { Alert.alert('Paket açılamadı', e.message); }
+    setBusy(false);
   };
 
   const homeId = data.startId && data.images.find((i) => i.id === data.startId) ? data.startId : (data.images[0] && data.images[0].id);
@@ -1662,7 +1701,7 @@ function Root() {
         data={data} user={user} author={AUTHOR} insets={insets}
         onPlay={(id) => play(id, 'home')} onProfile={() => setProfileOpen(true)}
         onLibrary={(fold) => setScreen({ name: 'library', fold })}
-        onExport={doExport} onImport={doImport} onPassword={changePassword} onResetMode={resetMode}
+        onExportSec={doExportSection} onExport={doExport} onImport={doImport} onPassword={changePassword} onResetMode={resetMode}
         onCover={setCover} onRenameSec={renameFolder} onAddTo={(fid) => addMany(fid)} />
     );
   }
