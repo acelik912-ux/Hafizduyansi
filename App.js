@@ -32,6 +32,9 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import JSZip from 'jszip';
+import nacl from 'tweetnacl';
+import { pbkdf2Async } from '@noble/hashes/pbkdf2';
+import { sha256 } from '@noble/hashes/sha256';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 let FileSystem;
@@ -143,7 +146,116 @@ function targetLabel(t, images) {
 
 // ---------------------------------------------------------- PAKET (.zip) İŞLERİ
 // Paket içeriği:  project.json  +  images/<id>.<uzantı>
-async function exportPackage(data, onProgress, sectionId) {
+// ======================================================== ŞİFRELİ PAKET (.hdz)
+// Biçim: 'HDZ1' | tuz(16) | yineleme(4) | parça boyutu(4) | düz boyut(4) | parçalar (her biri +16 bayt doğrulama)
+// Anahtar: PBKDF2-SHA256(şifre, tuz). Şifreleme: XSalsa20-Poly1305 (tweetnacl), parça başına sayaçlı nonce.
+const HDZ_ITER = 60000;
+const HDZ_CHUNK = 1024 * 1024;
+const B64CH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const B64REV = (() => { const t = new Uint8Array(256).fill(255); for (let i = 0; i < 64; i++) t[B64CH.charCodeAt(i)] = i; return t; })();
+const tick = () => new Promise((r) => setTimeout(r, 0));
+
+function utf8Bytes(str) {
+  const out = []; const s = String(str);
+  for (let i = 0; i < s.length; i++) {
+    let c = s.charCodeAt(i);
+    if (c >= 0xd800 && c <= 0xdbff && i + 1 < s.length) { const d = s.charCodeAt(i + 1); if (d >= 0xdc00 && d <= 0xdfff) { c = 0x10000 + ((c - 0xd800) << 10) + (d - 0xdc00); i++; } }
+    if (c < 0x80) out.push(c);
+    else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 63));
+    else if (c < 0x10000) out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    else out.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+  }
+  return new Uint8Array(out);
+}
+
+function bytesToB64(u8) {
+  const n = u8.length, outLen = Math.ceil(n / 3) * 4;
+  const codes = new Uint8Array(outLen);
+  let o = 0, i = 0;
+  for (; i + 2 < n; i += 3) {
+    const v = (u8[i] << 16) | (u8[i + 1] << 8) | u8[i + 2];
+    codes[o++] = B64CH.charCodeAt((v >> 18) & 63); codes[o++] = B64CH.charCodeAt((v >> 12) & 63);
+    codes[o++] = B64CH.charCodeAt((v >> 6) & 63); codes[o++] = B64CH.charCodeAt(v & 63);
+  }
+  if (n - i === 1) {
+    const v = u8[i] << 16;
+    codes[o++] = B64CH.charCodeAt((v >> 18) & 63); codes[o++] = B64CH.charCodeAt((v >> 12) & 63); codes[o++] = 61; codes[o++] = 61;
+  } else if (n - i === 2) {
+    const v = (u8[i] << 16) | (u8[i + 1] << 8);
+    codes[o++] = B64CH.charCodeAt((v >> 18) & 63); codes[o++] = B64CH.charCodeAt((v >> 12) & 63); codes[o++] = B64CH.charCodeAt((v >> 6) & 63); codes[o++] = 61;
+  }
+  const parts = [];
+  for (let k = 0; k < outLen; k += 8192) parts.push(String.fromCharCode.apply(null, codes.subarray(k, Math.min(outLen, k + 8192))));
+  return parts.join('');
+}
+
+function b64ToBytes(input) {
+  const str = input.indexOf('\n') >= 0 || input.indexOf('\r') >= 0 ? input.replace(/[\r\n]/g, '') : input;
+  let len = str.length, pad = 0;
+  if (str.charCodeAt(len - 1) === 61) pad++;
+  if (str.charCodeAt(len - 2) === 61) pad++;
+  const out = new Uint8Array((len * 3) / 4 - pad);
+  let o = 0;
+  for (let i = 0; i < len; i += 4) {
+    const a = B64REV[str.charCodeAt(i)], b = B64REV[str.charCodeAt(i + 1)], c = B64REV[str.charCodeAt(i + 2)], d = B64REV[str.charCodeAt(i + 3)];
+    const v = (a << 18) | (b << 12) | ((c & 63) << 6) | (d & 63);
+    if (o < out.length) out[o++] = (v >> 16) & 255;
+    if (o < out.length) out[o++] = (v >> 8) & 255;
+    if (o < out.length) out[o++] = v & 255;
+  }
+  return out;
+}
+
+function randBytes(n) {   // tuz için: benzersiz olması yeter (gizli olması gerekmez)
+  const seed = Date.now() + ':' + Math.random() + ':' + Math.random() + ':' + Math.random() * 1e17;
+  return nacl.hash(utf8Bytes(seed)).slice(0, n);
+}
+const putU32 = (a, o, v) => { a[o] = (v >>> 24) & 255; a[o + 1] = (v >>> 16) & 255; a[o + 2] = (v >>> 8) & 255; a[o + 3] = v & 255; };
+const getU32 = (a, o) => ((a[o] << 24) | (a[o + 1] << 16) | (a[o + 2] << 8) | a[o + 3]) >>> 0;
+const chunkNonce = (i) => { const n = new Uint8Array(24); n[0] = i & 255; n[1] = (i >>> 8) & 255; n[2] = (i >>> 16) & 255; n[3] = (i >>> 24) & 255; return n; };
+const deriveKey = (password, salt, iters) => pbkdf2Async(sha256, utf8Bytes(password), salt, { c: iters, dkLen: 32, asyncTick: 20 });
+const isHdzB64 = (b64) => b64.startsWith('SERa');                    // 'HDZ' -> base64 'SERa'
+
+async function encryptHdz(plain, password, onProgress) {
+  const salt = randBytes(16);
+  const key = await deriveKey(password, salt, HDZ_ITER);
+  const nCh = Math.max(1, Math.ceil(plain.length / HDZ_CHUNK));
+  const out = new Uint8Array(32 + plain.length + nCh * 16);
+  out.set([0x48, 0x44, 0x5a, 0x31], 0); out.set(salt, 4);
+  putU32(out, 20, HDZ_ITER); putU32(out, 24, HDZ_CHUNK); putU32(out, 28, plain.length);
+  let off = 32;
+  for (let i = 0; i < nCh; i++) {
+    const box = nacl.secretbox(plain.subarray(i * HDZ_CHUNK, Math.min(plain.length, (i + 1) * HDZ_CHUNK)), chunkNonce(i), key);
+    out.set(box, off); off += box.length;
+    onProgress && onProgress(i + 1, nCh);
+    await tick();
+  }
+  return out;
+}
+
+async function decryptHdz(bytes, password, onProgress) {
+  const bad = (code, msg) => { const e = new Error(msg); e.code = code; return e; };
+  if (bytes.length < 32 || bytes[0] !== 0x48 || bytes[1] !== 0x44 || bytes[2] !== 0x5a || bytes[3] !== 0x31) throw bad('FORMAT', 'Bu şifreli bir Hafız Dünyası paketi değil.');
+  const salt = bytes.slice(4, 20), iters = getU32(bytes, 20), chunk = getU32(bytes, 24), total = getU32(bytes, 28);
+  if (iters < 1000 || iters > 500000 || chunk < 1024 || chunk > 16 * 1024 * 1024) throw bad('FORMAT', 'Paket başlığı geçersiz.');
+  const nCh = Math.max(1, Math.ceil(total / chunk));
+  if (bytes.length !== 32 + total + nCh * 16) throw bad('CORRUPT', 'Dosya eksik ya da bozuk (tam indirilmemiş olabilir).');
+  const key = await deriveKey(password, salt, iters);
+  const plain = new Uint8Array(total);
+  let off = 32, po = 0;
+  for (let i = 0; i < nCh; i++) {
+    const clen = Math.min(total - i * chunk, chunk) + 16;
+    const opened = nacl.secretbox.open(bytes.subarray(off, off + clen), chunkNonce(i), key);
+    if (!opened) throw bad(i === 0 ? 'BADPW' : 'CORRUPT', i === 0 ? 'Şifre yanlış ya da dosya bozuk.' : 'Dosya bozuk.');
+    plain.set(opened, po); po += opened.length; off += clen;
+    onProgress && onProgress(i + 1, nCh);
+    await tick();
+  }
+  return plain;
+}
+
+async function exportPackage(data, onProgress, sectionId, password) {
+  if (!password) throw new Error('Paket şifresi gerekli.');
   let fname = 'hafiz_dunyasi_tum';
   if (sectionId) {                           // yalnızca bu bölümü paketle
     const f = (data.folders || []).find((x) => x.id === sectionId);
@@ -190,20 +302,34 @@ async function exportPackage(data, onProgress, sectionId) {
     } catch (e) { /* eksik ses dosyası atlanır */ }
   }
   onProgress && onProgress(data.images.length, data.images.length, true);
-  const out = await zip.generateAsync({ type: 'base64', compression: 'STORE' }); // resimler zaten sıkışık
-  const path = FileSystem.cacheDirectory + fname + '.zip';
+  const zipBytes = await zip.generateAsync({ type: 'uint8array', compression: 'STORE' }); // resimler zaten sıkışık
+  onProgress && onProgress(0, 0, 'key');
+  const enc = await encryptHdz(zipBytes, password, (i, n) => onProgress && onProgress(i, n, 'enc'));
+  const out = bytesToB64(enc);
+  const path = FileSystem.cacheDirectory + fname + '.hdz';
   await FileSystem.writeAsStringAsync(path, out, { encoding: 'base64' });
   if (!(await Sharing.isAvailableAsync())) throw new Error('Bu cihazda paylaşım desteklenmiyor.');
-  await Sharing.shareAsync(path, { mimeType: 'application/zip', dialogTitle: 'Paketi paylaş', UTI: 'public.zip-archive' });
+  await Sharing.shareAsync(path, { mimeType: 'application/octet-stream', dialogTitle: 'Şifreli paketi paylaş', UTI: 'public.data' });
 }
 
 // Kullanıcıya dosya seçtirir, paketi açar, resimleri uygulama klasörüne yazar.
 // Başarılıysa {images, startId} döner; iptalse null.
-async function readPackage(onProgress, beforeWipe) {
+async function readPackage(onProgress, beforeWipe, askPw) {
   const r = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
   if (r.canceled || !r.assets || !r.assets.length) return null;
   const b64 = await FileSystem.readAsStringAsync(r.assets[0].uri, { encoding: 'base64' });
-  const zip = await JSZip.loadAsync(b64, { base64: true });
+  let zip;
+  if (isHdzB64(b64)) {                               // şifreli paket (.hdz)
+    if (!askPw) throw new Error('Şifre sorulamadı.');
+    const bytes = b64ToBytes(b64);
+    let plain = null;
+    const pw = await askPw(async (text) => {
+      try { plain = await decryptHdz(bytes, text, (i, n) => onProgress && onProgress(i, n, 'dec')); return true; }
+      catch (e) { if (e.code === 'BADPW') return false; throw e; }
+    });
+    if (pw === null || !plain) return null;
+    zip = await JSZip.loadAsync(plain);
+  } else zip = await JSZip.loadAsync(b64, { base64: true });   // eski şifresiz zip
   const pj = zip.file('project.json');
   if (!pj) throw new Error('Bu bir Hafız Dünyası paketi değil (project.json bulunamadı).');
   const meta = JSON.parse(await pj.async('string'));
@@ -714,6 +840,59 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onH
   const anchors = user.anchors || {};
   const pageAnchors = anchors[img.id] || [];
 
+  // ---- iki parmakla yakınlaştırma (1x–5x), yakınken tek parmakla kaydırma
+  const zScale = useRef(new Animated.Value(1)).current;
+  const zTx = useRef(new Animated.Value(0)).current;
+  const zTy = useRef(new Animated.Value(0)).current;
+  const zs = useRef({ s: 1, tx: 0, ty: 0 });
+  const zoomedRef = useRef(false);
+  const dims = useRef({});
+  const [zoomed, setZoomed] = useState(false);
+  dims.current = { w: width, h: height, rw: rect.w, rh: rect.h };
+  const applyZ = (s, tx, ty) => {
+    const d = dims.current;
+    s = Math.min(5, Math.max(1, s));
+    const mx = Math.max(0, (d.rw * s - d.w) / 2), my = Math.max(0, (d.rh * s - d.h) / 2);
+    tx = Math.min(mx, Math.max(-mx, tx)); ty = Math.min(my, Math.max(-my, ty));
+    zs.current = { s, tx, ty };
+    zScale.setValue(s); zTx.setValue(tx); zTy.setValue(ty);
+    const z = s > 1.02;
+    if (z !== zoomedRef.current) { zoomedRef.current = z; setZoomed(z); }
+  };
+  const pinch = useRef(null);
+  const origin = useRef({ gx: 0, gy: 0, tx: 0, ty: 0, n: 0 });
+  const wantZoom = (e, g) => e.nativeEvent.touches.length >= 2 || (zs.current.s > 1.02 && (Math.abs(g.dx) > 6 || Math.abs(g.dy) > 6));
+  const zoomPan = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => false,
+    onMoveShouldSetPanResponderCapture: wantZoom,
+    onMoveShouldSetPanResponder: wantZoom,
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: (e) => {
+      pinch.current = null;
+      origin.current = { gx: 0, gy: 0, tx: zs.current.tx, ty: zs.current.ty, n: e.nativeEvent.touches.length };
+    },
+    onPanResponderMove: (e, g) => {
+      const ts = e.nativeEvent.touches, d = dims.current;
+      if (ts.length !== origin.current.n) {                 // parmak sayısı değişti: referansı yenile
+        origin.current = { gx: g.dx, gy: g.dy, tx: zs.current.tx, ty: zs.current.ty, n: ts.length };
+        pinch.current = null;
+      }
+      if (ts.length >= 2) {
+        const dist = Math.hypot(ts[0].pageX - ts[1].pageX, ts[0].pageY - ts[1].pageY);
+        const mx = (ts[0].pageX + ts[1].pageX) / 2, my = (ts[0].pageY + ts[1].pageY) / 2;
+        if (!pinch.current) pinch.current = { d0: Math.max(1, dist), mx0: mx, my0: my, ...zs.current };
+        const p = pinch.current, s = Math.min(5, Math.max(1, p.s * dist / p.d0)), cx = d.w / 2, cy = d.h / 2;
+        applyZ(s, (mx - cx) - (s / p.s) * (p.mx0 - cx - p.tx), (my - cy) - (s / p.s) * (p.my0 - cy - p.ty));
+      } else {
+        const o = origin.current;
+        applyZ(zs.current.s, o.tx + (g.dx - o.gx), o.ty + (g.dy - o.gy));
+      }
+    },
+    onPanResponderRelease: () => { pinch.current = null; if (zs.current.s < 1.05) applyZ(1, 0, 0); },
+    onPanResponderTerminate: () => { pinch.current = null; if (zs.current.s < 1.05) applyZ(1, 0, 0); },
+  })).current;
+  useEffect(() => { applyZ(1, 0, 0); }, [img.id]);       // sayfa değişince yakınlaştırmayı sıfırla
+
   useEffect(() => { onUser((u) => (u.last === img.id ? u : { ...u, last: img.id })); }, [img.id]);
   useEffect(() => {
     if (!user.seen) {
@@ -804,7 +983,9 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onH
 
   const openMenuAt = (e) => {
     const { pageX, pageY } = e.nativeEvent;
-    setPress({ x: (pageX - rect.x) / rect.w, y: (pageY - rect.y) / rect.h });
+    const z = zs.current, cx = width / 2, cy = height / 2;     // ekran -> sayfa koordinatı (yakınlaştırma ters çevrilir)
+    const px = cx + (pageX - cx - z.tx) / z.s, py = cy + (pageY - cy - z.ty) / z.s;
+    setPress({ x: (px - rect.x) / rect.w, y: (py - rect.y) / rect.h });
     setMenu(true);
   };
   const showHints = () => { setMenu(false); setHints(true); setTimeout(() => setHints(false), 2500); };
@@ -812,12 +993,14 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onH
 
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
+      <View style={{ flex: 1 }} {...zoomPan.panHandlers}>
+      <Animated.View style={{ flex: 1, transform: [{ translateX: zTx }, { translateY: zTy }, { scale: zScale }] }}>
       <Pressable
         style={{ flex: 1 }} delayLongPress={600}
         onLongPress={openMenuAt}>
         <Animated.View style={{ flex: 1, opacity: fade, transform: [{ translateX: slide }] }}>
           <View style={{ position: 'absolute', left: rect.x, top: rect.y, width: rect.w, height: rect.h }}>
-            <Image source={srcOf(img)} style={{ width: '100%', height: '100%' }} resizeMode="stretch" />
+            <Image source={srcOf(img)} style={{ width: '100%', height: '100%' }} resizeMode="stretch" resizeMethod="scale" />
             {img.buttons.map((b) => (
               <Pressable
                 key={b.id} onPress={() => go(b)} onLongPress={openMenuAt} delayLongPress={600}
@@ -845,6 +1028,15 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onH
             ))}
         </View>
       </Pressable>
+      </Animated.View>
+      </View>
+
+      {zoomed && (
+        <Pressable onPress={() => applyZ(1, 0, 0)} hitSlop={10}
+          style={{ position: 'absolute', right: 12, bottom: insets.bottom + 16, zIndex: 70, backgroundColor: 'rgba(0,0,0,0.65)', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }}>
+          <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>⤢ Sığdır</Text>
+        </Pressable>
+      )}
 
       <Pressable onPress={onHome || onExit} hitSlop={10}
         style={{ position: 'absolute', left: 12, top: insets.top + 8, zIndex: 70, flexDirection: 'row', alignItems: 'center', gap: 6,
@@ -863,7 +1055,7 @@ function Viewer({ startId, homeId, images, authorMode, user, onUser, onExit, onH
       {tip && (
         <View pointerEvents="none" style={[s.tip, { bottom: insets.bottom + 30 }]}>
           <Text style={{ color: '#fff', textAlign: 'center', lineHeight: 20 }}>
-            Ekrana <Text style={{ fontWeight: '800' }}>uzun basarak</Text> menüyü aç{'\n'}ve takıldığın yere 📌 çıpa koy
+            Ekrana <Text style={{ fontWeight: '800' }}>uzun basarak</Text> menüyü aç ve 📌 çıpa koy.{'\n'}<Text style={{ fontWeight: '800' }}>İki parmakla</Text> yakınlaştır.
           </Text>
         </View>
       )}
@@ -985,7 +1177,7 @@ function Library({ onMove, onMergeFolder, initialFold, onHome, data, insets, cli
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }} contentContainerStyle={{ gap: 8 }}>
           <Pressable style={s.pill} onPress={onHome}><Text style={s.pillText}>🏠 Ana ekran</Text></Pressable>
           <Pressable style={[s.pill, !data.images.length && { opacity: 0.4 }, { backgroundColor: C.accent }]} disabled={!data.images.length} onPress={onExport}>
-            <Text style={[s.pillText, { color: '#1A1500' }]}>⬆ Tümünü dışa aktar (.zip)</Text>
+            <Text style={[s.pillText, { color: '#1A1500' }]}>⬆ Tümünü dışa aktar (şifreli)</Text>
           </Pressable>
           <Pressable style={s.pill} onPress={onImport}><Text style={s.pillText}>⬇ Paket içe aktar</Text></Pressable>
           <Pressable style={s.pill} onPress={() => onSort(cf)}><Text style={s.pillText}>{cf && cf !== 'none' ? 'Bu bölümü A→Z sırala' : 'A→Z / 1→30 sırala'}</Text></Pressable>
@@ -1127,24 +1319,31 @@ function PassModal({ prompt, onDone }) {
   const [a, setA] = useState('');
   const [b, setB] = useState('');
   const [err, setErr] = useState('');
-  useEffect(() => { setA(''); setB(''); setErr(''); }, [prompt]);
+  const [wait, setWait] = useState(false);
+  useEffect(() => { setA(''); setB(''); setErr(''); setWait(false); }, [prompt]);
   if (!prompt) return null;
   const create = prompt.mode === 'create';
-  const submit = () => {
+  const min = prompt.min || 4;
+  const submit = async () => {
+    if (wait) return;
     if (create) {
-      if (a.length < 4) return setErr('En az 4 karakter olmalı.');
+      if (a.length < min) return setErr(`En az ${min} karakter olmalı.`);
       if (a !== b) return setErr('İki şifre aynı değil.');
       onDone(a);
-    } else if (prompt.check && !prompt.check(a)) setErr('Şifre yanlış.');
-    else onDone(a || 'ok');
+    } else if (prompt.check) {
+      setWait(true);
+      try { const ok = await prompt.check(a); if (!ok) setErr('Şifre yanlış.'); else onDone(a || 'ok'); }
+      catch (e) { setErr(e.message || 'Hata oluştu.'); }
+      setWait(false);
+    } else onDone(a || 'ok');
   };
   return (
     <Modal transparent animationType="fade" visible onRequestClose={() => onDone(null)}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.center, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
         <View style={s.dialog}>
-          <Text style={s.h2}>{create ? '🔒 Yazar şifresi oluştur' : '🔒 Yazar şifresi'}</Text>
+          <Text style={s.h2}>{prompt.title || (create ? '🔒 Yazar şifresi oluştur' : '🔒 Yazar şifresi')}</Text>
           <Text style={{ color: C.sub, marginBottom: 10, lineHeight: 19 }}>
-            {create ? 'Yazar moduna girerken bu şifre sorulacak. Unutursan uygulama verisini silmek gerekir; bir yere not et.' : 'Yazar moduna girmek için şifreni yaz.'}
+            {prompt.desc || (create ? 'Yazar moduna girerken bu şifre sorulacak. Unutursan uygulama verisini silmek gerekir; bir yere not et.' : 'Yazar moduna girmek için şifreni yaz.')}
           </Text>
           <TextInput value={a} onChangeText={(v) => { setA(v); setErr(''); }} autoFocus secureTextEntry
             placeholder="Şifre" placeholderTextColor={C.sub} style={s.input} onSubmitEditing={create ? undefined : submit} />
@@ -1153,7 +1352,7 @@ function PassModal({ prompt, onDone }) {
           {!!err && <Text style={{ color: C.danger, marginTop: 8 }}>{err}</Text>}
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
             <Btn title="Vazgeç" kind="ghost" onPress={() => onDone(null)} style={{ flex: 1 }} />
-            <Btn title="Tamam" onPress={submit} style={{ flex: 1 }} />
+            <Btn title={wait ? 'Çözülüyor…' : 'Tamam'} onPress={submit} disabled={wait} style={{ flex: 1 }} />
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -1237,7 +1436,7 @@ function Home({ onExportSec, data, user, author, insets, onPlay, onProfile, onLi
               <Pressable style={s.pill} onPress={onResetMode}><Text style={s.pillText}>⚙ Mod seç</Text></Pressable>
             </>
           ) : (
-            <Pressable style={[s.pill, { backgroundColor: C.accent }]} onPress={onImport}><Text style={[s.pillText, { color: '#1A1500' }]}>📦 Paket aç (.zip)</Text></Pressable>
+            <Pressable style={[s.pill, { backgroundColor: C.accent }]} onPress={onImport}><Text style={[s.pillText, { color: '#1A1500' }]}>📦 Paket aç</Text></Pressable>
           )}
         </ScrollView>
 
@@ -1274,7 +1473,7 @@ function Home({ onExportSec, data, user, author, insets, onPlay, onProfile, onLi
             <Btn title="Aa Adını değiştir" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onRenameSec(f.id))} />
             <Btn title="＋ Bu bölüme resim ekle" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onAddTo(f.id))} />
             <Btn title="✎ Bu bölümün resimlerini düzenle" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onLibrary(f.id))} />
-            {menu && !!firstOf(menu.id) && <Btn title="📦 Bu bölümü dışa aktar (tek zip)" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onExportSec(f.id))} />}
+            {menu && !!firstOf(menu.id) && <Btn title="📦 Bu bölümü dışa aktar (şifreli)" kind="ghost" style={s.menuBtn} onPress={() => act((f) => onExportSec(f.id))} />}
             {menu && !!firstOf(menu.id) && <Btn title="▶ Bölümü aç" style={s.menuBtn} onPress={() => act((f) => onPlay(firstOf(f.id)))} />}
           </View>
         </Pressable>
@@ -1344,7 +1543,7 @@ function Root() {
   const promptName = (title, initial = '') => new Promise((res) => setNamePrompt({ title, initial, res }));
   const finishPrompt = (v) => { namePrompt.res(v); setNamePrompt(null); };
 
-  const askPass = (kind, check) => new Promise((res) => setPassPrompt({ mode: kind, check, res }));
+  const askPass = (kind, check, opts) => new Promise((res) => setPassPrompt({ mode: kind, check, res, ...(opts || {}) }));
   const finishPass = (v) => { passPrompt.res(v); setPassPrompt(null); };
   const enterAuthor = async () => {
     let stored = null;
@@ -1600,21 +1799,26 @@ function Root() {
   };
 
   // ---- paket dışa / içe aktarma
+  const askPkgPassword = () => askPass('create', null, {
+    title: '🔒 Paket şifresi', min: 6,
+    desc: 'Paket bu şifreyle kilitlenecek. Okuyucuya şifreyi ayrıca ilet. Unutulursa paket kurtarılamaz, bir yere not et. Uzun ve tahmin edilmesi zor bir şifre daha güvenlidir.',
+  });
+  const exportCb = (what) => (i, n, ph) =>
+    setBusy(ph === 'key' ? 'Şifre anahtarı hazırlanıyor…' : ph === 'enc' ? `Şifreleniyor… ${i}/${n}` : ph ? 'Zip oluşturuluyor…' : `${what} hazırlanıyor… ${i}/${n}`);
+
   const doExport = async () => {
+    const pw = await askPkgPassword(); if (!pw) return;
     setBusy('Paket hazırlanıyor…');
-    try {
-      await exportPackage(dataRef.current, (i, n, done) =>
-        setBusy(done ? 'Zip oluşturuluyor…' : `Paket hazırlanıyor… ${i}/${n}`));
-    } catch (e) { Alert.alert('Dışa aktarılamadı', e.message); }
+    try { await exportPackage(dataRef.current, exportCb('Paket'), null, pw); }
+    catch (e) { Alert.alert('Dışa aktarılamadı', e.message); }
     setBusy(false);
   };
 
   const doExportSection = async (fid) => {
+    const pw = await askPkgPassword(); if (!pw) return;
     setBusy('Bölüm hazırlanıyor…');
-    try {
-      await exportPackage(dataRef.current, (i, n, done) =>
-        setBusy(done ? 'Zip oluşturuluyor…' : `Bölüm hazırlanıyor… ${i}/${n}`), fid);
-    } catch (e) { Alert.alert('Dışa aktarılamadı', e.message); }
+    try { await exportPackage(dataRef.current, exportCb('Bölüm'), fid, pw); }
+    catch (e) { Alert.alert('Dışa aktarılamadı', e.message); }
     setBusy(false);
   };
 
@@ -1628,7 +1832,10 @@ function Root() {
   const doImport = async () => {
     setBusy('Paket açılıyor…');
     try {
-      const pkg = await readPackage((i, n) => setBusy(`Paket açılıyor… ${i}/${n}`), confirmWipe);
+      const pkg = await readPackage(
+        (i, n, ph) => setBusy(ph === 'dec' ? `Şifre çözülüyor… ${i}/${n}` : `Paket açılıyor… ${i}/${n}`),
+        confirmWipe,
+        (check) => askPass('enter', check, { title: '🔒 Paket şifresi', desc: 'Bu paketin şifresini yaz. Şifreyi paketi gönderen kişi sana iletmiş olmalı.' }));
       if (pkg && pkg.kind === 'section') {
         // sadece bu bölümü değiştir; diğer bölümlere dokunma
         const d = dataRef.current, sid = pkg.section;
