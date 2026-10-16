@@ -20,7 +20,7 @@
 //      react-native-safe-area-context
 //    npm i jszip          (Snack'te: Add dependency -> jszip)
 // ============================================================================
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View, Text, Image, Pressable, FlatList, Modal, TextInput, ScrollView,
   StyleSheet, PanResponder, Animated, BackHandler, StatusBar, Alert,
@@ -255,7 +255,6 @@ async function decryptHdz(bytes, password, onProgress) {
 }
 
 async function exportPackage(data, onProgress, sectionId, password) {
-  if (!password) throw new Error('Paket şifresi gerekli.');
   let fname = 'hafiz_dunyasi_tum';
   if (sectionId) {                           // yalnızca bu bölümü paketle
     const f = (data.folders || []).find((x) => x.id === sectionId);
@@ -302,14 +301,21 @@ async function exportPackage(data, onProgress, sectionId, password) {
     } catch (e) { /* eksik ses dosyası atlanır */ }
   }
   onProgress && onProgress(data.images.length, data.images.length, true);
-  const zipBytes = await zip.generateAsync({ type: 'uint8array', compression: 'STORE' }); // resimler zaten sıkışık
-  onProgress && onProgress(0, 0, 'key');
-  const enc = await encryptHdz(zipBytes, password, (i, n) => onProgress && onProgress(i, n, 'enc'));
-  const out = bytesToB64(enc);
-  const path = FileSystem.cacheDirectory + fname + '.hdz';
-  await FileSystem.writeAsStringAsync(path, out, { encoding: 'base64' });
-  if (!(await Sharing.isAvailableAsync())) throw new Error('Bu cihazda paylaşım desteklenmiyor.');
-  await Sharing.shareAsync(path, { mimeType: 'application/octet-stream', dialogTitle: 'Şifreli paketi paylaş', UTI: 'public.data' });
+  if (password) {                                  // şifreli paket (.hdz)
+    const zipBytes = await zip.generateAsync({ type: 'uint8array', compression: 'STORE' }); // resimler zaten sıkışık
+    onProgress && onProgress(0, 0, 'key');
+    const enc = await encryptHdz(zipBytes, password, (i, n) => onProgress && onProgress(i, n, 'enc'));
+    const path = FileSystem.cacheDirectory + fname + '.hdz';
+    await FileSystem.writeAsStringAsync(path, bytesToB64(enc), { encoding: 'base64' });
+    if (!(await Sharing.isAvailableAsync())) throw new Error('Bu cihazda paylaşım desteklenmiyor.');
+    await Sharing.shareAsync(path, { mimeType: 'application/octet-stream', dialogTitle: 'Şifreli paketi paylaş', UTI: 'public.data' });
+  } else {                                         // şifresiz düz zip
+    const out = await zip.generateAsync({ type: 'base64', compression: 'STORE' });
+    const path = FileSystem.cacheDirectory + fname + '.zip';
+    await FileSystem.writeAsStringAsync(path, out, { encoding: 'base64' });
+    if (!(await Sharing.isAvailableAsync())) throw new Error('Bu cihazda paylaşım desteklenmiyor.');
+    await Sharing.shareAsync(path, { mimeType: 'application/zip', dialogTitle: 'Paketi paylaş', UTI: 'public.zip-archive' });
+  }
 }
 
 // Kullanıcıya dosya seçtirir, paketi açar, resimleri uygulama klasörüne yazar.
@@ -333,6 +339,7 @@ async function readPackage(onProgress, beforeWipe, askPw) {
   const pj = zip.file('project.json');
   if (!pj) throw new Error('Bu bir Hafız Dünyası paketi değil (project.json bulunamadı).');
   const meta = JSON.parse(await pj.async('string'));
+  if (meta && meta.kind === 'cuz') return await readCuzPackage(zip, meta, onProgress);   // meyve bahçesi paketi
   if (!meta || !Array.isArray(meta.images) || !meta.images.length) throw new Error('Pakette resim yok.');
 
   const isSection = meta.kind === 'section';
@@ -1352,6 +1359,7 @@ function PassModal({ prompt, onDone }) {
           {!!err && <Text style={{ color: C.danger, marginTop: 8 }}>{err}</Text>}
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
             <Btn title="Vazgeç" kind="ghost" onPress={() => onDone(null)} style={{ flex: 1 }} />
+            {prompt.optional && <Btn title="Şifresiz" kind="ghost" onPress={() => onDone('')} style={{ flex: 1 }} />}
             <Btn title={wait ? 'Çözülüyor…' : 'Tamam'} onPress={submit} disabled={wait} style={{ flex: 1 }} />
           </View>
         </View>
@@ -1393,7 +1401,7 @@ function ProfileModal({ visible, profile, onSave, onPhoto, onRemovePhoto, onAuth
 }
 
 // ----------------------------------------------------------------- ANA EKRAN (30 bölüm)
-function Home({ onExportSec, data, user, author, insets, onPlay, onProfile, onLibrary, onExport, onImport, onPassword, onResetMode, onCover, onRenameSec, onAddTo }) {
+function Home({ cuz, onOpenCuz, onExportSec, data, user, author, insets, onPlay, onProfile, onLibrary, onExport, onImport, onPassword, onResetMode, onCover, onRenameSec, onAddTo }) {
   const { width } = useWindowDimensions();
   const [menu, setMenu] = useState(null);
   const profile = user.profile || {};
@@ -1403,6 +1411,8 @@ function Home({ onExportSec, data, user, author, insets, onPlay, onProfile, onLi
   const tw = Math.floor((width - 32 - 14) / 2) - 1;   // 2 sütun, ekranı doldurur
   const last = user.last && data.images.find((i) => i.id === user.last);
   const tap = (f) => {
+    const cn = parseInt(String(f.id).replace('sec', ''), 10);
+    if (cuz && cuz[cn]) { onOpenCuz(cn); return; }               // meyve bahçesi (cüz) içeriği varsa onu aç
     const st = firstOf(f.id);
     if (st) onPlay(st);
     else if (author) setMenu(f);
@@ -1448,7 +1458,7 @@ function Home({ onExportSec, data, user, author, insets, onPlay, onProfile, onLi
         )}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 14, justifyContent: 'space-between' }}>
           {secs.map((f, i) => {
-            const n = countOf(f.id);
+            const n = countOf(f.id) + (cuz && cuz[parseInt(String(f.id).replace('sec', ''), 10)] ? 1 : 0);
             return (
               <Pressable key={f.id} onPress={() => tap(f)} onLongPress={author ? () => setMenu(f) : undefined} delayLongPress={450}
                 style={({ pressed }) => [s.tile, { width: tw, height: Math.round(tw * 1.3), opacity: pressed ? 0.8 : n || author ? 1 : 0.5 }]}>
@@ -1480,6 +1490,473 @@ function Home({ onExportSec, data, user, author, insets, onPlay, onProfile, onLi
       </Modal>
     </View>
   );
+}
+
+// =============================================================== MEYVE BAHÇESİ (CÜZ) MODÜLÜ
+// Bir cüz = 20 ağaç = 20 sayfa. Ağaç 1: Fatiha + Bakara'nın süslü ilk sayfaları (olduğu gibi).
+// Ağaç 2-20: mushaf sayfası; her ağaçta en çok 5 meyve = 5 ayet başı (siyah, kırmızı, sarı, yeşil, lacivert).
+// 5'ten fazlaysa "SAYFA DEVAMI" ile aynı sayfanın ikinci ağaç ekranı açılır.
+const TREE_IMGS = [
+  require('./tree01.png'), require('./tree02.png'), require('./tree03.png'), require('./tree04.png'), require('./tree05.png'),
+  require('./tree06.png'), require('./tree07.png'), require('./tree08.png'), require('./tree09.png'), require('./tree10.png'),
+  require('./tree11.png'), require('./tree12.png'), require('./tree13.png'), require('./tree14.png'), require('./tree15.png'),
+  require('./tree16.png'), require('./tree17.png'), require('./tree18.png'), require('./tree19.png'), require('./tree20.png'),
+];
+const GARDEN_BG = require('./bahce.jpg');
+const TREE_NAMES = ['Kayısı', 'Portakal', 'Trabzon Hurması', 'Antep Fıstığı', 'Çam', 'Limon', 'Armut', 'Muz', 'Kiraz', 'Muşmula',
+  'Kuşburnu', 'Medine Hurması', 'Dut', 'Şeftali', 'Zeytin', 'İncir', 'Nar', 'Üzüm', 'Elma', 'Badem'];
+const TREE_ANCH = [[0.5, 0.25], [0.711, 0.358], [0.289, 0.358], [0.711, 0.5], [0.289, 0.5]];   // ağaç görselindeki 5 meyve konumu (oran)
+const FRUIT_COL = ['#111111', '#D32F2F', '#F2A900', '#2E9E4F', '#1F3C88'];                      // sıra: siyah, kırmızı, sarı, yeşil, lacivert
+const FRUIT_SIDE = ['top', 'right', 'left', 'right', 'left'];
+const GOLD = '#D4AF37';
+
+function Plate({ title, onPress, style, small }) {
+  return (
+    <Pressable onPress={onPress} hitSlop={8}
+      style={({ pressed }) => [{ backgroundColor: '#0B0B0B', borderWidth: 2, borderColor: GOLD, borderRadius: 10, paddingHorizontal: small ? 10 : 16, paddingVertical: small ? 6 : 9, opacity: pressed ? 0.8 : 1 }, style]}>
+      <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: small ? 13 : 16, letterSpacing: 0.5 }}>{title}</Text>
+    </Pressable>
+  );
+}
+function RoundBtn({ icon, onPress }) {
+  return (
+    <Pressable onPress={onPress} hitSlop={8}
+      style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.62)', borderWidth: 1.5, borderColor: GOLD, alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ fontSize: 20 }}>{icon}</Text>
+    </Pressable>
+  );
+}
+
+// bahçedeki ağaç: hafifçe sallanır, dokununca zıplar
+function TreeTile({ i, w, onOpen }) {
+  const sway = useRef(new Animated.Value(0)).current;
+  const pop = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const dur = 2400 + (i % 5) * 330;
+    const a = Animated.loop(Animated.sequence([
+      Animated.timing(sway, { toValue: 1, duration: dur, delay: (i % 4) * 220, useNativeDriver: true }),
+      Animated.timing(sway, { toValue: 0, duration: dur, useNativeDriver: true }),
+    ]));
+    a.start(); return () => a.stop();
+  }, []);
+  const th = w * 0.92 * (4 / 3);
+  const press = () => {
+    Animated.sequence([
+      Animated.timing(pop, { toValue: 1.2, duration: 140, useNativeDriver: true }),
+      Animated.spring(pop, { toValue: 1, friction: 3, useNativeDriver: true }),
+    ]).start();
+    setTimeout(onOpen, 260);
+  };
+  return (
+    <Pressable onPress={press} style={{ width: w, alignItems: 'center', marginBottom: 6 }}>
+      <View style={{ position: 'absolute', bottom: 32, width: w * 0.55, height: 12, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.28)' }} />
+      <Animated.View style={{ transform: [{ scale: pop }, { translateY: th / 2 }, { rotate: sway.interpolate({ inputRange: [0, 1], outputRange: ['-1.8deg', '1.8deg'] }) }, { translateY: -th / 2 }] }}>
+        <Image source={TREE_IMGS[i]} style={{ width: w * 0.92, height: th }} resizeMode="contain" />
+      </Animated.View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(11,11,11,0.78)', borderWidth: 1.5, borderColor: GOLD, borderRadius: 14, paddingHorizontal: 9, paddingVertical: 3, marginTop: -6 }}>
+        <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 13 }}>{i + 1}</Text>
+        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 11 }} numberOfLines={1}>{TREE_NAMES[i]}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+function Fruit({ x, y, d, color, n, delay, onPress }) {
+  const bob = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const a = Animated.loop(Animated.sequence([
+      Animated.timing(bob, { toValue: 1, duration: 1700, delay, useNativeDriver: true }),
+      Animated.timing(bob, { toValue: 0, duration: 1700, useNativeDriver: true }),
+    ]));
+    a.start(); return () => a.stop();
+  }, []);
+  const tap = () => {
+    Animated.sequence([
+      Animated.timing(pulse, { toValue: 1.4, duration: 120, useNativeDriver: true }),
+      Animated.timing(pulse, { toValue: 1, duration: 150, useNativeDriver: true }),
+    ]).start();
+    setTimeout(onPress, 170);
+  };
+  return (
+    <Animated.View style={{ position: 'absolute', left: x - d / 2, top: y - d / 2, width: d, height: d, transform: [{ translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [-3, 3] }) }, { scale: pulse }] }}>
+      <Pressable onPress={tap} hitSlop={12}
+        style={{ width: d, height: d, borderRadius: d / 2, borderWidth: 3.5, borderColor: color, backgroundColor: 'rgba(255,255,255,0.06)' }}>
+        <View style={{ position: 'absolute', top: -9, right: -9, width: 21, height: 21, borderRadius: 11, backgroundColor: color, borderWidth: 1.5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: color === '#F2A900' ? '#222' : '#fff', fontSize: 11, fontWeight: '900' }}>{n}</Text>
+        </View>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+function VerseLabel({ ay, x, y, w, h, color, onPress }) {
+  return (
+    <Pressable onPress={onPress}
+      style={{ position: 'absolute', left: x, top: y, width: w, height: h, borderRadius: 12, borderWidth: 3, borderColor: color, backgroundColor: '#FFF6D9', alignItems: 'center', justifyContent: 'center', elevation: 5, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }}>
+      <Image source={{ uri: DIR + ay.start.file }} style={{ width: w - 10, height: h - 8 }} resizeMode="contain" />
+    </Pressable>
+  );
+}
+
+function AyahPanel({ item, idx, total, W, H, onPrev, onNext, onClose }) {
+  const sc = useRef(new Animated.Value(0.85)).current;
+  const op = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    sc.setValue(0.85); op.setValue(0);
+    Animated.parallel([Animated.spring(sc, { toValue: 1, friction: 7, useNativeDriver: true }), Animated.timing(op, { toValue: 1, duration: 180, useNativeDriver: true })]).start();
+  }, [idx]);
+  const a = item.a, cw = Math.min(W - 24, 520), iw = cw - 30;
+  return (
+    <Animated.View style={{ width: cw, maxHeight: H * 0.88, opacity: op, transform: [{ scale: sc }], backgroundColor: '#FFF8E1', borderRadius: 18, borderWidth: 3, borderColor: GOLD, padding: 14 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: FRUIT_COL[item.k], marginRight: 8 }} />
+        <Text style={{ flex: 1, color: '#3B2A10', fontWeight: '900', fontSize: 16 }}>{a.sname} · {a.no}. ayet</Text>
+        <Pressable onPress={onClose} hitSlop={10} style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#3B2A10', alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '900' }}>✕</Text>
+        </Pressable>
+      </View>
+      <ScrollView style={{ maxHeight: H * 0.6 }} showsVerticalScrollIndicator={false}>
+        <Image source={{ uri: DIR + a.full.file }} style={{ width: iw, aspectRatio: a.full.w / a.full.h, alignSelf: 'center' }} resizeMode="contain" />
+      </ScrollView>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+        <Plate small title="◀ ÖNCEKİ" onPress={idx > 0 ? onPrev : undefined} style={{ opacity: idx > 0 ? 1 : 0.35 }} />
+        <Text style={{ color: '#6B5A3A', fontWeight: '700' }}>{idx + 1} / {total}</Text>
+        <Plate small title="SONRAKİ ▶" onPress={idx < total - 1 ? onNext : undefined} style={{ opacity: idx < total - 1 ? 1 : 0.35 }} />
+      </View>
+    </Animated.View>
+  );
+}
+
+// ======================================================= ORMAN GEZGİNİ (derinlikli ağaç seçici)
+// 20 ağaç = 10 çift. Ön çift büyük, arkaya doğru küçülür. Parmağı AŞAĞI çekince öndeki çift aşağı kayıp çıkar,
+// arkadaki çift öne gelir (ormanda ilerlersin). Yukarı çekince geri dönersin. Bırakınca en yakın çifte oturur.
+// Her ağacın altında o sayfanın başı (ilk ayet başı) bir kutuda durur. Öndeki ağaca/kutuya dokununca sayfa açılır;
+// arkadaki ağaca dokunursan önce öne gelir.
+const FOREST = { a: 0.6, horizon: 0.30, x0: 0.26, wt: 0.54, boxH: 66, step: 150 };
+const D_SAMPLES = [10, 8, 6, 5, 4, 3.5, 3, 2.5, 2, 1.75, 1.5, 1.25, 1, 0.75, 0.5, 0.25, 0, -0.25, -0.5, -0.75, -1, -1.2];
+const fS = (d) => 1 / (1 + FOREST.a * d);
+const fOp = (d) => (d >= 0 ? Math.max(0.55, 1 - 0.06 * d) : Math.max(0, 1 + d * 1.3));
+const fBox = (d) => (d > 2.6 ? 0 : d > 1.6 ? 2.6 - d : d >= -0.4 ? 1 : Math.max(0, 1 + (d + 0.4) * 2));
+
+// ---- Yazar: ağaç görselini değiştir + 5 meyve konumunu elle ayarla (telefondan, derleme gerekmez)
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+const treeSrc = (trees, i) => (trees && trees[i] && trees[i].file ? { uri: DIR + trees[i].file } : TREE_IMGS[i % TREE_IMGS.length]);
+const treeAnch = (trees, i) => (trees && trees[i] && trees[i].anch) || TREE_ANCH;
+
+function AnchorHandle({ k, pos, bw, bh, onMove }) {
+  const start = useRef([0, 0]);
+  const posRef = useRef(pos); posRef.current = pos;
+  const mv = useRef(onMove); mv.current = onMove;
+  const dim = useRef([bw, bh]); dim.current = [bw, bh];
+  const pr = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onPanResponderGrant: () => { start.current = [...posRef.current]; },
+    onPanResponderMove: (e, g) => mv.current(k, [clamp01(start.current[0] + g.dx / dim.current[0]), clamp01(start.current[1] + g.dy / dim.current[1])]),
+  })).current;
+  return (
+    <View {...pr.panHandlers} style={{ position: 'absolute', left: pos[0] * bw - 26, top: pos[1] * bh - 26, width: 52, height: 52, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 4, borderColor: FRUIT_COL[k], backgroundColor: 'rgba(255,255,255,0.12)' }} />
+      <View style={{ position: 'absolute', top: 2, right: 2, width: 21, height: 21, borderRadius: 11, backgroundColor: FRUIT_COL[k], borderWidth: 1.5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: k === 2 ? '#222' : '#fff', fontSize: 11, fontWeight: '900' }}>{k + 1}</Text>
+      </View>
+    </View>
+  );
+}
+function AnchorEditor({ idx, trees, W, H, insets, onSave, onClose }) {
+  const [a, setA] = useState(() => treeAnch(trees, idx).map((p) => [...p]));
+  const bw = Math.min(W - 24, (H - insets.top - insets.bottom - 230) * 0.75), bh = bw * (4 / 3);
+  const move = (k, p) => setA((cur) => cur.map((q, i) => (i === k ? p : q)));
+  return (
+    <Modal visible animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: '#10182B', paddingTop: insets.top + 8, paddingBottom: insets.bottom + 10, alignItems: 'center' }}>
+        <Text style={{ color: '#fff', fontWeight: '900', fontSize: 16 }}>Meyve konumları · {TREE_NAMES[idx % TREE_NAMES.length]}</Text>
+        <Text style={{ color: '#98A2BC', fontSize: 12, textAlign: 'center', marginTop: 4, marginBottom: 8, paddingHorizontal: 16 }}>
+          5 halkayı ağaçtaki meyvelerin üstüne sürükle. Sıra: 1 siyah (üst), 2 kırmızı, 3 sarı, 4 yeşil, 5 lacivert.
+        </Text>
+        <View style={{ width: bw, height: bh, backgroundColor: '#7FB6E8', borderRadius: 10, overflow: 'hidden' }}>
+          <Image source={treeSrc(trees, idx)} style={{ width: bw, height: bh }} resizeMode="contain" />
+          {a.map((p, k) => <AnchorHandle key={k} k={k} pos={p} bw={bw} bh={bh} onMove={move} />)}
+        </View>
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, paddingHorizontal: 12 }}>
+          <Btn title="Varsayılan" kind="ghost" onPress={() => setA(TREE_ANCH.map((p) => [...p]))} style={{ flex: 1 }} />
+          <Btn title="İptal" kind="ghost" onPress={onClose} style={{ flex: 1 }} />
+          <Btn title="Kaydet" onPress={() => onSave(a)} style={{ flex: 1 }} />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function ForestPicker({ trees, author, onMenu, pages, W, H, insets, onOpen }) {
+  const pairs = Math.ceil(pages.length / 2);
+  const pos = useRef(new Animated.Value(0)).current;
+  const posRef = useRef(0);
+  const base = useRef(0);
+  const lastFront = useRef(0);
+  const [front, setFront] = useState(0);
+  const [moved, setMoved] = useState(false);
+  const hint = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const id = pos.addListener(({ value }) => {
+      posRef.current = value;
+      const r = Math.round(value);
+      if (r !== lastFront.current) { lastFront.current = r; setFront(r); if (r > 0) setMoved(true); }
+    });
+    const a = Animated.loop(Animated.sequence([
+      Animated.timing(hint, { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.timing(hint, { toValue: 0, duration: 800, useNativeDriver: true }),
+    ]));
+    a.start();
+    return () => { pos.removeListener(id); a.stop(); };
+  }, []);
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const settle = (t) => Animated.spring(pos, { toValue: t, friction: 8, tension: 60, useNativeDriver: true }).start();
+  const pan = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (e, g) => Math.abs(g.dy) > 8 && Math.abs(g.dy) > Math.abs(g.dx),
+    onPanResponderGrant: () => { pos.stopAnimation((v) => { base.current = v; }); },
+    onPanResponderMove: (e, g) => pos.setValue(clamp(base.current + g.dy / FOREST.step, -0.15, pairs - 1 + 0.15)),
+    onPanResponderRelease: (e, g) => settle(clamp(Math.round(posRef.current + g.vy * 0.35), 0, pairs - 1)),
+    onPanResponderTerminate: () => settle(clamp(Math.round(posRef.current), 0, pairs - 1)),
+  })).current;
+
+  const wt = W * FOREST.wt, ht = wt * (4 / 3), yH = H * FOREST.horizon, yF = H - insets.bottom - 118;
+  const hc = ht + 8 + FOREST.boxH, k = ht - hc / 2, x0 = W * FOREST.x0;
+  const tap = (idx, j) => { if (Math.abs(posRef.current - j) < 0.4) onOpen(idx); else settle(j); };
+
+  const items = [];
+  for (let j = pairs - 1; j >= 0; j--) {
+    for (let side = 0; side < 2; side++) {
+      const idx = 2 * j + side; if (idx >= pages.length) continue;
+      const sg = side === 0 ? -1 : 1, page = pages[idx];
+      const inp = D_SAMPLES.map((d) => j - d);
+      const mk = (fn) => pos.interpolate({ inputRange: inp, outputRange: D_SAMPLES.map(fn), extrapolate: 'clamp' });
+      const sc = mk(fS), ty = mk((d) => (yF - yH) * (fS(d) - 1)), tx = mk((d) => sg * x0 * (fS(d) - 1)), op = mk(fOp), bo = mk(fBox);
+      items.push(
+        <Animated.View key={idx} style={{ position: 'absolute', left: W / 2 + sg * x0 - wt / 2, top: yF - ht, width: wt, height: hc, opacity: op,
+          transform: [{ translateX: tx }, { translateY: ty }, { translateY: k }, { scale: sc }, { translateY: -k }] }}>
+          <View style={{ position: 'absolute', left: wt * 0.2, top: ht - 9, width: wt * 0.6, height: 16, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.30)' }} />
+          <Pressable onPress={() => tap(idx, j)} onLongPress={author ? () => onMenu(idx) : undefined} delayLongPress={500} style={{ width: wt, height: ht }}>
+            <Image source={treeSrc(trees, idx)} style={{ width: wt, height: ht }} resizeMode="contain" />
+          </Pressable>
+          <Animated.View style={{ position: 'absolute', left: 0, top: ht + 8, width: wt, height: FOREST.boxH, opacity: bo }}>
+            <Pressable onPress={() => tap(idx, j)}
+              style={{ flex: 1, borderRadius: 12, borderWidth: 3, borderColor: GOLD, backgroundColor: '#FFF6D9', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              <View style={{ position: 'absolute', top: 0, left: 0, backgroundColor: '#0B0B0B', paddingHorizontal: 8, paddingVertical: 2, borderBottomRightRadius: 10 }}>
+                <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 11 }}>{idx + 1} · {TREE_NAMES[idx % TREE_NAMES.length]}</Text>
+              </View>
+              {page.kind === 'special'
+                ? <Text style={{ color: '#3B2A10', fontWeight: '900', fontSize: 15, marginTop: 10 }}>Fatiha · Bakara</Text>
+                : <Image source={{ uri: DIR + page.ayat[0].start.file }} style={{ width: wt - 24, height: FOREST.boxH - 28, marginTop: 14 }} resizeMode="contain" />}
+            </Pressable>
+          </Animated.View>
+        </Animated.View>,
+      );
+    }
+  }
+  return (
+    <View style={{ flex: 1 }} {...pan.panHandlers}>
+      {items}
+      <View style={{ position: 'absolute', right: 8, top: yH + 20, alignItems: 'center', gap: 6 }}>
+        {Array.from({ length: pairs }).map((_, i) => (
+          <View key={i} style={{ width: i === front ? 9 : 6, height: i === front ? 9 : 6, borderRadius: 5, backgroundColor: i === front ? GOLD : 'rgba(255,255,255,0.55)' }} />
+        ))}
+      </View>
+      {!moved && (
+        <Animated.View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 118, alignItems: 'center', opacity: hint, transform: [{ translateY: hint.interpolate({ inputRange: [0, 1], outputRange: [-4, 8] }) }] }}>
+          <View style={{ backgroundColor: 'rgba(0,0,0,0.6)', borderWidth: 1.5, borderColor: GOLD, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 6 }}>
+            <Text style={{ color: '#fff', fontWeight: '800' }}>▼  aşağı çek, ormanda ilerle</Text>
+          </View>
+        </Animated.View>
+      )}
+    </View>
+  );
+}
+
+function CuzReader({ cd, insets, onHome, trees, author, onPickTree, onTreeAnch, onTreeReset }) {
+  const { width: W, height: H } = useWindowDimensions();
+  const pages = cd.pages;
+  const seq = useMemo(() => {
+    const s = [];
+    pages.forEach((p, pi) => {
+      const n = p.kind === 'special' ? p.imgs.length : Math.max(1, Math.ceil(p.ayat.length / 5));
+      for (let k = 0; k < n; k++) s.push({ p: pi, s: k, n });
+    });
+    return s;
+  }, [cd]);
+  const flat = useMemo(() => {
+    const f = [];
+    pages.forEach((p, pi) => { if (p.kind === 'ayat') p.ayat.forEach((a, j) => f.push({ p: pi, s: Math.floor(j / 5), k: j % 5, a })); });
+    return f;
+  }, [cd]);
+  const [cur, setCur] = useState(-1);          // -1 = bahçe
+  const [open, setOpen] = useState(-1);        // açık ayet (flat sırası)
+  const [tmenu, setTmenu] = useState(-1);       // yazar: ağaç menüsü
+  const [editIdx, setEditIdx] = useState(-1);    // yazar: meyve konumu düzenleyici
+  const trans = useRef(new Animated.Value(1)).current;
+  const dirRef = useRef(1);
+  const animate = (dir) => { dirRef.current = dir; trans.setValue(0); Animated.timing(trans, { toValue: 1, duration: 280, useNativeDriver: true }).start(); };
+  const go = (i, dir = 1) => { if (i < 0 || i >= seq.length) return; animate(dir); setCur(i); };
+  const toGarden = () => { animate(-1); setCur(-1); setOpen(-1); };
+  const back = () => (cur > 0 ? go(cur - 1, -1) : toGarden());
+  const next = () => (cur < seq.length - 1 ? go(cur + 1, 1) : toGarden());
+  const closePanel = () => {
+    const f = flat[open]; setOpen(-1);
+    if (f) { const i = seq.findIndex((x) => x.p === f.p && x.s === f.s); if (i >= 0 && i !== cur) go(i, 1); }
+  };
+
+  let content;
+  if (cur < 0) {
+    content = (
+      <View style={{ flex: 1 }}>
+        <ForestPicker trees={trees} author={author} onMenu={setTmenu} pages={pages} W={W} H={H} insets={insets} onOpen={(i) => { const k = seq.findIndex((x) => x.p === i); if (k >= 0) go(k, 1); }} />
+        <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 }}>
+          <RoundBtn icon="🏠" onPress={onHome} />
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <View style={{ backgroundColor: '#0B0B0B', borderWidth: 2.5, borderColor: GOLD, borderRadius: 12, paddingHorizontal: 22, paddingVertical: 8 }}>
+              <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 20, letterSpacing: 1 }}>{(cd.name || 'CÜZ').toUpperCase()}</Text>
+            </View>
+          </View>
+          <View style={{ width: 44 }} />
+        </View>
+      </View>
+    );
+  } else {
+    const it = seq[cur], page = pages[it.p];
+    const topH = insets.top + 112, botH = insets.bottom + 96;
+    const header = (
+      <View style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 8, zIndex: 20 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 }}>
+          <RoundBtn icon="🏠" onPress={onHome} />
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <View style={{ backgroundColor: '#0B0B0B', borderWidth: 2.5, borderColor: GOLD, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 5, alignItems: 'center' }}>
+              <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 15 }}>{(cd.name || 'CÜZ').toUpperCase()} · SAYFA {it.p + 1}</Text>
+              <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>{TREE_NAMES[it.p]}{it.n > 1 ? `  (${it.s + 1}/${it.n})` : ''}</Text>
+            </View>
+          </View>
+          <RoundBtn icon="🌳" onPress={toGarden} />
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 10, marginTop: 8 }}>
+          <Plate title="◀ ÖNCE" onPress={back} />
+          <Plate title="SONRA ▶" onPress={next} />
+        </View>
+      </View>
+    );
+    let body = null, bottom = null;
+    if (page.kind === 'special') {
+      const im = page.imgs[it.s];
+      body = (
+        <ScrollView style={{ position: 'absolute', left: 0, right: 0, top: topH, bottom: 0 }} contentContainerStyle={{ alignItems: 'center', paddingBottom: insets.bottom + 20 }}>
+          <Text style={{ color: '#fff', fontWeight: '900', fontSize: 15, marginBottom: 6, textShadowColor: '#000', textShadowRadius: 4 }}>{it.s === 0 ? 'Fatiha Suresi' : 'Bakara Suresi'}</Text>
+          <Image source={{ uri: DIR + im.file }} style={{ width: W - 16, aspectRatio: im.w / im.h, borderRadius: 8, borderWidth: 2, borderColor: GOLD }} resizeMode="contain" />
+        </ScrollView>
+      );
+    } else {
+      const avail = H - topH - botH;
+      const sh = Math.min(avail, (W * 0.84) * (4 / 3), 700), sw = sh * 0.75;
+      const sl = (W - sw) / 2, st = topH + (avail - sh) / 2;
+      const group = page.ayat.slice(it.s * 5, it.s * 5 + 5);
+      const fd = sw * 0.155, lh = Math.min(56, sh * 0.142 - 5);
+      const nodes = [];
+      group.forEach((ay, k) => {
+        const an = treeAnch(trees, it.p)[k], ax = sl + an[0] * sw, ay_ = st + an[1] * sh, side = FRUIT_SIDE[k];
+        let lx, lw, ly = ay_ - lh / 2;
+        if (side === 'top') { lw = Math.min(150, W * 0.4); lx = ax - lw / 2; ly = ay_ - fd / 2 - 14 - lh; }
+        else if (side === 'left') { lx = 6; lw = Math.max(72, ax - fd / 2 - 10 - 6); }
+        else { lx = ax + fd / 2 + 10; lw = Math.max(72, W - 6 - lx); lx = W - 6 - lw; }
+        const fi = flat.findIndex((f) => f.p === it.p && f.s === it.s && f.k === k);
+        nodes.push(
+          <VerseLabel key={'l' + k} ay={ay} x={lx} y={ly} w={lw} h={lh} color={FRUIT_COL[k]} onPress={() => setOpen(fi)} />,
+          <Fruit key={'f' + k} x={ax} y={ay_} d={fd} n={k + 1} color={FRUIT_COL[k]} delay={k * 260} onPress={() => setOpen(fi)} />,
+        );
+      });
+      body = (
+        <>
+          <Pressable onLongPress={author ? () => setTmenu(it.p) : undefined} delayLongPress={500} style={{ position: 'absolute', left: sl, top: st, width: sw, height: sh }}>
+            <Image source={treeSrc(trees, it.p)} style={{ width: sw, height: sh }} resizeMode="contain" />
+          </Pressable>
+          {nodes}
+        </>
+      );
+      const nextPage = pages[it.p + 1];
+      if (it.s < it.n - 1) bottom = <Plate title="SAYFA DEVAMI  ▶" onPress={next} style={{ paddingHorizontal: 26, paddingVertical: 12 }} />;
+      else if (nextPage && nextPage.kind === 'ayat' && nextPage.ayat.length) {
+        const na = nextPage.ayat[0];
+        bottom = (
+          <Pressable onPress={next} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#FFF6D9', borderWidth: 3, borderColor: GOLD, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 6 }}>
+            <Text style={{ fontSize: 22 }}>📌</Text>
+            <Image source={{ uri: DIR + na.start.file }} style={{ width: 110, height: 42 }} resizeMode="contain" />
+            <Text style={{ color: '#3B2A10', fontWeight: '900' }}>SONRAKİ SAYFA ▶</Text>
+          </Pressable>
+        );
+      } else bottom = <Plate title="🌳  BAHÇEYE DÖN" onPress={toGarden} style={{ paddingHorizontal: 26, paddingVertical: 12 }} />;
+    }
+    content = (
+      <View style={{ flex: 1 }}>
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.10)' }]} />
+        {body}
+        {header}
+        {bottom && <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 16, alignItems: 'center', zIndex: 20 }}>{bottom}</View>}
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Image source={GARDEN_BG} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      <Animated.View style={{ flex: 1, opacity: trans, transform: [{ translateX: trans.interpolate({ inputRange: [0, 1], outputRange: [dirRef.current * 44, 0] }) }] }}>
+        {content}
+      </Animated.View>
+      <Modal transparent visible={open >= 0} animationType="fade" onRequestClose={closePanel}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.74)', alignItems: 'center', justifyContent: 'center' }}>
+          {open >= 0 && flat[open] && (
+            <AyahPanel item={flat[open]} idx={open} total={flat.length} W={W} H={H}
+              onPrev={() => setOpen(open - 1)} onNext={() => setOpen(open + 1)} onClose={closePanel} />
+          )}
+        </View>
+      </Modal>
+      <Modal transparent visible={tmenu >= 0} animationType="fade" onRequestClose={() => setTmenu(-1)}>
+        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center' }} onPress={() => setTmenu(-1)}>
+          <View style={{ width: Math.min(W - 40, 360), backgroundColor: C.card, borderRadius: 16, padding: 16, gap: 8 }}>
+            <Text style={{ color: '#fff', fontWeight: '900', fontSize: 17, marginBottom: 4 }}>{tmenu >= 0 ? `${tmenu + 1}. ağaç · ${TREE_NAMES[tmenu % TREE_NAMES.length]}` : ''}</Text>
+            <Btn title="🖼 Ağaç görselini değiştir" kind="ghost" onPress={() => { const i = tmenu; setTmenu(-1); setTimeout(() => onPickTree(i), 250); }} />
+            <Btn title="📍 Meyve konumlarını ayarla" kind="ghost" onPress={() => { const i = tmenu; setTmenu(-1); setTimeout(() => setEditIdx(i), 250); }} />
+            <Btn title="↺ Varsayılana dön" kind="ghost" onPress={() => { const i = tmenu; setTmenu(-1); onTreeReset(i); }} />
+            <Text style={{ color: C.sub, fontSize: 12, marginTop: 4 }}>Ağaç tüm cüzlerde aynı sayfa sırasına uygulanır. Şeffaf arka planlı PNG kullan.</Text>
+          </View>
+        </Pressable>
+      </Modal>
+      {editIdx >= 0 && <AnchorEditor idx={editIdx} trees={trees} W={W} H={H} insets={insets} onClose={() => setEditIdx(-1)} onSave={(an) => { onTreeAnch(editIdx, an); setEditIdx(-1); }} />}
+    </View>
+  );
+}
+
+// cüz paketi (.zip / .hdz içinde kind:'cuz'): dosyaları uygulamaya yazar, sayfa yapısını döndürür
+async function readCuzPackage(zip, meta, onProgress) {
+  await ensureDir();
+  const stamp = Date.now().toString(36);
+  const names = [];
+  const all = [];
+  (meta.pages || []).forEach((p) => {
+    if (p.kind === 'special') (p.imgs || []).forEach((im) => all.push(im));
+    else (p.ayat || []).forEach((a) => { all.push(a.start); all.push(a.full); });
+  });
+  const map = {};
+  let i = 0;
+  for (const im of all) {
+    i++; onProgress && onProgress(i, all.length);
+    if (map[im.file]) continue;
+    const f = zip.file(im.file);
+    if (!f) throw new Error('Pakette eksik dosya: ' + im.file);
+    const local = stamp + '_' + im.file.replace(/[^A-Za-z0-9._-]/g, '_');
+    await FileSystem.writeAsStringAsync(DIR + local, await f.async('base64'), { encoding: 'base64' });
+    map[im.file] = local; names.push(local);
+  }
+  const fix = (im) => ({ file: map[im.file], w: im.w, h: im.h });
+  const pages = (meta.pages || []).map((p) => (p.kind === 'special'
+    ? { kind: 'special', title: p.title, imgs: (p.imgs || []).map(fix) }
+    : { kind: 'ayat', ayat: (p.ayat || []).map((a) => ({ sura: a.sura, sname: a.sname, no: a.no, start: fix(a.start), full: fix(a.full) })) }));
+  return { kind: 'cuz', cuz: meta.cuz, name: meta.name || meta.cuz + '. Cüz', pages, files: names };
 }
 
 // -------------------------------------------------------------------- KÖK
@@ -1535,6 +2012,7 @@ function Root() {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (AUTHOR && screen.name === 'editor') { setScreen({ name: 'library' }); return true; }
       if (AUTHOR && screen.name === 'library') { setScreen({ name: 'home' }); return true; }
+      if (screen.name === 'cuz') { setScreen({ name: 'home' }); return true; }
       return false;
     });
     return () => sub.remove();
@@ -1711,6 +2189,24 @@ function Root() {
       },
     ]);
   };
+  const pickTree = async (idx) => {
+    const assets = await pickImages(false);
+    if (!assets.length) return;
+    try {
+      await ensureDir();
+      const a0 = assets[0], file = 'tree_' + idx + '_' + uid() + '.' + extOf(a0.uri.split('?')[0]);
+      await FileSystem.copyAsync({ from: a0.uri, to: DIR + file });
+      const old = (dataRef.current.trees || {})[idx];
+      if (old && old.file) FileSystem.deleteAsync(DIR + old.file, { idempotent: true }).catch(() => {});
+      setData((d) => ({ ...d, trees: { ...(d.trees || {}), [idx]: { file, w: a0.width, h: a0.height, anch: old && old.anch ? old.anch : null } } }));
+    } catch (e) { Alert.alert('Ağaç eklenemedi', e.message); }
+  };
+  const treeAnchSave = (idx, anch) => setData((d) => ({ ...d, trees: { ...(d.trees || {}), [idx]: { ...((d.trees || {})[idx] || { file: null }), anch } } }));
+  const treeReset = (idx) => {
+    const old = (dataRef.current.trees || {})[idx];
+    if (old && old.file) FileSystem.deleteAsync(DIR + old.file, { idempotent: true }).catch(() => {});
+    setData((d) => { const tr = { ...(d.trees || {}) }; delete tr[idx]; return { ...d, trees: tr }; });
+  };
   const setCover = async (fid) => {
     const assets = await pickImages(false);
     if (!assets.length) return;
@@ -1800,14 +2296,14 @@ function Root() {
 
   // ---- paket dışa / içe aktarma
   const askPkgPassword = () => askPass('create', null, {
-    title: '🔒 Paket şifresi', min: 6,
-    desc: 'Paket bu şifreyle kilitlenecek. Okuyucuya şifreyi ayrıca ilet. Unutulursa paket kurtarılamaz, bir yere not et. Uzun ve tahmin edilmesi zor bir şifre daha güvenlidir.',
+    title: '🔒 Paket şifresi', min: 6, optional: true,
+    desc: 'Şifre yazarsan paket kilitlenir; paylaşmayacaksan "Şifresiz" seç, düz zip çıkar. Şifreli paket bu şifreyle kilitlenecek. Okuyucuya şifreyi ayrıca ilet. Unutulursa paket kurtarılamaz, bir yere not et. Uzun ve tahmin edilmesi zor bir şifre daha güvenlidir.',
   });
   const exportCb = (what) => (i, n, ph) =>
     setBusy(ph === 'key' ? 'Şifre anahtarı hazırlanıyor…' : ph === 'enc' ? `Şifreleniyor… ${i}/${n}` : ph ? 'Zip oluşturuluyor…' : `${what} hazırlanıyor… ${i}/${n}`);
 
   const doExport = async () => {
-    const pw = await askPkgPassword(); if (!pw) return;
+    const pw = await askPkgPassword(); if (pw === null) return;
     setBusy('Paket hazırlanıyor…');
     try { await exportPackage(dataRef.current, exportCb('Paket'), null, pw); }
     catch (e) { Alert.alert('Dışa aktarılamadı', e.message); }
@@ -1815,7 +2311,7 @@ function Root() {
   };
 
   const doExportSection = async (fid) => {
-    const pw = await askPkgPassword(); if (!pw) return;
+    const pw = await askPkgPassword(); if (pw === null) return;
     setBusy('Bölüm hazırlanıyor…');
     try { await exportPackage(dataRef.current, exportCb('Bölüm'), fid, pw); }
     catch (e) { Alert.alert('Dışa aktarılamadı', e.message); }
@@ -1836,7 +2332,13 @@ function Root() {
         (i, n, ph) => setBusy(ph === 'dec' ? `Şifre çözülüyor… ${i}/${n}` : `Paket açılıyor… ${i}/${n}`),
         confirmWipe,
         (check) => askPass('enter', check, { title: '🔒 Paket şifresi', desc: 'Bu paketin şifresini yaz. Şifreyi paketi gönderen kişi sana iletmiş olmalı.' }));
-      if (pkg && pkg.kind === 'section') {
+      if (pkg && pkg.kind === 'cuz') {
+        const old = (dataRef.current.cuz || {})[pkg.cuz];
+        if (old && old.files) old.files.forEach((fn) => FileSystem.deleteAsync(DIR + fn, { idempotent: true }).catch(() => {}));
+        setData((d) => ({ ...d, cuz: { ...(d.cuz || {}), [pkg.cuz]: { name: pkg.name, pages: pkg.pages, files: pkg.files } } }));
+        setScreen({ name: 'home' });
+        Alert.alert('Hazır', `${pkg.name} meyve bahçesi yüklendi. Ana ekranda ${pkg.cuz}. bölüme dokun.`);
+      } else if (pkg && pkg.kind === 'section') {
         // sadece bu bölümü değiştir; diğer bölümlere dokunma
         const d = dataRef.current, sid = pkg.section;
         const nf = (pkg.folders || []).find((f) => f.id === sid) || { id: sid, name: 'Bölüm', cover: null };
@@ -1902,9 +2404,13 @@ function Root() {
         onSort={sortAll} onMove={moveImage} onExport={doExport} onImport={doImport} onResetMode={resetMode}
         onSetFolder={setFolder} onNewFolder={newFolder} onRenameFolder={renameFolder} onDeleteFolder={deleteFolder} />
     );
+  } else if (screen.name === 'cuz' && data.cuz && data.cuz[screen.cuz]) {
+    body = <CuzReader key={screen.cuz} cd={data.cuz[screen.cuz]} insets={insets} onHome={() => setScreen({ name: 'home' })}
+      trees={data.trees || {}} author={AUTHOR} onPickTree={pickTree} onTreeAnch={treeAnchSave} onTreeReset={treeReset} />;
   } else {
     body = (
       <Home
+        cuz={data.cuz || {}} onOpenCuz={(n) => setScreen({ name: 'cuz', cuz: n })}
         data={data} user={user} author={AUTHOR} insets={insets}
         onPlay={(id) => play(id, 'home')} onProfile={() => setProfileOpen(true)}
         onLibrary={(fold) => setScreen({ name: 'library', fold })}
