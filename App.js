@@ -1496,13 +1496,8 @@ function Home({ cuz, onOpenCuz, onExportSec, data, user, author, insets, onPlay,
 // Bir cüz = 20 ağaç = 20 sayfa. Ağaç 1: Fatiha + Bakara'nın süslü ilk sayfaları (olduğu gibi).
 // Ağaç 2-20: mushaf sayfası; her ağaçta en çok 5 meyve = 5 ayet başı (siyah, kırmızı, sarı, yeşil, lacivert).
 // 5'ten fazlaysa "SAYFA DEVAMI" ile aynı sayfanın ikinci ağaç ekranı açılır.
-const TREE_IMGS = [
-  require('./tree01.png'), require('./tree02.png'), require('./tree03.png'), require('./tree04.png'), require('./tree05.png'),
-  require('./tree06.png'), require('./tree07.png'), require('./tree08.png'), require('./tree09.png'), require('./tree10.png'),
-  require('./tree11.png'), require('./tree12.png'), require('./tree13.png'), require('./tree14.png'), require('./tree15.png'),
-  require('./tree16.png'), require('./tree17.png'), require('./tree18.png'), require('./tree19.png'), require('./tree20.png'),
-];
-const GARDEN_BG = require('./bahce.jpg');
+const TREE_IMGS = [];            // gömülü varsayılan ağaç yok: Yazar modunda galeriden eklenir
+const GARDEN_BG = null;           // gömülü varsayılan arka plan yok: Yazar modunda galeriden seçilir
 const TREE_NAMES = ['Kayısı', 'Portakal', 'Trabzon Hurması', 'Antep Fıstığı', 'Çam', 'Limon', 'Armut', 'Muz', 'Kiraz', 'Muşmula',
   'Kuşburnu', 'Medine Hurması', 'Dut', 'Şeftali', 'Zeytin', 'İncir', 'Nar', 'Üzüm', 'Elma', 'Badem'];
 const TREE_ANCH = [[0.5, 0.25], [0.711, 0.358], [0.289, 0.358], [0.711, 0.5], [0.289, 0.5]];   // ağaç görselindeki 5 meyve konumu (oran)
@@ -1641,7 +1636,7 @@ const fBox = (d) => (d > 2.6 ? 0 : d > 1.6 ? 2.6 - d : d >= -0.4 ? 1 : Math.max(
 
 // ---- Yazar: ağaç görselini değiştir + 5 meyve konumunu elle ayarla (telefondan, derleme gerekmez)
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
-const treeSrc = (trees, i) => (trees && trees[i] && trees[i].file ? { uri: DIR + trees[i].file } : TREE_IMGS[i % TREE_IMGS.length]);
+const treeSrc = (trees, i) => (trees && trees[i] && trees[i].file ? { uri: DIR + trees[i].file } : (TREE_IMGS.length ? TREE_IMGS[i % TREE_IMGS.length] : null));
 const treeAnch = (trees, i) => (trees && trees[i] && trees[i].anch) || TREE_ANCH;
 
 function AnchorHandle({ k, pos, bw, bh, onMove }) {
@@ -1688,7 +1683,32 @@ function AnchorEditor({ idx, trees, W, H, insets, onSave, onClose }) {
   );
 }
 
-function ForestPicker({ trees, author, onMenu, pages, W, H, insets, onOpen }) {
+// ---- ağacı sağa sola sürükleme (Yazar "yerleştirme" modu) + yer tutucu
+function DragTree({ enabled, av, W, getS, onEnd, style, children }) {
+  const base = useRef(0);
+  const en = useRef(enabled); en.current = enabled;
+  const gs = useRef(getS); gs.current = getS;
+  const end = useRef(onEnd); end.current = onEnd;
+  const pr = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => en.current,
+    onMoveShouldSetPanResponder: () => en.current,
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: () => { av.stopAnimation((v) => { base.current = v; }); },
+    onPanResponderMove: (e, g) => av.setValue(base.current + g.dx / Math.max(0.3, gs.current())),
+    onPanResponderRelease: () => { av.stopAnimation((v) => end.current(v / W)); },
+  })).current;
+  return <View {...pr.panHandlers} style={style}>{children}</View>;
+}
+function TreeHole({ author }) {
+  return (
+    <View style={{ flex: 1, margin: 10, borderRadius: 16, borderWidth: 2, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.7)', backgroundColor: 'rgba(0,0,0,0.14)', alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ fontSize: 34 }}>🌳</Text>
+      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12, textAlign: 'center', marginTop: 4 }}>{author ? 'Basılı tut:\nağaç görseli ekle' : 'Ağaç yok'}</Text>
+    </View>
+  );
+}
+
+function ForestPicker({ arrange, onMove, trees, author, onMenu, pages, W, H, insets, onOpen }) {
   const pairs = Math.ceil(pages.length / 2);
   const pos = useRef(new Animated.Value(0)).current;
   const posRef = useRef(0);
@@ -1697,6 +1717,9 @@ function ForestPicker({ trees, author, onMenu, pages, W, H, insets, onOpen }) {
   const [front, setFront] = useState(0);
   const [moved, setMoved] = useState(false);
   const hint = useRef(new Animated.Value(0)).current;
+  const dxAVs = useRef({}).current;
+  const dxAV = (i) => { if (!dxAVs[i]) dxAVs[i] = new Animated.Value(((trees && trees[i] && trees[i].dx) || 0) * W); return dxAVs[i]; };
+  useEffect(() => { Object.keys(dxAVs).forEach((kk) => dxAVs[kk].setValue(((trees && trees[kk] && trees[kk].dx) || 0) * W)); }, [trees]);
   useEffect(() => {
     const id = pos.addListener(({ value }) => {
       posRef.current = value;
@@ -1731,14 +1754,20 @@ function ForestPicker({ trees, author, onMenu, pages, W, H, insets, onOpen }) {
       const sg = side === 0 ? -1 : 1, page = pages[idx];
       const inp = D_SAMPLES.map((d) => j - d);
       const mk = (fn) => pos.interpolate({ inputRange: inp, outputRange: D_SAMPLES.map(fn), extrapolate: 'clamp' });
-      const sc = mk(fS), ty = mk((d) => (yF - yH) * (fS(d) - 1)), tx = mk((d) => sg * x0 * (fS(d) - 1)), op = mk(fOp), bo = mk(fBox);
+      const sc = mk(fS), ty = mk((d) => (yF - yH) * (fS(d) - 1)), txb = mk((d) => sg * x0 * (fS(d) - 1)), op = mk(fOp), bo = mk(fBox);
+      const tx = Animated.add(txb, Animated.multiply(dxAV(idx), sc));
       items.push(
         <Animated.View key={idx} style={{ position: 'absolute', left: W / 2 + sg * x0 - wt / 2, top: yF - ht, width: wt, height: hc, opacity: op,
           transform: [{ translateX: tx }, { translateY: ty }, { translateY: k }, { scale: sc }, { translateY: -k }] }}>
           <View style={{ position: 'absolute', left: wt * 0.2, top: ht - 9, width: wt * 0.6, height: 16, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.30)' }} />
-          <Pressable onPress={() => tap(idx, j)} onLongPress={author ? () => onMenu(idx) : undefined} delayLongPress={500} style={{ width: wt, height: ht }}>
-            <Image source={treeSrc(trees, idx)} style={{ width: wt, height: ht }} resizeMode="contain" />
-          </Pressable>
+          <DragTree enabled={!!arrange} av={dxAV(idx)} W={W} getS={() => fS(j - posRef.current)} onEnd={(v) => onMove(idx, v)} style={{ width: wt, height: ht }}>
+            <Pressable onPress={() => tap(idx, j)} onLongPress={author ? () => onMenu(idx) : undefined} delayLongPress={500}
+              style={{ width: wt, height: ht, borderRadius: 12, borderWidth: arrange ? 2 : 0, borderStyle: 'dashed', borderColor: GOLD }}>
+              {treeSrc(trees, idx)
+                ? <Image source={treeSrc(trees, idx)} style={{ width: wt, height: ht }} resizeMode="contain" />
+                : <TreeHole author={author} />}
+            </Pressable>
+          </DragTree>
           <Animated.View style={{ position: 'absolute', left: 0, top: ht + 8, width: wt, height: FOREST.boxH, opacity: bo }}>
             <Pressable onPress={() => tap(idx, j)}
               style={{ flex: 1, borderRadius: 12, borderWidth: 3, borderColor: GOLD, backgroundColor: '#FFF6D9', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -1773,7 +1802,7 @@ function ForestPicker({ trees, author, onMenu, pages, W, H, insets, onOpen }) {
   );
 }
 
-function CuzReader({ cd, insets, onHome, trees, author, onPickTree, onTreeAnch, onTreeReset }) {
+function CuzReader({ ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesResetPos, cd, insets, onHome, trees, author, onPickTree, onTreeAnch, onTreeReset }) {
   const { width: W, height: H } = useWindowDimensions();
   const pages = cd.pages;
   const seq = useMemo(() => {
@@ -1792,6 +1821,8 @@ function CuzReader({ cd, insets, onHome, trees, author, onPickTree, onTreeAnch, 
   const [cur, setCur] = useState(-1);          // -1 = bahçe
   const [open, setOpen] = useState(-1);        // açık ayet (flat sırası)
   const [tmenu, setTmenu] = useState(-1);       // yazar: ağaç menüsü
+  const [settings, setSettings] = useState(false); // yazar: bahçe ayarları
+  const [arrange, setArrange] = useState(false);   // yazar: ağaçları sağa sola yerleştirme modu
   const [editIdx, setEditIdx] = useState(-1);    // yazar: meyve konumu düzenleyici
   const trans = useRef(new Animated.Value(1)).current;
   const dirRef = useRef(1);
@@ -1809,16 +1840,24 @@ function CuzReader({ cd, insets, onHome, trees, author, onPickTree, onTreeAnch, 
   if (cur < 0) {
     content = (
       <View style={{ flex: 1 }}>
-        <ForestPicker trees={trees} author={author} onMenu={setTmenu} pages={pages} W={W} H={H} insets={insets} onOpen={(i) => { const k = seq.findIndex((x) => x.p === i); if (k >= 0) go(k, 1); }} />
+        <ForestPicker arrange={arrange} onMove={onTreeMove} trees={trees} author={author} onMenu={setTmenu} pages={pages} W={W} H={H} insets={insets} onOpen={(i) => { const k = seq.findIndex((x) => x.p === i); if (k >= 0) go(k, 1); }} />
         <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 }}>
           <RoundBtn icon="🏠" onPress={onHome} />
           <View style={{ flex: 1, alignItems: 'center' }}>
-            <View style={{ backgroundColor: '#0B0B0B', borderWidth: 2.5, borderColor: GOLD, borderRadius: 12, paddingHorizontal: 22, paddingVertical: 8 }}>
-              <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 20, letterSpacing: 1 }}>{(cd.name || 'CÜZ').toUpperCase()}</Text>
-            </View>
+            {!ui.hideTitle && (
+              <View style={{ backgroundColor: '#0B0B0B', borderWidth: 2.5, borderColor: GOLD, borderRadius: 12, paddingHorizontal: 22, paddingVertical: 8 }}>
+                <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 20, letterSpacing: 1 }}>{(cd.name || 'CÜZ').toUpperCase()}</Text>
+              </View>
+            )}
           </View>
-          <View style={{ width: 44 }} />
+          {author ? <RoundBtn icon="⚙" onPress={() => setSettings(true)} /> : <View style={{ width: 44 }} />}
         </View>
+        {arrange && (
+          <View style={{ position: 'absolute', left: 12, right: 12, top: insets.top + 66, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.74)', borderWidth: 1.5, borderColor: GOLD, borderRadius: 14, padding: 8 }}>
+            <Text style={{ flex: 1, color: '#fff', fontWeight: '700', fontSize: 12 }}>✥ Ağacı sağa sola sürükle; bırakınca kaydolur</Text>
+            <Plate small title="BİTTİ" onPress={() => setArrange(false)} />
+          </View>
+        )}
       </View>
     );
   } else {
@@ -1873,7 +1912,7 @@ function CuzReader({ cd, insets, onHome, trees, author, onPickTree, onTreeAnch, 
       body = (
         <>
           <Pressable onLongPress={author ? () => setTmenu(it.p) : undefined} delayLongPress={500} style={{ position: 'absolute', left: sl, top: st, width: sw, height: sh }}>
-            <Image source={treeSrc(trees, it.p)} style={{ width: sw, height: sh }} resizeMode="contain" />
+            {treeSrc(trees, it.p) ? <Image source={treeSrc(trees, it.p)} style={{ width: sw, height: sh }} resizeMode="contain" /> : <TreeHole author={author} />}
           </Pressable>
           {nodes}
         </>
@@ -1903,7 +1942,12 @@ function CuzReader({ cd, insets, onHome, trees, author, onPickTree, onTreeAnch, 
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <Image source={GARDEN_BG} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      {(() => {
+        const b = cur < 0 ? ui.bgGarden : ui.bgPage;
+        return b && b.file
+          ? <Image source={{ uri: DIR + b.file }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          : <View style={StyleSheet.absoluteFill}><View style={{ flex: 3, backgroundColor: '#8EC9F2' }} /><View style={{ flex: 7, backgroundColor: '#4C8F57' }} /></View>;
+      })()}
       <Animated.View style={{ flex: 1, opacity: trans, transform: [{ translateX: trans.interpolate({ inputRange: [0, 1], outputRange: [dirRef.current * 44, 0] }) }] }}>
         {content}
       </Animated.View>
@@ -1923,6 +1967,20 @@ function CuzReader({ cd, insets, onHome, trees, author, onPickTree, onTreeAnch, 
             <Btn title="📍 Meyve konumlarını ayarla" kind="ghost" onPress={() => { const i = tmenu; setTmenu(-1); setTimeout(() => setEditIdx(i), 250); }} />
             <Btn title="↺ Varsayılana dön" kind="ghost" onPress={() => { const i = tmenu; setTmenu(-1); onTreeReset(i); }} />
             <Text style={{ color: C.sub, fontSize: 12, marginTop: 4 }}>Ağaç tüm cüzlerde aynı sayfa sırasına uygulanır. Şeffaf arka planlı PNG kullan.</Text>
+          </View>
+        </Pressable>
+      </Modal>
+      <Modal transparent visible={settings} animationType="fade" onRequestClose={() => setSettings(false)}>
+        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center' }} onPress={() => setSettings(false)}>
+          <View style={{ width: Math.min(W - 40, 380), backgroundColor: C.card, borderRadius: 16, padding: 16, gap: 8 }}>
+            <Text style={{ color: '#fff', fontWeight: '900', fontSize: 17, marginBottom: 2 }}>Bahçe ayarları</Text>
+            <Btn title="✥ Ağaçları sağa sola yerleştir" onPress={() => { setSettings(false); setArrange(true); }} />
+            <Btn title="🖼 Orman arka planı seç" kind="ghost" onPress={() => { setSettings(false); setTimeout(() => onPickBg('bgGarden'), 250); }} />
+            <Btn title="🖼 Ağaç sayfası arka planı seç" kind="ghost" onPress={() => { setSettings(false); setTimeout(() => onPickBg('bgPage'), 250); }} />
+            <Btn title={ui.hideTitle ? 'Cüz plakasını göster' : 'Cüz plakasını gizle (arka planda yazıyorsa)'} kind="ghost" onPress={() => onUi({ hideTitle: !ui.hideTitle })} />
+            <Btn title="↔ Tüm ağaç konumlarını sıfırla" kind="ghost" onPress={() => { onTreesResetPos(); setSettings(false); }} />
+            <Btn title="↺ Arka planları varsayılana döndür" kind="ghost" onPress={() => { onBgReset(); setSettings(false); }} />
+            <Text style={{ color: C.sub, fontSize: 12, marginTop: 2 }}>Ağaç görseli eklemek için bir ağaca basılı tut.</Text>
           </View>
         </Pressable>
       </Modal>
@@ -2198,7 +2256,7 @@ function Root() {
       await FileSystem.copyAsync({ from: a0.uri, to: DIR + file });
       const old = (dataRef.current.trees || {})[idx];
       if (old && old.file) FileSystem.deleteAsync(DIR + old.file, { idempotent: true }).catch(() => {});
-      setData((d) => ({ ...d, trees: { ...(d.trees || {}), [idx]: { file, w: a0.width, h: a0.height, anch: old && old.anch ? old.anch : null } } }));
+      setData((d) => ({ ...d, trees: { ...(d.trees || {}), [idx]: { ...(old || {}), file, w: a0.width, h: a0.height } } }));
     } catch (e) { Alert.alert('Ağaç eklenemedi', e.message); }
   };
   const treeAnchSave = (idx, anch) => setData((d) => ({ ...d, trees: { ...(d.trees || {}), [idx]: { ...((d.trees || {})[idx] || { file: null }), anch } } }));
@@ -2207,6 +2265,26 @@ function Root() {
     if (old && old.file) FileSystem.deleteAsync(DIR + old.file, { idempotent: true }).catch(() => {});
     setData((d) => { const tr = { ...(d.trees || {}) }; delete tr[idx]; return { ...d, trees: tr }; });
   };
+  const pickBg = async (kind) => {
+    const assets = await pickImages(false);
+    if (!assets.length) return;
+    try {
+      await ensureDir();
+      const a0 = assets[0], file = 'bg_' + kind + '_' + uid() + '.' + extOf(a0.uri.split('?')[0]);
+      await FileSystem.copyAsync({ from: a0.uri, to: DIR + file });
+      const old = ((dataRef.current.ui || {})[kind] || {}).file;
+      if (old) FileSystem.deleteAsync(DIR + old, { idempotent: true }).catch(() => {});
+      setData((d) => ({ ...d, ui: { ...(d.ui || {}), [kind]: { file } } }));
+    } catch (e) { Alert.alert('Arka plan eklenemedi', e.message); }
+  };
+  const uiPatch = (patch) => setData((d) => ({ ...d, ui: { ...(d.ui || {}), ...patch } }));
+  const bgReset = () => {
+    const u = dataRef.current.ui || {};
+    [u.bgGarden, u.bgPage].forEach((b) => { if (b && b.file) FileSystem.deleteAsync(DIR + b.file, { idempotent: true }).catch(() => {}); });
+    uiPatch({ bgGarden: null, bgPage: null });
+  };
+  const treeMove = (idx, dx) => setData((d) => ({ ...d, trees: { ...(d.trees || {}), [idx]: { ...((d.trees || {})[idx] || { file: null }), dx } } }));
+  const treesResetPos = () => setData((d) => { const tr = {}; Object.keys(d.trees || {}).forEach((kk) => { tr[kk] = { ...d.trees[kk], dx: 0 }; }); return { ...d, trees: tr }; });
   const setCover = async (fid) => {
     const assets = await pickImages(false);
     if (!assets.length) return;
@@ -2406,7 +2484,7 @@ function Root() {
     );
   } else if (screen.name === 'cuz' && data.cuz && data.cuz[screen.cuz]) {
     body = <CuzReader key={screen.cuz} cd={data.cuz[screen.cuz]} insets={insets} onHome={() => setScreen({ name: 'home' })}
-      trees={data.trees || {}} author={AUTHOR} onPickTree={pickTree} onTreeAnch={treeAnchSave} onTreeReset={treeReset} />;
+      trees={data.trees || {}} ui={data.ui || {}} onPickBg={pickBg} onUi={uiPatch} onBgReset={bgReset} onTreeMove={treeMove} onTreesResetPos={treesResetPos} author={AUTHOR} onPickTree={pickTree} onTreeAnch={treeAnchSave} onTreeReset={treeReset} />;
   } else {
     body = (
       <Home
