@@ -1401,7 +1401,28 @@ function ProfileModal({ visible, profile, onSave, onPhoto, onRemovePhoto, onAuth
 }
 
 // ----------------------------------------------------------------- ANA EKRAN (30 bölüm)
-function Home({ cuz, onOpenCuz, onExportSec, data, user, author, insets, onPlay, onProfile, onLibrary, onExport, onImport, onPassword, onResetMode, onCover, onRenameSec, onAddTo }) {
+// ---- alt gezinme çubuğu (başparmakla erişim): Ana Sayfa · Bahçe · Profil
+const NAV_H = 76;
+function BottomBar({ active, insets, items }) {
+  return (
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: 12, right: 12, bottom: insets.bottom + 8, zIndex: 60 }}>
+      <View style={{ height: 62, borderRadius: 31, backgroundColor: 'rgba(21,27,46,0.97)', borderWidth: 1, borderColor: C.line, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 8, elevation: 12, shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } }}>
+        {items.map((it) => {
+          const on = it.k === active;
+          return (
+            <Pressable key={it.k} onPress={on ? undefined : it.onPress} hitSlop={6}
+              style={{ height: 48, minWidth: on ? 108 : 64, borderRadius: 24, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center', flexDirection: on ? 'row' : 'column', gap: on ? 8 : 0, backgroundColor: on ? C.accent : 'transparent' }}>
+              <Text style={{ fontSize: on ? 20 : 22 }}>{it.icon}</Text>
+              <Text style={{ color: on ? '#1A1500' : C.sub, fontWeight: '800', fontSize: on ? 14 : 11 }}>{it.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function Home({ nav, cuz, onOpenCuz, onExportSec, data, user, author, insets, onPlay, onProfile, onLibrary, onExport, onImport, onPassword, onResetMode, onCover, onRenameSec, onAddTo }) {
   const { width } = useWindowDimensions();
   const [menu, setMenu] = useState(null);
   const profile = user.profile || {};
@@ -1421,7 +1442,7 @@ function Home({ cuz, onOpenCuz, onExportSec, data, user, author, insets, onPlay,
   const act = (fn) => { const f = menu; setMenu(null); setTimeout(() => fn(f), 250); };
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 30 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + NAV_H + 24 }} showsVerticalScrollIndicator={false}>
         <Pressable onPress={onProfile} style={[s.homeHead, { paddingTop: insets.top + 14 }]}>
           <View style={s.avatar}>
             {profile.photo ? <Image source={{ uri: profile.photo }} style={{ width: '100%', height: '100%' }} /> : <Text style={{ fontSize: 28 }}>🎓</Text>}
@@ -1474,6 +1495,8 @@ function Home({ cuz, onOpenCuz, onExportSec, data, user, author, insets, onPlay,
         </View>
         {author && <Text style={{ color: C.sub, fontSize: 12, textAlign: 'center', marginTop: 14 }}>Bölüme basılı tut: kapak resmi, ad, resim ekle</Text>}
       </ScrollView>
+
+      <BottomBar active="home" insets={insets} items={nav} />
 
       <Modal transparent visible={!!menu} animationType="fade" onRequestClose={() => setMenu(null)}>
         <Pressable style={[s.center, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setMenu(null)}>
@@ -1602,8 +1625,16 @@ function AyahPanel({ item, idx, total, W, H, onPrev, onNext, onClose }) {
     Animated.parallel([Animated.spring(sc, { toValue: 1, friction: 7, useNativeDriver: true }), Animated.timing(op, { toValue: 1, duration: 180, useNativeDriver: true })]).start();
   }, [idx]);
   const a = item.a, cw = Math.min(W - 24, 520), iw = cw - 30;
+  const nx = useRef(onNext), pv = useRef(onPrev), ix = useRef([idx, total]); nx.current = onNext; pv.current = onPrev; ix.current = [idx, total];
+  const swipe = useRef(PanResponder.create({                // sağa/sola kaydır: önceki / sonraki ayet
+    onMoveShouldSetPanResponder: (e, g) => Math.abs(g.dx) > 14 && Math.abs(g.dx) > Math.abs(g.dy) * 2,
+    onPanResponderRelease: (e, g) => {
+      const [i, n] = ix.current;
+      if (g.dx < -50 && i < n - 1) nx.current(); else if (g.dx > 50 && i > 0) pv.current();
+    },
+  })).current;
   return (
-    <Animated.View style={{ width: cw, maxHeight: H * 0.88, opacity: op, transform: [{ scale: sc }], backgroundColor: '#FFF8E1', borderRadius: 18, borderWidth: 3, borderColor: GOLD, padding: 14 }}>
+    <Animated.View {...swipe.panHandlers} style={{ width: cw, maxHeight: H * 0.88, opacity: op, transform: [{ scale: sc }], backgroundColor: '#FFF8E1', borderRadius: 18, borderWidth: 3, borderColor: GOLD, padding: 14 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
         <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: FRUIT_COL[item.k], marginRight: 8 }} />
         <Text style={{ flex: 1, color: '#3B2A10', fontWeight: '900', fontSize: 16 }}>{a.sname} · {a.no}. ayet</Text>
@@ -1708,7 +1739,7 @@ function TreeHole({ author }) {
   );
 }
 
-function ForestPicker({ arrange, onMove, trees, author, onMenu, pages, W, H, insets, onOpen }) {
+function ForestPicker({ bottomPad, arrange, onMove, trees, author, onMenu, pages, W, H, insets, onOpen }) {
   const pairs = Math.ceil(pages.length / 2);
   const pos = useRef(new Animated.Value(0)).current;
   const posRef = useRef(0);
@@ -1743,7 +1774,7 @@ function ForestPicker({ arrange, onMove, trees, author, onMenu, pages, W, H, ins
     onPanResponderTerminate: () => settle(clamp(Math.round(posRef.current), 0, pairs - 1)),
   })).current;
 
-  const wt = W * FOREST.wt, ht = wt * (4 / 3), yH = H * FOREST.horizon, yF = H - insets.bottom - 118;
+  const wt = W * FOREST.wt, ht = wt * (4 / 3), yH = H * FOREST.horizon, yF = H - insets.bottom - 118 - (bottomPad || 0);
   const hc = ht + 8 + FOREST.boxH, k = ht - hc / 2, x0 = W * FOREST.x0;
   const tap = (idx, j) => { if (Math.abs(posRef.current - j) < 0.4) onOpen(idx); else settle(j); };
 
@@ -1802,7 +1833,7 @@ function ForestPicker({ arrange, onMove, trees, author, onMenu, pages, W, H, ins
   );
 }
 
-function CuzReader({ ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesResetPos, cd, insets, onHome, trees, author, onPickTree, onTreeAnch, onTreeReset }) {
+function CuzReader({ nav, ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesResetPos, cd, insets, onHome, trees, author, onPickTree, onTreeAnch, onTreeReset }) {
   const { width: W, height: H } = useWindowDimensions();
   const pages = cd.pages;
   const seq = useMemo(() => {
@@ -1840,7 +1871,7 @@ function CuzReader({ ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesResetPos,
   if (cur < 0) {
     content = (
       <View style={{ flex: 1 }}>
-        <ForestPicker arrange={arrange} onMove={onTreeMove} trees={trees} author={author} onMenu={setTmenu} pages={pages} W={W} H={H} insets={insets} onOpen={(i) => { const k = seq.findIndex((x) => x.p === i); if (k >= 0) go(k, 1); }} />
+        <ForestPicker bottomPad={NAV_H - 8} arrange={arrange} onMove={onTreeMove} trees={trees} author={author} onMenu={setTmenu} pages={pages} W={W} H={H} insets={insets} onOpen={(i) => { const k = seq.findIndex((x) => x.p === i); if (k >= 0) go(k, 1); }} />
         <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 }}>
           <RoundBtn icon="🏠" onPress={onHome} />
           <View style={{ flex: 1, alignItems: 'center' }}>
@@ -1852,6 +1883,7 @@ function CuzReader({ ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesResetPos,
           </View>
           {author ? <RoundBtn icon="⚙" onPress={() => setSettings(true)} /> : <View style={{ width: 44 }} />}
         </View>
+        <BottomBar active="garden" insets={insets} items={nav} />
         {arrange && (
           <View style={{ position: 'absolute', left: 12, right: 12, top: insets.top + 66, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.74)', borderWidth: 1.5, borderColor: GOLD, borderRadius: 14, padding: 8 }}>
             <Text style={{ flex: 1, color: '#fff', fontWeight: '700', fontSize: 12 }}>✥ Ağacı sağa sola sürükle; bırakınca kaydolur</Text>
@@ -2285,6 +2317,18 @@ function Root() {
   };
   const treeMove = (idx, dx) => setData((d) => ({ ...d, trees: { ...(d.trees || {}), [idx]: { ...((d.trees || {})[idx] || { file: null }), dx } } }));
   const treesResetPos = () => setData((d) => { const tr = {}; Object.keys(d.trees || {}).forEach((kk) => { tr[kk] = { ...d.trees[kk], dx: 0 }; }); return { ...d, trees: tr }; });
+  const lastCuz = useRef(null);
+  const openGarden = () => {
+    const ks = Object.keys(dataRef.current.cuz || {});
+    if (!ks.length) { Alert.alert('Henüz bahçe yok', 'Önce bir cüz paketi yükle (Paket aç).'); return; }
+    const n = lastCuz.current && dataRef.current.cuz[lastCuz.current] ? lastCuz.current : parseInt(ks[0], 10);
+    setScreen({ name: 'cuz', cuz: n });
+  };
+  const navItems = [
+    { k: 'home', icon: '🏠', label: 'Ana Sayfa', onPress: () => setScreen({ name: 'home' }) },
+    { k: 'garden', icon: '🌳', label: 'Bahçe', onPress: openGarden },
+    { k: 'profile', icon: '👤', label: 'Profil', onPress: () => setProfileOpen(true) },
+  ];
   const setCover = async (fid) => {
     const assets = await pickImages(false);
     if (!assets.length) return;
@@ -2483,12 +2527,12 @@ function Root() {
         onSetFolder={setFolder} onNewFolder={newFolder} onRenameFolder={renameFolder} onDeleteFolder={deleteFolder} />
     );
   } else if (screen.name === 'cuz' && data.cuz && data.cuz[screen.cuz]) {
-    body = <CuzReader key={screen.cuz} cd={data.cuz[screen.cuz]} insets={insets} onHome={() => setScreen({ name: 'home' })}
+    body = <CuzReader nav={navItems} key={screen.cuz} cd={data.cuz[screen.cuz]} insets={insets} onHome={() => setScreen({ name: 'home' })}
       trees={data.trees || {}} ui={data.ui || {}} onPickBg={pickBg} onUi={uiPatch} onBgReset={bgReset} onTreeMove={treeMove} onTreesResetPos={treesResetPos} author={AUTHOR} onPickTree={pickTree} onTreeAnch={treeAnchSave} onTreeReset={treeReset} />;
   } else {
     body = (
       <Home
-        cuz={data.cuz || {}} onOpenCuz={(n) => setScreen({ name: 'cuz', cuz: n })}
+        nav={navItems} cuz={data.cuz || {}} onOpenCuz={(n) => { lastCuz.current = n; setScreen({ name: 'cuz', cuz: n }); }}
         data={data} user={user} author={AUTHOR} insets={insets}
         onPlay={(id) => play(id, 'home')} onProfile={() => setProfileOpen(true)}
         onLibrary={(fold) => setScreen({ name: 'library', fold })}
