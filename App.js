@@ -1833,6 +1833,203 @@ function ForestPicker({ bottomPad, arrange, onMove, trees, author, onMenu, pages
   );
 }
 
+// ================================================================ SERBEST ORMAN (en fazla 30 resim)
+// Bağımsız ekran: istediğin resimleri (en fazla 30) ekle; resimler ikili sıralarla derinliğe dizilir.
+// Parmağı aşağı çek: ön çift kayıp çıkar, arkadaki öne gelir. Yazar: sağa sola yerleştir, boyutu ayarla,
+// altına yazı yaz, istersen bir cüze bağla. Hepsi uygulamadan, derleme gerekmez.
+const FF_MAX = 30;
+const FF_DEF = { wt: 0.54, x0: 0.26, a: 0.6, horizon: 0.30 };
+const stepBtn = { width: 38, height: 38, borderRadius: 19, backgroundColor: '#1F2740', alignItems: 'center', justifyContent: 'center' };
+function Stepper({ label, value, step, min, max, onChange, fmt }) {
+  const dec = () => onChange(Math.max(min, +(value - step).toFixed(3)));
+  const inc = () => onChange(Math.min(max, +(value + step).toFixed(3)));
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 3 }}>
+      <Text style={{ color: '#fff', fontWeight: '700', flex: 1 }}>{label}</Text>
+      <Pressable onPress={dec} hitSlop={6} style={stepBtn}><Text style={{ color: '#fff', fontSize: 20, fontWeight: '900' }}>－</Text></Pressable>
+      <Text style={{ color: GOLD, fontWeight: '900', width: 58, textAlign: 'center' }}>{fmt ? fmt(value) : value}</Text>
+      <Pressable onPress={inc} hitSlop={6} style={stepBtn}><Text style={{ color: '#fff', fontSize: 20, fontWeight: '900' }}>＋</Text></Pressable>
+    </View>
+  );
+}
+
+function FreeForest({ items, cfg, arrange, author, W, H, insets, bottomPad, onMove, onTap, onMenu }) {
+  const c = { ...FF_DEF, ...(cfg || {}) };
+  const sOf = (d) => 1 / Math.max(0.12, 1 + c.a * d);
+  const pairs = Math.max(1, Math.ceil(items.length / 2));
+  const pairsRef = useRef(pairs); pairsRef.current = pairs;
+  const pos = useRef(new Animated.Value(0)).current;
+  const posRef = useRef(0), base = useRef(0), lastFront = useRef(0);
+  const [front, setFront] = useState(0);
+  const dxAVs = useRef({}).current;
+  const dxAV = (it) => { if (!dxAVs[it.id]) dxAVs[it.id] = new Animated.Value((it.dx || 0) * W); return dxAVs[it.id]; };
+  useEffect(() => { items.forEach((it) => { if (dxAVs[it.id]) dxAVs[it.id].setValue((it.dx || 0) * W); }); }, [items]);
+  useEffect(() => {
+    const id = pos.addListener(({ value }) => {
+      posRef.current = value;
+      const r = Math.round(value);
+      if (r !== lastFront.current) { lastFront.current = r; setFront(r); }
+    });
+    return () => pos.removeListener(id);
+  }, []);
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const settle = (t) => Animated.spring(pos, { toValue: t, friction: 8, tension: 60, useNativeDriver: true }).start();
+  const pan = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (e, g) => Math.abs(g.dy) > 8 && Math.abs(g.dy) > Math.abs(g.dx),
+    onPanResponderGrant: () => { pos.stopAnimation((v) => { base.current = v; }); },
+    onPanResponderMove: (e, g) => pos.setValue(clamp(base.current + g.dy / FOREST.step, -0.15, pairsRef.current - 1 + 0.15)),
+    onPanResponderRelease: (e, g) => settle(clamp(Math.round(posRef.current + g.vy * 0.35), 0, pairsRef.current - 1)),
+    onPanResponderTerminate: () => settle(clamp(Math.round(posRef.current), 0, pairsRef.current - 1)),
+  })).current;
+
+  const wt = W * c.wt, yH = H * c.horizon, yF = H - insets.bottom - 112 - (bottomPad || 0), x0 = W * c.x0;
+  const tap = (it, j) => { if (Math.abs(posRef.current - j) < 0.4) onTap(it); else settle(j); };
+  if (!items.length) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 }}>
+        <Text style={{ fontSize: 46 }}>🌲</Text>
+        <Text style={{ color: '#fff', fontWeight: '900', fontSize: 17, textAlign: 'center', marginTop: 8, textShadowColor: '#000', textShadowRadius: 4 }}>
+          {author ? 'Henüz resim yok' : 'Burada henüz bir şey yok'}
+        </Text>
+        {author && <Text style={{ color: '#fff', textAlign: 'center', marginTop: 6, textShadowColor: '#000', textShadowRadius: 4 }}>Sol üstteki ＋ ile galeriden resim ekle (en fazla {FF_MAX}).</Text>}
+      </View>
+    );
+  }
+  const nodes = [];
+  for (let j = pairs - 1; j >= 0; j--) {
+    for (let side = 0; side < 2; side++) {
+      const idx = 2 * j + side; if (idx >= items.length) continue;
+      const it = items[idx], sg = side === 0 ? -1 : 1;
+      const asp = Math.min(2, Math.max(0.5, it.w && it.h ? it.h / it.w : 4 / 3));
+      const iw = wt * (it.sc || 1), ih = iw * asp, hasLab = !!(it.label && it.label.trim());
+      const hc = ih + (hasLab ? 8 + 44 : 0), k = ih - hc / 2;
+      const inp = D_SAMPLES.map((d) => j - d);
+      const mk = (fn) => pos.interpolate({ inputRange: inp, outputRange: D_SAMPLES.map(fn), extrapolate: 'clamp' });
+      const sc = mk(sOf), ty = mk((d) => (yF - yH) * (sOf(d) - 1)), txb = mk((d) => sg * x0 * (sOf(d) - 1)), op = mk(fOp), bo = mk(fBox);
+      const tx = Animated.add(txb, Animated.multiply(dxAV(it), sc));
+      nodes.push(
+        <Animated.View key={it.id} style={{ position: 'absolute', left: W / 2 + sg * x0 - iw / 2, top: yF - ih, width: iw, height: hc, opacity: op,
+          transform: [{ translateX: tx }, { translateY: ty }, { translateY: k }, { scale: sc }, { translateY: -k }] }}>
+          <View style={{ position: 'absolute', left: iw * 0.2, top: ih - 9, width: iw * 0.6, height: 16, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.30)' }} />
+          <DragTree enabled={!!arrange} av={dxAV(it)} W={W} getS={() => sOf(j - posRef.current)} onEnd={(v) => onMove(it.id, v)} style={{ width: iw, height: ih }}>
+            <Pressable onPress={() => tap(it, j)} onLongPress={author ? () => onMenu(it.id) : undefined} delayLongPress={500}
+              style={{ width: iw, height: ih, borderRadius: 12, borderWidth: arrange ? 2 : 0, borderStyle: 'dashed', borderColor: GOLD }}>
+              <Image source={{ uri: DIR + it.file }} style={{ width: iw, height: ih }} resizeMode="contain" />
+            </Pressable>
+          </DragTree>
+          {hasLab && (
+            <Animated.View style={{ position: 'absolute', left: 0, top: ih + 8, width: iw, height: 44, opacity: bo }}>
+              <Pressable onPress={() => tap(it, j)} onLongPress={author ? () => onMenu(it.id) : undefined}
+                style={{ flex: 1, borderRadius: 12, borderWidth: 3, borderColor: GOLD, backgroundColor: '#FFF6D9', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 }}>
+                <Text style={{ color: '#3B2A10', fontWeight: '900', fontSize: 13, textAlign: 'center' }} numberOfLines={2}>{it.label}</Text>
+              </Pressable>
+            </Animated.View>
+          )}
+        </Animated.View>,
+      );
+    }
+  }
+  return (
+    <View style={{ flex: 1 }} {...pan.panHandlers}>
+      {nodes}
+      <View style={{ position: 'absolute', right: 8, top: yH + 20, alignItems: 'center', gap: 6 }}>
+        {Array.from({ length: pairs }).map((_, i) => (
+          <View key={i} style={{ width: i === front ? 9 : 6, height: i === front ? 9 : 6, borderRadius: 5, backgroundColor: i === front ? GOLD : 'rgba(255,255,255,0.55)' }} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function FreeForestScreen({ forest, ui, author, insets, nav, cuzData, onAdd, onMove, onUpdate, onDelete, onReorder, onCfg, onPickBg, onUi, onLabel, onLink, onReplace, onResetPos, onClear, onOpenCuz }) {
+  const { width: W, height: H } = useWindowDimensions();
+  const items = forest.items || [];
+  const cfg = { ...FF_DEF, ...(forest.cfg || {}) };
+  const [arrange, setArrange] = useState(false);
+  const [settings, setSettings] = useState(false);
+  const [menuId, setMenuId] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const mi = menuId ? items.find((x) => x.id === menuId) : null;
+  const tapItem = (it) => { if (it.cuz && cuzData && cuzData[it.cuz]) onOpenCuz(it.cuz); else setPreview(it); };
+  const bg = ui.bgForest && ui.bgForest.file ? { uri: DIR + ui.bgForest.file } : null;
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      {bg
+        ? <Image source={bg} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        : <View style={StyleSheet.absoluteFill}><View style={{ flex: 3, backgroundColor: '#8EC9F2' }} /><View style={{ flex: 7, backgroundColor: '#4C8F57' }} /></View>}
+      <FreeForest items={items} cfg={forest.cfg} arrange={arrange} author={author} W={W} H={H} insets={insets} bottomPad={NAV_H - 8}
+        onMove={onMove} onTap={tapItem} onMenu={setMenuId} />
+      <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8 }}>
+        {author ? <RoundBtn icon="＋" onPress={onAdd} /> : <View style={{ width: 44 }} />}
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          {!ui.hideTitle && (
+            <View style={{ backgroundColor: '#0B0B0B', borderWidth: 2.5, borderColor: GOLD, borderRadius: 12, paddingHorizontal: 22, paddingVertical: 8 }}>
+              <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 20, letterSpacing: 1 }}>ORMAN</Text>
+            </View>
+          )}
+        </View>
+        {author ? (<><RoundBtn icon="✥" onPress={() => setArrange(!arrange)} /><RoundBtn icon="⚙" onPress={() => setSettings(true)} /></>) : <View style={{ width: 44 }} />}
+      </View>
+      {arrange && (
+        <View style={{ position: 'absolute', left: 12, right: 12, top: insets.top + 66, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.74)', borderWidth: 1.5, borderColor: GOLD, borderRadius: 14, padding: 8 }}>
+          <Text style={{ flex: 1, color: '#fff', fontWeight: '700', fontSize: 12 }}>✥ Resmi sağa sola sürükle; bırakınca kaydolur</Text>
+          <Plate small title="BİTTİ" onPress={() => setArrange(false)} />
+        </View>
+      )}
+      <BottomBar active="forest" insets={insets} items={nav} />
+
+      <Modal transparent visible={!!mi} animationType="fade" onRequestClose={() => setMenuId(null)}>
+        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center' }} onPress={() => setMenuId(null)}>
+          {mi && (
+            <Pressable onPress={() => {}} style={{ width: Math.min(W - 40, 380), backgroundColor: C.card, borderRadius: 16, padding: 16, gap: 8 }}>
+              <Text style={{ color: '#fff', fontWeight: '900', fontSize: 17 }}>{items.findIndex((x) => x.id === mi.id) + 1}. resim</Text>
+              <Stepper label="Boyut" value={mi.sc || 1} step={0.1} min={0.4} max={2} fmt={(v) => '%' + Math.round(v * 100)} onChange={(v) => onUpdate(mi.id, { sc: v })} />
+              <Btn title="🖼 Resmi değiştir" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onReplace(id), 250); }} />
+              <Btn title="Aa Altına yazı yaz" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onLabel(id), 250); }} />
+              <Btn title={mi.cuz ? `🔗 Bağlı cüz: ${mi.cuz} (değiştir)` : '🔗 Bir cüze bağla'} kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onLink(id), 250); }} />
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <Btn title="⇧ Öne al" kind="ghost" style={{ flex: 1 }} onPress={() => onReorder(mi.id, -1)} />
+                <Btn title="⇩ Arkaya al" kind="ghost" style={{ flex: 1 }} onPress={() => onReorder(mi.id, 1)} />
+              </View>
+              <Btn title="↔ Konumu sıfırla" kind="ghost" onPress={() => onUpdate(mi.id, { dx: 0 })} />
+              <Btn title="🗑 Sil" kind="danger" onPress={() => { const id = mi.id; setMenuId(null); onDelete(id); }} />
+            </Pressable>
+          )}
+        </Pressable>
+      </Modal>
+
+      <Modal transparent visible={settings} animationType="fade" onRequestClose={() => setSettings(false)}>
+        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center' }} onPress={() => setSettings(false)}>
+          <Pressable onPress={() => {}} style={{ width: Math.min(W - 40, 390), backgroundColor: C.card, borderRadius: 16, padding: 16, gap: 6 }}>
+            <Text style={{ color: '#fff', fontWeight: '900', fontSize: 17, marginBottom: 2 }}>Orman ayarları · {items.length}/{FF_MAX} resim</Text>
+            <Stepper label="Resim boyutu" value={cfg.wt} step={0.04} min={0.3} max={0.8} fmt={(v) => '%' + Math.round(v * 100)} onChange={(v) => onCfg({ wt: v })} />
+            <Stepper label="Sağ-sol açıklık" value={cfg.x0} step={0.02} min={0.1} max={0.42} fmt={(v) => '%' + Math.round(v * 100)} onChange={(v) => onCfg({ x0: v })} />
+            <Stepper label="Derinlik etkisi" value={cfg.a} step={0.1} min={0.2} max={0.8} fmt={(v) => v.toFixed(1)} onChange={(v) => onCfg({ a: v })} />
+            <Stepper label="Ufuk yüksekliği" value={cfg.horizon} step={0.02} min={0.18} max={0.5} fmt={(v) => '%' + Math.round(v * 100)} onChange={(v) => onCfg({ horizon: v })} />
+            <Btn title="＋ Resim ekle" onPress={() => { setSettings(false); setTimeout(onAdd, 250); }} />
+            <Btn title="🖼 Orman arka planı seç" kind="ghost" onPress={() => { setSettings(false); setTimeout(() => onPickBg('bgForest'), 250); }} />
+            <Btn title={ui.hideTitle ? 'Plakayı göster' : 'ORMAN plakasını gizle'} kind="ghost" onPress={() => onUi({ hideTitle: !ui.hideTitle })} />
+            <Btn title="↔ Tüm konumları sıfırla" kind="ghost" onPress={() => { onResetPos(); setSettings(false); }} />
+            <Btn title="🗑 Tüm resimleri sil" kind="danger" onPress={() => { setSettings(false); onClear(); }} />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal transparent visible={!!preview} animationType="fade" onRequestClose={() => setPreview(null)}>
+        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', alignItems: 'center', justifyContent: 'center' }} onPress={() => setPreview(null)}>
+          {preview && (
+            <>
+              <Image source={{ uri: DIR + preview.file }} style={{ width: W - 24, height: H * 0.76 }} resizeMode="contain" />
+              {!!preview.label && <Text style={{ color: '#fff', fontWeight: '900', fontSize: 18, marginTop: 10, textAlign: 'center' }}>{preview.label}</Text>}
+              <Text style={{ color: C.sub, marginTop: 8 }}>Kapatmak için dokun</Text>
+            </>
+          )}
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
 function CuzReader({ nav, ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesResetPos, cd, insets, onHome, trees, author, onPickTree, onTreeAnch, onTreeReset }) {
   const { width: W, height: H } = useWindowDimensions();
   const pages = cd.pages;
@@ -2102,7 +2299,7 @@ function Root() {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (AUTHOR && screen.name === 'editor') { setScreen({ name: 'library' }); return true; }
       if (AUTHOR && screen.name === 'library') { setScreen({ name: 'home' }); return true; }
-      if (screen.name === 'cuz') { setScreen({ name: 'home' }); return true; }
+      if (screen.name === 'cuz' || screen.name === 'forest') { setScreen({ name: 'home' }); return true; }
       return false;
     });
     return () => sub.remove();
@@ -2312,11 +2509,74 @@ function Root() {
   const uiPatch = (patch) => setData((d) => ({ ...d, ui: { ...(d.ui || {}), ...patch } }));
   const bgReset = () => {
     const u = dataRef.current.ui || {};
-    [u.bgGarden, u.bgPage].forEach((b) => { if (b && b.file) FileSystem.deleteAsync(DIR + b.file, { idempotent: true }).catch(() => {}); });
-    uiPatch({ bgGarden: null, bgPage: null });
+    [u.bgGarden, u.bgPage, u.bgForest].forEach((b) => { if (b && b.file) FileSystem.deleteAsync(DIR + b.file, { idempotent: true }).catch(() => {}); });
+    uiPatch({ bgGarden: null, bgPage: null, bgForest: null });
   };
   const treeMove = (idx, dx) => setData((d) => ({ ...d, trees: { ...(d.trees || {}), [idx]: { ...((d.trees || {})[idx] || { file: null }), dx } } }));
   const treesResetPos = () => setData((d) => { const tr = {}; Object.keys(d.trees || {}).forEach((kk) => { tr[kk] = { ...d.trees[kk], dx: 0 }; }); return { ...d, trees: tr }; });
+  const ffSet = (fn) => setData((d) => ({ ...d, forest: fn(d.forest || { items: [], cfg: {} }) }));
+  const ffUpdate = (id, patch) => ffSet((f) => ({ ...f, items: (f.items || []).map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
+  const ffCfg = (patch) => ffSet((f) => ({ ...f, cfg: { ...(f.cfg || {}), ...patch } }));
+  const ffAdd = async () => {
+    const have = ((dataRef.current.forest || {}).items || []).length;
+    if (have >= FF_MAX) { Alert.alert('En fazla ' + FF_MAX + ' resim', 'Yeni resim eklemek için önce birini sil.'); return; }
+    const assets = await pickImages(true);
+    if (!assets.length) return;
+    try {
+      await ensureDir();
+      const add = [];
+      for (const a0 of assets.slice(0, FF_MAX - have)) {
+        const id = uid(), file = 'orm_' + id + '.' + extOf(a0.uri.split('?')[0]);
+        await FileSystem.copyAsync({ from: a0.uri, to: DIR + file });
+        add.push({ id, file, w: a0.width, h: a0.height, dx: 0, sc: 1, label: '', cuz: 0 });
+      }
+      ffSet((f) => ({ ...f, items: [...(f.items || []), ...add] }));
+      if (assets.length > FF_MAX - have) Alert.alert('Sınır', 'En fazla ' + FF_MAX + ' resim eklenebilir; fazlası alınmadı.');
+    } catch (e) { Alert.alert('Resim eklenemedi', e.message); }
+  };
+  const ffReplace = async (id) => {
+    const assets = await pickImages(false);
+    if (!assets.length) return;
+    try {
+      await ensureDir();
+      const a0 = assets[0], file = 'orm_' + uid() + '.' + extOf(a0.uri.split('?')[0]);
+      await FileSystem.copyAsync({ from: a0.uri, to: DIR + file });
+      const old = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id);
+      if (old && old.file) FileSystem.deleteAsync(DIR + old.file, { idempotent: true }).catch(() => {});
+      ffUpdate(id, { file, w: a0.width, h: a0.height });
+    } catch (e) { Alert.alert('Resim değiştirilemedi', e.message); }
+  };
+  const ffDelete = (id) => {
+    const old = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id);
+    if (old && old.file) FileSystem.deleteAsync(DIR + old.file, { idempotent: true }).catch(() => {});
+    ffSet((f) => ({ ...f, items: (f.items || []).filter((x) => x.id !== id) }));
+  };
+  const ffReorder = (id, delta) => ffSet((f) => {
+    const a = [...(f.items || [])], i = a.findIndex((x) => x.id === id), j = i + delta;
+    if (i < 0 || j < 0 || j >= a.length) return f;
+    [a[i], a[j]] = [a[j], a[i]]; return { ...f, items: a };
+  });
+  const ffLabel = async (id) => {
+    const it = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id); if (!it) return;
+    const n = await promptName('Resmin altındaki yazı (silmek için - yaz)', it.label || '');
+    if (n === null || n === undefined) return;
+    ffUpdate(id, { label: n.trim() === '-' ? '' : n.trim() });
+  };
+  const ffLink = async (id) => {
+    const it = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id); if (!it) return;
+    const n = await promptName('Hangi cüze bağlansın? (1-30, kaldırmak için 0)', it.cuz ? String(it.cuz) : '');
+    if (n === null || n === undefined) return;
+    const v = parseInt(n, 10);
+    ffUpdate(id, { cuz: !isNaN(v) && v >= 1 && v <= 30 ? v : 0 });
+  };
+  const ffResetPos = () => ffSet((f) => ({ ...f, items: (f.items || []).map((x) => ({ ...x, dx: 0 })) }));
+  const ffClear = () => Alert.alert('Tüm resimleri sil', 'Ormandaki bütün resimler silinecek.', [
+    { text: 'Vazgeç', style: 'cancel' },
+    { text: 'Sil', style: 'destructive', onPress: () => {
+      ((dataRef.current.forest || {}).items || []).forEach((x) => { if (x.file) FileSystem.deleteAsync(DIR + x.file, { idempotent: true }).catch(() => {}); });
+      ffSet((f) => ({ ...f, items: [] }));
+    } },
+  ]);
   const lastCuz = useRef(null);
   const openGarden = () => {
     const ks = Object.keys(dataRef.current.cuz || {});
@@ -2327,6 +2587,7 @@ function Root() {
   const navItems = [
     { k: 'home', icon: '🏠', label: 'Ana Sayfa', onPress: () => setScreen({ name: 'home' }) },
     { k: 'garden', icon: '🌳', label: 'Bahçe', onPress: openGarden },
+    { k: 'forest', icon: '🌲', label: 'Orman', onPress: () => setScreen({ name: 'forest' }) },
     { k: 'profile', icon: '👤', label: 'Profil', onPress: () => setProfileOpen(true) },
   ];
   const setCover = async (fid) => {
@@ -2525,6 +2786,14 @@ function Root() {
         onCopy={copyButtons} onPasteOne={(id) => pasteTo([id], 'add')} onOpenPaste={() => setPasteOpen(true)}
         onSort={sortAll} onMove={moveImage} onExport={doExport} onImport={doImport} onResetMode={resetMode}
         onSetFolder={setFolder} onNewFolder={newFolder} onRenameFolder={renameFolder} onDeleteFolder={deleteFolder} />
+    );
+  } else if (screen.name === 'forest') {
+    body = (
+      <FreeForestScreen
+        forest={data.forest || { items: [], cfg: {} }} ui={data.ui || {}} author={AUTHOR} insets={insets} nav={navItems} cuzData={data.cuz || {}}
+        onAdd={ffAdd} onMove={(id, dx) => ffUpdate(id, { dx })} onUpdate={ffUpdate} onDelete={ffDelete} onReorder={ffReorder} onCfg={ffCfg}
+        onPickBg={pickBg} onUi={uiPatch} onLabel={ffLabel} onLink={ffLink} onReplace={ffReplace} onResetPos={ffResetPos} onClear={ffClear}
+        onOpenCuz={(n) => { lastCuz.current = n; setScreen({ name: 'cuz', cuz: n }); }} />
     );
   } else if (screen.name === 'cuz' && data.cuz && data.cuz[screen.cuz]) {
     body = <CuzReader nav={navItems} key={screen.cuz} cd={data.cuz[screen.cuz]} insets={insets} onHome={() => setScreen({ name: 'home' })}
