@@ -35,6 +35,8 @@ import JSZip from 'jszip';
 import nacl from 'tweetnacl';
 import { pbkdf2Async } from '@noble/hashes/pbkdf2';
 import { sha256 } from '@noble/hashes/sha256';
+import UPNG from 'upng-js';
+import jpeg from 'jpeg-js';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 let FileSystem;
@@ -1840,6 +1842,88 @@ function ForestPicker({ bottomPad, arrange, onMove, trees, author, onMenu, pages
 const FF_MAX = 30;
 const FF_DEF = { wt: 0.54, x0: 0.26, a: 0.6, horizon: 0.30 };
 const stepBtn = { width: 38, height: 38, borderRadius: 19, backgroundColor: '#1F2740', alignItems: 'center', justifyContent: 'center' };
+// ---- beyaz (açık) arka planı şeffaflaştır: dış kenardan başlayan zemini siler, ağacın içindeki beyazlara dokunmaz
+function whiteToAlpha(src, w0, h0, maxSide) {
+  let w = w0, h = h0, rgba = src;
+  const f = Math.ceil(Math.max(w, h) / (maxSide || 1100));
+  if (f > 1) {                                             // büyük resmi blok ortalamasıyla küçült
+    const nw = Math.floor(w / f), nh = Math.floor(h / f), o = new Uint8Array(nw * nh * 4), n = f * f;
+    for (let y = 0; y < nh; y++) for (let x = 0; x < nw; x++) {
+      let r = 0, g = 0, b = 0, a = 0;
+      for (let dy = 0; dy < f; dy++) { let i = ((y * f + dy) * w + x * f) * 4; for (let dx = 0; dx < f; dx++, i += 4) { r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; a += rgba[i + 3]; } }
+      const j = (y * nw + x) * 4; o[j] = r / n; o[j + 1] = g / n; o[j + 2] = b / n; o[j + 3] = a / n;
+    }
+    rgba = o; w = nw; h = nh;
+  }
+  let tr = 0; for (let i = 3; i < rgba.length; i += 4) if (rgba[i] < 250) tr++;
+  if (tr > w * h * 0.02) return { already: true };         // zaten şeffaf
+  const corner = (cx, cy) => { let r = 0, g = 0, b = 0, c = 0; for (let y = cy; y < cy + 6; y++) for (let x = cx; x < cx + 6; x++) { const i = (y * w + x) * 4; r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; c++; } return [r / c, g / c, b / c]; };
+  const cs = [corner(0, 0), corner(w - 6, 0), corner(0, h - 6), corner(w - 6, h - 6)];
+  cs.sort((p, q) => (q[0] + q[1] + q[2]) - (p[0] + p[1] + p[2]));
+  const bg = cs[0];
+  if (Math.min(bg[0], bg[1], bg[2]) < 200) return { fail: 'Arka plan açık renk (beyaz) değil.' };
+  const T = 40, N = w * h;
+  const dist = (p) => { const i = p * 4; return Math.max(Math.abs(rgba[i] - bg[0]), Math.abs(rgba[i + 1] - bg[1]), Math.abs(rgba[i + 2] - bg[2])); };
+  const rem = new Uint8Array(N), q = new Int32Array(N); let qh = 0, qt = 0;
+  const push = (p) => { if (!rem[p] && dist(p) <= T) { rem[p] = 1; q[qt++] = p; } };
+  for (let x = 0; x < w; x++) { push(x); push((h - 1) * w + x); }
+  for (let y = 0; y < h; y++) { push(y * w); push(y * w + w - 1); }
+  while (qh < qt) { const p = q[qh++], x = p % w, y = (p - x) / w; if (x > 0) push(p - 1); if (x < w - 1) push(p + 1); if (y > 0) push(p - w); if (y < h - 1) push(p + w); }
+  if (qt < N * 0.03) return { fail: 'Kenarda silinecek bir zemin bulunamadı.' };
+  {                                                          // ağaç dallarının arasında kalan BÜYÜK kapalı beyaz boşlukları da sil (küçük beyaz çiçek/parlamalar kalır)
+    const seen = new Uint8Array(N), minA = Math.max(200, Math.floor(N * 0.004)), comp = new Int32Array(N);
+    for (let s = 0; s < N; s++) {
+      if (rem[s] || seen[s] || dist(s) > T) continue;
+      let ch = 0, ct = 0; comp[ct++] = s; seen[s] = 1;
+      while (ch < ct) { const p = comp[ch++], x = p % w, y = (p - x) / w; const tryp = (k) => { if (!rem[k] && !seen[k] && dist(k) <= T) { seen[k] = 1; comp[ct++] = k; } }; if (x > 0) tryp(p - 1); if (x < w - 1) tryp(p + 1); if (y > 0) tryp(p - w); if (y < h - 1) tryp(p + w); }
+      if (ct >= minA) for (let k = 0; k < ct; k++) rem[comp[k]] = 1;
+    }
+  }
+  const ring = new Uint8Array(N);                          // 1 = silinen bölgeye bitişik, 2 = onun yanındaki
+  const nb = (p, fn) => { const x = p % w, y = (p - x) / w; return (x > 0 && fn(p - 1)) || (x < w - 1 && fn(p + 1)) || (y > 0 && fn(p - w)) || (y < h - 1 && fn(p + w)); };
+  for (let p = 0; p < N; p++) if (!rem[p] && nb(p, (k) => rem[k] === 1)) ring[p] = 1;
+  for (let p = 0; p < N; p++) if (!rem[p] && !ring[p] && nb(p, (k) => ring[k] === 1)) ring[p] = 2;
+  const out = new Uint8Array(N * 4);
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let p = 0; p < N; p++) {
+    const i = p * 4; let a = 255;
+    if (rem[p]) a = 0;
+    else if (ring[p]) { const d = dist(p); a = Math.max(0, Math.min(1, (d - (ring[p] === 1 ? 8 : 4)) / (T * (ring[p] === 1 ? 1.6 : 2.4)))) * 255; }
+    if (a === 0) continue;
+    let r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
+    if (a < 255) { const k = a / 255; r = Math.max(0, Math.min(255, (r - bg[0] * (1 - k)) / k)); g = Math.max(0, Math.min(255, (g - bg[1] * (1 - k)) / k)); b = Math.max(0, Math.min(255, (b - bg[2] * (1 - k)) / k)); }
+    out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = a;
+    if (a > 8) { const x = p % w, y = (p - x) / w; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  }
+  if (x1 < 0) return { fail: 'Resimde ağaç kalmadı (hepsi silindi).' };
+  x0 = Math.max(0, x0 - 3); y0 = Math.max(0, y0 - 3); x1 = Math.min(w - 1, x1 + 3); y1 = Math.min(h - 1, y1 + 3);
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1, res = new Uint8Array(cw * ch * 4);
+  for (let y = 0; y < ch; y++) res.set(out.subarray(((y + y0) * w + x0) * 4, ((y + y0) * w + x0 + cw) * 4), y * cw * 4);
+  return { rgba: res, w: cw, h: ch };
+}
+
+// PNG/JPG oku -> beyaz zemini sil -> şeffaf PNG olarak yaz
+async function cleanBgFile(srcFile, pw, ph) {
+  if (pw && ph && pw * ph > 16e6) return { fail: 'Resim çok büyük (16 megapikselden fazla).' };
+  const b64 = await FileSystem.readAsStringAsync(DIR + srcFile, { encoding: 'base64' });
+  const bytes = b64ToBytes(b64);
+  let rgba, w, h;
+  if (bytes[0] === 0x89 && bytes[1] === 0x50) {
+    const png = UPNG.decode(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length));
+    rgba = new Uint8Array(UPNG.toRGBA8(png)[0]); w = png.width; h = png.height;
+  } else if (bytes[0] === 0xff && bytes[1] === 0xd8) {
+    const j = jpeg.decode(bytes, { useTArray: true, formatAsRGBA: true, maxMemoryUsageInMB: 600 });
+    rgba = j.data; w = j.width; h = j.height;
+  } else return { fail: 'Bu resim biçimi desteklenmiyor (PNG ya da JPG kullan).' };
+  const r = whiteToAlpha(rgba, w, h, 1100);
+  if (r.already) return { already: true };
+  if (r.fail) return r;
+  const out = UPNG.encode([r.rgba.buffer], r.w, r.h, 0);
+  const file = 'orm_' + uid() + '.png';
+  await FileSystem.writeAsStringAsync(DIR + file, bytesToB64(new Uint8Array(out)), { encoding: 'base64' });
+  return { file, w: r.w, h: r.h };
+}
+
 function Stepper({ label, value, step, min, max, onChange, fmt }) {
   const dec = () => onChange(Math.max(min, +(value - step).toFixed(3)));
   const inc = () => onChange(Math.min(max, +(value + step).toFixed(3)));
@@ -1941,7 +2025,7 @@ function FreeForest({ items, cfg, arrange, author, W, H, insets, bottomPad, onMo
   );
 }
 
-function FreeForestScreen({ forest, ui, author, insets, nav, cuzData, onAdd, onMove, onUpdate, onDelete, onReorder, onCfg, onPickBg, onUi, onLabel, onLink, onReplace, onResetPos, onClear, onOpenCuz }) {
+function FreeForestScreen({ onClean, onRestore, onCleanAll, forest, ui, author, insets, nav, cuzData, onAdd, onMove, onUpdate, onDelete, onReorder, onCfg, onPickBg, onUi, onLabel, onLink, onReplace, onResetPos, onClear, onOpenCuz }) {
   const { width: W, height: H } = useWindowDimensions();
   const items = forest.items || [];
   const cfg = { ...FF_DEF, ...(forest.cfg || {}) };
@@ -1987,6 +2071,8 @@ function FreeForestScreen({ forest, ui, author, insets, nav, cuzData, onAdd, onM
               <Btn title="🖼 Resmi değiştir" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onReplace(id), 250); }} />
               <Btn title="Aa Altına yazı yaz" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onLabel(id), 250); }} />
               <Btn title={mi.cuz ? `🔗 Bağlı cüz: ${mi.cuz} (değiştir)` : '🔗 Bir cüze bağla'} kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onLink(id), 250); }} />
+              <Btn title="✂ Beyaz arka planı kaldır" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onClean(id), 250); }} />
+              {!!mi.orig && <Btn title="↺ Orijinal resmi geri getir" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); onRestore(id); }} />}
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <Btn title="⇧ Öne al" kind="ghost" style={{ flex: 1 }} onPress={() => onReorder(mi.id, -1)} />
                 <Btn title="⇩ Arkaya al" kind="ghost" style={{ flex: 1 }} onPress={() => onReorder(mi.id, 1)} />
@@ -2007,6 +2093,7 @@ function FreeForestScreen({ forest, ui, author, insets, nav, cuzData, onAdd, onM
             <Stepper label="Derinlik etkisi" value={cfg.a} step={0.1} min={0.2} max={0.8} fmt={(v) => v.toFixed(1)} onChange={(v) => onCfg({ a: v })} />
             <Stepper label="Ufuk yüksekliği" value={cfg.horizon} step={0.02} min={0.18} max={0.5} fmt={(v) => '%' + Math.round(v * 100)} onChange={(v) => onCfg({ horizon: v })} />
             <Btn title="＋ Resim ekle" onPress={() => { setSettings(false); setTimeout(onAdd, 250); }} />
+            <Btn title="✂ Tüm resimlerin beyaz arka planını kaldır" kind="ghost" onPress={() => { setSettings(false); setTimeout(onCleanAll, 250); }} />
             <Btn title="🖼 Orman arka planı seç" kind="ghost" onPress={() => { setSettings(false); setTimeout(() => onPickBg('bgForest'), 250); }} />
             <Btn title={ui.hideTitle ? 'Plakayı göster' : 'ORMAN plakasını gizle'} kind="ghost" onPress={() => onUi({ hideTitle: !ui.hideTitle })} />
             <Btn title="↔ Tüm konumları sıfırla" kind="ghost" onPress={() => { onResetPos(); setSettings(false); }} />
@@ -2532,6 +2619,10 @@ function Root() {
       }
       ffSet((f) => ({ ...f, items: [...(f.items || []), ...add] }));
       if (assets.length > FF_MAX - have) Alert.alert('Sınır', 'En fazla ' + FF_MAX + ' resim eklenebilir; fazlası alınmadı.');
+      Alert.alert('Beyaz arka plan', 'Eklenen resimlerin beyaz arka planı silinsin mi? Ağaç kalır, çevresi şeffaf olur. Sonradan geri alabilirsin.', [
+        { text: 'Hayır', style: 'cancel' },
+        { text: 'Evet, sil', onPress: () => ffCleanList(add.map((x) => x.id)) },
+      ]);
     } catch (e) { Alert.alert('Resim eklenemedi', e.message); }
   };
   const ffReplace = async (id) => {
@@ -2543,12 +2634,14 @@ function Root() {
       await FileSystem.copyAsync({ from: a0.uri, to: DIR + file });
       const old = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id);
       if (old && old.file) FileSystem.deleteAsync(DIR + old.file, { idempotent: true }).catch(() => {});
-      ffUpdate(id, { file, w: a0.width, h: a0.height });
+      if (old && old.orig && old.orig !== old.file) FileSystem.deleteAsync(DIR + old.orig, { idempotent: true }).catch(() => {});
+      ffUpdate(id, { file, w: a0.width, h: a0.height, orig: null });
     } catch (e) { Alert.alert('Resim değiştirilemedi', e.message); }
   };
   const ffDelete = (id) => {
     const old = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id);
     if (old && old.file) FileSystem.deleteAsync(DIR + old.file, { idempotent: true }).catch(() => {});
+    if (old && old.orig) FileSystem.deleteAsync(DIR + old.orig, { idempotent: true }).catch(() => {});
     ffSet((f) => ({ ...f, items: (f.items || []).filter((x) => x.id !== id) }));
   };
   const ffReorder = (id, delta) => ffSet((f) => {
@@ -2556,6 +2649,41 @@ function Root() {
     if (i < 0 || j < 0 || j >= a.length) return f;
     [a[i], a[j]] = [a[j], a[i]]; return { ...f, items: a };
   });
+  const ffCleanOne = async (id) => {                      // hata/uyarı metni döndürür, başarıda null
+    const it = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id);
+    if (!it) return 'Resim bulunamadı.';
+    const src = it.orig || it.file;                       // her zaman orijinalden temizle
+    const r = await cleanBgFile(src, it.ow || it.w, it.oh || it.h);
+    if (r.already) return 'Bu resim zaten şeffaf arka planlı.';
+    if (r.fail) return r.fail;
+    if (it.orig && it.file !== it.orig) FileSystem.deleteAsync(DIR + it.file, { idempotent: true }).catch(() => {});
+    ffUpdate(id, { orig: src, ow: it.ow || it.w, oh: it.oh || it.h, file: r.file, w: r.w, h: r.h });
+    return null;
+  };
+  const nextTick = () => new Promise((r) => setTimeout(r, 60));
+  const ffClean = async (id) => {
+    setBusy('Arka plan temizleniyor…'); await nextTick();
+    let msg = null;
+    try { msg = await ffCleanOne(id); } catch (e) { msg = 'Hata: ' + e.message; }
+    setBusy(false);
+    Alert.alert(msg ? 'Temizlenemedi' : 'Tamam', msg || 'Beyaz arka plan silindi. Beğenmezsen "Orijinal resmi geri getir" ile geri alabilirsin.');
+  };
+  const ffCleanList = async (ids) => {
+    const bad = [];
+    for (let i = 0; i < ids.length; i++) {
+      setBusy(`Arka plan temizleniyor… ${i + 1}/${ids.length}`); await nextTick();
+      try { const m = await ffCleanOne(ids[i]); if (m && m.indexOf('zaten') < 0) bad.push(m); } catch (e) { bad.push(e.message); }
+    }
+    setBusy(false);
+    if (bad.length) Alert.alert('Bazı resimler temizlenemedi', bad.slice(0, 3).join('\n'));
+  };
+  const ffCleanAll = () => ffCleanList(((dataRef.current.forest || {}).items || []).map((x) => x.id));
+  const ffRestore = (id) => {
+    const it = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id);
+    if (!it || !it.orig) return;
+    FileSystem.deleteAsync(DIR + it.file, { idempotent: true }).catch(() => {});
+    ffUpdate(id, { file: it.orig, w: it.ow, h: it.oh, orig: null });
+  };
   const ffLabel = async (id) => {
     const it = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id); if (!it) return;
     const n = await promptName('Resmin altındaki yazı (silmek için - yaz)', it.label || '');
@@ -2573,7 +2701,7 @@ function Root() {
   const ffClear = () => Alert.alert('Tüm resimleri sil', 'Ormandaki bütün resimler silinecek.', [
     { text: 'Vazgeç', style: 'cancel' },
     { text: 'Sil', style: 'destructive', onPress: () => {
-      ((dataRef.current.forest || {}).items || []).forEach((x) => { if (x.file) FileSystem.deleteAsync(DIR + x.file, { idempotent: true }).catch(() => {}); });
+      ((dataRef.current.forest || {}).items || []).forEach((x) => { [x.file, x.orig].forEach((fn) => { if (fn) FileSystem.deleteAsync(DIR + fn, { idempotent: true }).catch(() => {}); }); });
       ffSet((f) => ({ ...f, items: [] }));
     } },
   ]);
@@ -2792,7 +2920,7 @@ function Root() {
       <FreeForestScreen
         forest={data.forest || { items: [], cfg: {} }} ui={data.ui || {}} author={AUTHOR} insets={insets} nav={navItems} cuzData={data.cuz || {}}
         onAdd={ffAdd} onMove={(id, dx) => ffUpdate(id, { dx })} onUpdate={ffUpdate} onDelete={ffDelete} onReorder={ffReorder} onCfg={ffCfg}
-        onPickBg={pickBg} onUi={uiPatch} onLabel={ffLabel} onLink={ffLink} onReplace={ffReplace} onResetPos={ffResetPos} onClear={ffClear}
+        onPickBg={pickBg} onUi={uiPatch} onLabel={ffLabel} onLink={ffLink} onReplace={ffReplace} onResetPos={ffResetPos} onClear={ffClear} onClean={ffClean} onRestore={ffRestore} onCleanAll={ffCleanAll}
         onOpenCuz={(n) => { lastCuz.current = n; setScreen({ name: 'cuz', cuz: n }); }} />
     );
   } else if (screen.name === 'cuz' && data.cuz && data.cuz[screen.cuz]) {
