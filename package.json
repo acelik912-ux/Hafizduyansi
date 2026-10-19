@@ -4,6 +4,8 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": { "start": "expo start" },
   "dependencies": {
+        "upng-js": "2.1.0",
+    "jpeg-js": "0.4.4",
         "@noble/hashes": "1.4.0",
     "tweetnacl": "1.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
