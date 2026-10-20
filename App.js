@@ -1843,7 +1843,9 @@ const FF_MAX = 30;
 const FF_DEF = { wt: 0.54, x0: 0.26, a: 0.6, horizon: 0.30 };
 const stepBtn = { width: 38, height: 38, borderRadius: 19, backgroundColor: '#1F2740', alignItems: 'center', justifyContent: 'center' };
 // ---- beyaz (açık) arka planı şeffaflaştır: dış kenardan başlayan zemini siler, ağacın içindeki beyazlara dokunmaz
-function whiteToAlpha(src, w0, h0, maxSide) {
+// ---- beyaz (açık) arka planı şeffaflaştır: dış kenardan başlayan zemini siler, ağacın içindeki beyazlara dokunmaz
+function whiteToAlpha(src, w0, h0, maxSide, lvl) {
+  lvl = lvl || 1;
   let w = w0, h = h0, rgba = src;
   const f = Math.ceil(Math.max(w, h) / (maxSide || 1100));
   if (f > 1) {                                             // büyük resmi blok ortalamasıyla küçült
@@ -1862,7 +1864,7 @@ function whiteToAlpha(src, w0, h0, maxSide) {
   cs.sort((p, q) => (q[0] + q[1] + q[2]) - (p[0] + p[1] + p[2]));
   const bg = cs[0];
   if (Math.min(bg[0], bg[1], bg[2]) < 200) return { fail: 'Arka plan açık renk (beyaz) değil.' };
-  const T = 40, N = w * h;
+  const T = [40, 58, 76][lvl - 1], N = w * h;
   const dist = (p) => { const i = p * 4; return Math.max(Math.abs(rgba[i] - bg[0]), Math.abs(rgba[i + 1] - bg[1]), Math.abs(rgba[i + 2] - bg[2])); };
   const rem = new Uint8Array(N), q = new Int32Array(N); let qh = 0, qt = 0;
   const push = (p) => { if (!rem[p] && dist(p) <= T) { rem[p] = 1; q[qt++] = p; } };
@@ -1871,7 +1873,7 @@ function whiteToAlpha(src, w0, h0, maxSide) {
   while (qh < qt) { const p = q[qh++], x = p % w, y = (p - x) / w; if (x > 0) push(p - 1); if (x < w - 1) push(p + 1); if (y > 0) push(p - w); if (y < h - 1) push(p + w); }
   if (qt < N * 0.03) return { fail: 'Kenarda silinecek bir zemin bulunamadı.' };
   {                                                          // ağaç dallarının arasında kalan BÜYÜK kapalı beyaz boşlukları da sil (küçük beyaz çiçek/parlamalar kalır)
-    const seen = new Uint8Array(N), minA = Math.max(200, Math.floor(N * 0.004)), comp = new Int32Array(N);
+    const seen = new Uint8Array(N), minA = lvl === 1 ? Math.max(200, Math.floor(N * 0.004)) : (lvl === 2 ? 60 : 24), comp = new Int32Array(N);
     for (let s = 0; s < N; s++) {
       if (rem[s] || seen[s] || dist(s) > T) continue;
       let ch = 0, ct = 0; comp[ct++] = s; seen[s] = 1;
@@ -1879,16 +1881,16 @@ function whiteToAlpha(src, w0, h0, maxSide) {
       if (ct >= minA) for (let k = 0; k < ct; k++) rem[comp[k]] = 1;
     }
   }
-  const ring = new Uint8Array(N);                          // 1 = silinen bölgeye bitişik, 2 = onun yanındaki
+  const R = lvl + 1, ring = new Uint8Array(N);               // 1..R = silinen bölgeye uzaklık (halka)
   const nb = (p, fn) => { const x = p % w, y = (p - x) / w; return (x > 0 && fn(p - 1)) || (x < w - 1 && fn(p + 1)) || (y > 0 && fn(p - w)) || (y < h - 1 && fn(p + w)); };
-  for (let p = 0; p < N; p++) if (!rem[p] && nb(p, (k) => rem[k] === 1)) ring[p] = 1;
-  for (let p = 0; p < N; p++) if (!rem[p] && !ring[p] && nb(p, (k) => ring[k] === 1)) ring[p] = 2;
+  for (let r = 1; r <= R; r++) for (let p = 0; p < N; p++) if (!rem[p] && !ring[p] && nb(p, (k) => (r === 1 ? rem[k] === 1 : ring[k] === r - 1))) ring[p] = r;
+  const base = [0, 8, 5, 3, 2].map((v, i) => (lvl === 1 ? v : v * (1 + 0.8 * (lvl - 1)))), span = T * (lvl === 1 ? 1.6 : 1.2);
   const out = new Uint8Array(N * 4);
   let x0 = w, y0 = h, x1 = -1, y1 = -1;
   for (let p = 0; p < N; p++) {
     const i = p * 4; let a = 255;
     if (rem[p]) a = 0;
-    else if (ring[p]) { const d = dist(p); a = Math.max(0, Math.min(1, (d - (ring[p] === 1 ? 8 : 4)) / (T * (ring[p] === 1 ? 1.6 : 2.4)))) * 255; }
+    else if (ring[p]) { const d = dist(p); a = Math.max(0, Math.min(1, (d - base[ring[p]]) / (span * (1 + 0.5 * (ring[p] - 1))))) * 255; }
     if (a === 0) continue;
     let r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
     if (a < 255) { const k = a / 255; r = Math.max(0, Math.min(255, (r - bg[0] * (1 - k)) / k)); g = Math.max(0, Math.min(255, (g - bg[1] * (1 - k)) / k)); b = Math.max(0, Math.min(255, (b - bg[2] * (1 - k)) / k)); }
@@ -1903,7 +1905,7 @@ function whiteToAlpha(src, w0, h0, maxSide) {
 }
 
 // PNG/JPG oku -> beyaz zemini sil -> şeffaf PNG olarak yaz
-async function cleanBgFile(srcFile, pw, ph) {
+async function cleanBgFile(srcFile, pw, ph, lvl) {
   if (pw && ph && pw * ph > 16e6) return { fail: 'Resim çok büyük (16 megapikselden fazla).' };
   const b64 = await FileSystem.readAsStringAsync(DIR + srcFile, { encoding: 'base64' });
   const bytes = b64ToBytes(b64);
@@ -1915,7 +1917,7 @@ async function cleanBgFile(srcFile, pw, ph) {
     const j = jpeg.decode(bytes, { useTArray: true, formatAsRGBA: true, maxMemoryUsageInMB: 600 });
     rgba = j.data; w = j.width; h = j.height;
   } else return { fail: 'Bu resim biçimi desteklenmiyor (PNG ya da JPG kullan).' };
-  const r = whiteToAlpha(rgba, w, h, 1100);
+  const r = whiteToAlpha(rgba, w, h, 1100, lvl || 3);
   if (r.already) return { already: true };
   if (r.fail) return r;
   const out = UPNG.encode([r.rgba.buffer], r.w, r.h, 0);
@@ -2025,7 +2027,7 @@ function FreeForest({ items, cfg, arrange, author, W, H, insets, bottomPad, onMo
   );
 }
 
-function FreeForestScreen({ onClean, onRestore, onCleanAll, forest, ui, author, insets, nav, cuzData, onAdd, onMove, onUpdate, onDelete, onReorder, onCfg, onPickBg, onUi, onLabel, onLink, onReplace, onResetPos, onClear, onOpenCuz }) {
+function FreeForestScreen({ onBack, onClean, onRestore, onCleanAll, forest, ui, author, insets, nav, cuzData, onAdd, onMove, onUpdate, onDelete, onReorder, onCfg, onPickBg, onUi, onLabel, onLink, onReplace, onResetPos, onClear, onOpenCuz }) {
   const { width: W, height: H } = useWindowDimensions();
   const items = forest.items || [];
   const cfg = { ...FF_DEF, ...(forest.cfg || {}) };
@@ -2044,7 +2046,7 @@ function FreeForestScreen({ onClean, onRestore, onCleanAll, forest, ui, author, 
       <FreeForest items={items} cfg={forest.cfg} arrange={arrange} author={author} W={W} H={H} insets={insets} bottomPad={NAV_H - 8}
         onMove={onMove} onTap={tapItem} onMenu={setMenuId} />
       <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8 }}>
-        {author ? <RoundBtn icon="＋" onPress={onAdd} /> : <View style={{ width: 44 }} />}
+        <RoundBtn icon="◀" onPress={onBack} />
         <View style={{ flex: 1, alignItems: 'center' }}>
           {!ui.hideTitle && (
             <View style={{ backgroundColor: '#0B0B0B', borderWidth: 2.5, borderColor: GOLD, borderRadius: 12, paddingHorizontal: 22, paddingVertical: 8 }}>
@@ -2052,7 +2054,7 @@ function FreeForestScreen({ onClean, onRestore, onCleanAll, forest, ui, author, 
             </View>
           )}
         </View>
-        {author ? (<><RoundBtn icon="✥" onPress={() => setArrange(!arrange)} /><RoundBtn icon="⚙" onPress={() => setSettings(true)} /></>) : <View style={{ width: 44 }} />}
+        {author ? (<><RoundBtn icon="＋" onPress={onAdd} /><RoundBtn icon="✥" onPress={() => setArrange(!arrange)} /><RoundBtn icon="⚙" onPress={() => setSettings(true)} /></>) : <View style={{ width: 44 }} />}
       </View>
       {arrange && (
         <View style={{ position: 'absolute', left: 12, right: 12, top: insets.top + 66, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.74)', borderWidth: 1.5, borderColor: GOLD, borderRadius: 14, padding: 8 }}>
@@ -2071,7 +2073,7 @@ function FreeForestScreen({ onClean, onRestore, onCleanAll, forest, ui, author, 
               <Btn title="🖼 Resmi değiştir" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onReplace(id), 250); }} />
               <Btn title="Aa Altına yazı yaz" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onLabel(id), 250); }} />
               <Btn title={mi.cuz ? `🔗 Bağlı cüz: ${mi.cuz} (değiştir)` : '🔗 Bir cüze bağla'} kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onLink(id), 250); }} />
-              <Btn title="✂ Beyaz arka planı kaldır" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => onClean(id), 250); }} />
+              <Btn title="✂ Beyaz arka planı kaldır" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); setTimeout(() => Alert.alert('Temizleme gücü', 'Beyaz kalıntı kalırsa Güçlü seç. Sonradan geri alabilirsin.', [{ text: 'Hafif', onPress: () => onClean(id, 1) }, { text: 'Orta', onPress: () => onClean(id, 2) }, { text: 'Güçlü', onPress: () => onClean(id, 3) }], { cancelable: true }), 250); }} />
               {!!mi.orig && <Btn title="↺ Orijinal resmi geri getir" kind="ghost" onPress={() => { const id = mi.id; setMenuId(null); onRestore(id); }} />}
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <Btn title="⇧ Öne al" kind="ghost" style={{ flex: 1 }} onPress={() => onReorder(mi.id, -1)} />
@@ -2117,7 +2119,53 @@ function FreeForestScreen({ onClean, onRestore, onCleanAll, forest, ui, author, 
   );
 }
 
-function CuzReader({ nav, ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesResetPos, cd, insets, onHome, trees, author, onPickTree, onTreeAnch, onTreeReset }) {
+// ---- cüz bahçesindeki "geçiş butonu": sen yerleştirirsin, dokununca kaydırmalı geçişle cüzün orman/konsept ekranına gider
+const DEFAULT_PORTAL = { x: 0.5, y: 0.2, sc: 1, label: 'ORMAN ▶', file: null };
+function SlideIn({ dir, children }) {
+  const a = useRef(new Animated.Value(0)).current;
+  const { width } = useWindowDimensions();
+  useEffect(() => { Animated.timing(a, { toValue: 1, duration: 340, useNativeDriver: true }).start(); }, []);
+  return (
+    <Animated.View style={{ flex: 1, opacity: a.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0.2, 1, 1] }), transform: [{ translateX: a.interpolate({ inputRange: [0, 1], outputRange: [dir * width * 0.6, 0] }) }] }}>
+      {children}
+    </Animated.View>
+  );
+}
+function PortalButton({ p, W, H, arrange, author, onPress, onMove, onMenu }) {
+  const sc = p.sc || 1, asp = p.file && p.w && p.h ? Math.min(2, Math.max(0.3, p.h / p.w)) : 1;
+  const cw = p.file ? 130 * sc : 170 * sc, ch = p.file ? cw * asp : 48 * sc;
+  const x = useRef(new Animated.Value(p.x * W)).current, y = useRef(new Animated.Value(p.y * H)).current;
+  const cur = useRef({ x: p.x * W, y: p.y * H }), base = useRef({ x: 0, y: 0 });
+  const en = useRef(arrange); en.current = arrange;
+  const mv = useRef(onMove); mv.current = onMove;
+  const dim = useRef([W, H]); dim.current = [W, H];
+  useEffect(() => { cur.current = { x: p.x * W, y: p.y * H }; x.setValue(p.x * W); y.setValue(p.y * H); }, [p.x, p.y, W, H]);
+  const pr = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => en.current,
+    onMoveShouldSetPanResponder: () => en.current,
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: () => { base.current = { ...cur.current }; },
+    onPanResponderMove: (e, g) => { const nx = base.current.x + g.dx, ny = base.current.y + g.dy; cur.current = { x: nx, y: ny }; x.setValue(nx); y.setValue(ny); },
+    onPanResponderRelease: () => mv.current(clamp01(cur.current.x / dim.current[0]), clamp01(cur.current.y / dim.current[1])),
+  })).current;
+  return (
+    <Animated.View {...pr.panHandlers} style={{ position: 'absolute', left: 0, top: 0, width: cw, height: ch, zIndex: 30, transform: [{ translateX: Animated.add(x, -cw / 2) }, { translateY: Animated.add(y, -ch / 2) }] }}>
+      <Pressable onPress={arrange ? undefined : onPress} onLongPress={author ? onMenu : undefined} delayLongPress={500}
+        style={{ width: cw, height: ch, borderRadius: 12, borderWidth: arrange ? 2 : 0, borderStyle: 'dashed', borderColor: GOLD, alignItems: 'center', justifyContent: 'center' }}>
+        {p.file
+          ? <Image source={{ uri: DIR + p.file }} style={{ width: cw, height: ch }} resizeMode="contain" />
+          : (
+            <View style={{ width: cw, height: ch, borderRadius: 14, backgroundColor: '#0B0B0B', borderWidth: 2.5, borderColor: GOLD, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 }}>
+              <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 16 * sc }} numberOfLines={1} adjustsFontSizeToFit>{p.label || 'GEÇİŞ ▶'}</Text>
+            </View>
+          )}
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+const forestOf = (d, k) => (d.forests && d.forests[k]) || (String(k) === '1' && d.forest) || { items: [], cfg: {} };
+function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPortalPick, onPortalLabel, onPortalRemove, nav, ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesResetPos, cd, insets, onHome, trees, author, onPickTree, onTreeAnch, onTreeReset }) {
   const { width: W, height: H } = useWindowDimensions();
   const pages = cd.pages;
   const seq = useMemo(() => {
@@ -2138,6 +2186,7 @@ function CuzReader({ nav, ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesRese
   const [tmenu, setTmenu] = useState(-1);       // yazar: ağaç menüsü
   const [settings, setSettings] = useState(false); // yazar: bahçe ayarları
   const [arrange, setArrange] = useState(false);   // yazar: ağaçları sağa sola yerleştirme modu
+  const [pmenu, setPmenu] = useState(false);       // yazar: geçiş butonu menüsü
   const [editIdx, setEditIdx] = useState(-1);    // yazar: meyve konumu düzenleyici
   const trans = useRef(new Animated.Value(1)).current;
   const dirRef = useRef(1);
@@ -2167,6 +2216,7 @@ function CuzReader({ nav, ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesRese
           </View>
           {author ? <RoundBtn icon="⚙" onPress={() => setSettings(true)} /> : <View style={{ width: 44 }} />}
         </View>
+        {portal && <PortalButton p={portal} W={W} H={H} arrange={arrange} author={author} onPress={onPortalOpen} onMove={onPortalMove} onMenu={() => setPmenu(true)} />}
         <BottomBar active="garden" insets={insets} items={nav} />
         {arrange && (
           <View style={{ position: 'absolute', left: 12, right: 12, top: insets.top + 66, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.74)', borderWidth: 1.5, borderColor: GOLD, borderRadius: 14, padding: 8 }}>
@@ -2290,7 +2340,9 @@ function CuzReader({ nav, ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesRese
         <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center' }} onPress={() => setSettings(false)}>
           <View style={{ width: Math.min(W - 40, 380), backgroundColor: C.card, borderRadius: 16, padding: 16, gap: 8 }}>
             <Text style={{ color: '#fff', fontWeight: '900', fontSize: 17, marginBottom: 2 }}>Bahçe ayarları</Text>
-            <Btn title="✥ Ağaçları sağa sola yerleştir" onPress={() => { setSettings(false); setArrange(true); }} />
+            <Btn title={portal ? '🔀 Geçiş butonunu düzenle' : '🔀 Geçiş butonu ekle'} onPress={() => { setSettings(false); if (!portal) onPortalUpdate({}); setTimeout(() => setPmenu(true), 250); }} />
+            <Btn title="🌲 Orman ekranını aç" kind="ghost" onPress={() => { setSettings(false); setTimeout(onPortalOpen, 250); }} />
+            <Btn title="✥ Ağaçları sağa sola yerleştir" kind="ghost" onPress={() => { setSettings(false); setArrange(true); }} />
             <Btn title="🖼 Orman arka planı seç" kind="ghost" onPress={() => { setSettings(false); setTimeout(() => onPickBg('bgGarden'), 250); }} />
             <Btn title="🖼 Ağaç sayfası arka planı seç" kind="ghost" onPress={() => { setSettings(false); setTimeout(() => onPickBg('bgPage'), 250); }} />
             <Btn title={ui.hideTitle ? 'Cüz plakasını göster' : 'Cüz plakasını gizle (arka planda yazıyorsa)'} kind="ghost" onPress={() => onUi({ hideTitle: !ui.hideTitle })} />
@@ -2298,6 +2350,22 @@ function CuzReader({ nav, ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesRese
             <Btn title="↺ Arka planları varsayılana döndür" kind="ghost" onPress={() => { onBgReset(); setSettings(false); }} />
             <Text style={{ color: C.sub, fontSize: 12, marginTop: 2 }}>Ağaç görseli eklemek için bir ağaca basılı tut.</Text>
           </View>
+        </Pressable>
+      </Modal>
+      <Modal transparent visible={pmenu && !!portal} animationType="fade" onRequestClose={() => setPmenu(false)}>
+        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center' }} onPress={() => setPmenu(false)}>
+          {portal && (
+            <Pressable onPress={() => {}} style={{ width: Math.min(W - 40, 380), backgroundColor: C.card, borderRadius: 16, padding: 16, gap: 8 }}>
+              <Text style={{ color: '#fff', fontWeight: '900', fontSize: 17 }}>Geçiş butonu</Text>
+              <Text style={{ color: C.sub, fontSize: 12 }}>Dokununca kaydırmalı geçişle bu cüzün orman ekranına gider.</Text>
+              <Stepper label="Boyut" value={portal.sc || 1} step={0.1} min={0.5} max={2.5} fmt={(v) => '%' + Math.round(v * 100)} onChange={(v) => onPortalUpdate({ sc: v })} />
+              <Btn title="✥ Yerleştir (sürükle)" onPress={() => { setPmenu(false); setArrange(true); }} />
+              <Btn title="🖼 Buton resmi seç" kind="ghost" onPress={() => { setPmenu(false); setTimeout(onPortalPick, 250); }} />
+              <Btn title="Aa Buton yazısı" kind="ghost" onPress={() => { setPmenu(false); setTimeout(onPortalLabel, 250); }} />
+              {!!portal.file && <Btn title="↺ Resmi kaldır (yazıya dön)" kind="ghost" onPress={() => onPortalUpdate({ file: null })} />}
+              <Btn title="🗑 Butonu kaldır" kind="danger" onPress={() => { setPmenu(false); onPortalRemove(); }} />
+            </Pressable>
+          )}
         </Pressable>
       </Modal>
       {editIdx >= 0 && <AnchorEditor idx={editIdx} trees={trees} W={W} H={H} insets={insets} onClose={() => setEditIdx(-1)} onSave={(an) => { onTreeAnch(editIdx, an); setEditIdx(-1); }} />}
@@ -2386,7 +2454,8 @@ function Root() {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (AUTHOR && screen.name === 'editor') { setScreen({ name: 'library' }); return true; }
       if (AUTHOR && screen.name === 'library') { setScreen({ name: 'home' }); return true; }
-      if (screen.name === 'cuz' || screen.name === 'forest') { setScreen({ name: 'home' }); return true; }
+      if (screen.name === 'cuz') { setScreen({ name: 'home' }); return true; }
+      if (screen.name === 'forest') { setScreen({ name: 'cuz', cuz: screen.cuz }); return true; }
       return false;
     });
     return () => sub.remove();
@@ -2601,11 +2670,13 @@ function Root() {
   };
   const treeMove = (idx, dx) => setData((d) => ({ ...d, trees: { ...(d.trees || {}), [idx]: { ...((d.trees || {})[idx] || { file: null }), dx } } }));
   const treesResetPos = () => setData((d) => { const tr = {}; Object.keys(d.trees || {}).forEach((kk) => { tr[kk] = { ...d.trees[kk], dx: 0 }; }); return { ...d, trees: tr }; });
-  const ffSet = (fn) => setData((d) => ({ ...d, forest: fn(d.forest || { items: [], cfg: {} }) }));
+  const ffKey = useRef(1);
+  if (screen.name === 'forest' && screen.cuz) ffKey.current = screen.cuz;
+  const ffSet = (fn) => setData((d) => ({ ...d, forests: { ...(d.forests || {}), [ffKey.current]: fn(forestOf(d, ffKey.current)) } }));
   const ffUpdate = (id, patch) => ffSet((f) => ({ ...f, items: (f.items || []).map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
   const ffCfg = (patch) => ffSet((f) => ({ ...f, cfg: { ...(f.cfg || {}), ...patch } }));
   const ffAdd = async () => {
-    const have = ((dataRef.current.forest || {}).items || []).length;
+    const have = (forestOf(dataRef.current, ffKey.current).items || []).length;
     if (have >= FF_MAX) { Alert.alert('En fazla ' + FF_MAX + ' resim', 'Yeni resim eklemek için önce birini sil.'); return; }
     const assets = await pickImages(true);
     if (!assets.length) return;
@@ -2632,14 +2703,14 @@ function Root() {
       await ensureDir();
       const a0 = assets[0], file = 'orm_' + uid() + '.' + extOf(a0.uri.split('?')[0]);
       await FileSystem.copyAsync({ from: a0.uri, to: DIR + file });
-      const old = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id);
+      const old = (forestOf(dataRef.current, ffKey.current).items || []).find((x) => x.id === id);
       if (old && old.file) FileSystem.deleteAsync(DIR + old.file, { idempotent: true }).catch(() => {});
       if (old && old.orig && old.orig !== old.file) FileSystem.deleteAsync(DIR + old.orig, { idempotent: true }).catch(() => {});
       ffUpdate(id, { file, w: a0.width, h: a0.height, orig: null });
     } catch (e) { Alert.alert('Resim değiştirilemedi', e.message); }
   };
   const ffDelete = (id) => {
-    const old = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id);
+    const old = (forestOf(dataRef.current, ffKey.current).items || []).find((x) => x.id === id);
     if (old && old.file) FileSystem.deleteAsync(DIR + old.file, { idempotent: true }).catch(() => {});
     if (old && old.orig) FileSystem.deleteAsync(DIR + old.orig, { idempotent: true }).catch(() => {});
     ffSet((f) => ({ ...f, items: (f.items || []).filter((x) => x.id !== id) }));
@@ -2649,11 +2720,11 @@ function Root() {
     if (i < 0 || j < 0 || j >= a.length) return f;
     [a[i], a[j]] = [a[j], a[i]]; return { ...f, items: a };
   });
-  const ffCleanOne = async (id) => {                      // hata/uyarı metni döndürür, başarıda null
-    const it = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id);
+  const ffCleanOne = async (id, lvl) => {                      // hata/uyarı metni döndürür, başarıda null
+    const it = (forestOf(dataRef.current, ffKey.current).items || []).find((x) => x.id === id);
     if (!it) return 'Resim bulunamadı.';
     const src = it.orig || it.file;                       // her zaman orijinalden temizle
-    const r = await cleanBgFile(src, it.ow || it.w, it.oh || it.h);
+    const r = await cleanBgFile(src, it.ow || it.w, it.oh || it.h, lvl || 3);
     if (r.already) return 'Bu resim zaten şeffaf arka planlı.';
     if (r.fail) return r.fail;
     if (it.orig && it.file !== it.orig) FileSystem.deleteAsync(DIR + it.file, { idempotent: true }).catch(() => {});
@@ -2661,10 +2732,10 @@ function Root() {
     return null;
   };
   const nextTick = () => new Promise((r) => setTimeout(r, 60));
-  const ffClean = async (id) => {
+  const ffClean = async (id, lvl) => {
     setBusy('Arka plan temizleniyor…'); await nextTick();
     let msg = null;
-    try { msg = await ffCleanOne(id); } catch (e) { msg = 'Hata: ' + e.message; }
+    try { msg = await ffCleanOne(id, lvl); } catch (e) { msg = 'Hata: ' + e.message; }
     setBusy(false);
     Alert.alert(msg ? 'Temizlenemedi' : 'Tamam', msg || 'Beyaz arka plan silindi. Beğenmezsen "Orijinal resmi geri getir" ile geri alabilirsin.');
   };
@@ -2677,21 +2748,21 @@ function Root() {
     setBusy(false);
     if (bad.length) Alert.alert('Bazı resimler temizlenemedi', bad.slice(0, 3).join('\n'));
   };
-  const ffCleanAll = () => ffCleanList(((dataRef.current.forest || {}).items || []).map((x) => x.id));
+  const ffCleanAll = () => ffCleanList((forestOf(dataRef.current, ffKey.current).items || []).map((x) => x.id));
   const ffRestore = (id) => {
-    const it = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id);
+    const it = (forestOf(dataRef.current, ffKey.current).items || []).find((x) => x.id === id);
     if (!it || !it.orig) return;
     FileSystem.deleteAsync(DIR + it.file, { idempotent: true }).catch(() => {});
     ffUpdate(id, { file: it.orig, w: it.ow, h: it.oh, orig: null });
   };
   const ffLabel = async (id) => {
-    const it = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id); if (!it) return;
+    const it = (forestOf(dataRef.current, ffKey.current).items || []).find((x) => x.id === id); if (!it) return;
     const n = await promptName('Resmin altındaki yazı (silmek için - yaz)', it.label || '');
     if (n === null || n === undefined) return;
     ffUpdate(id, { label: n.trim() === '-' ? '' : n.trim() });
   };
   const ffLink = async (id) => {
-    const it = ((dataRef.current.forest || {}).items || []).find((x) => x.id === id); if (!it) return;
+    const it = (forestOf(dataRef.current, ffKey.current).items || []).find((x) => x.id === id); if (!it) return;
     const n = await promptName('Hangi cüze bağlansın? (1-30, kaldırmak için 0)', it.cuz ? String(it.cuz) : '');
     if (n === null || n === undefined) return;
     const v = parseInt(n, 10);
@@ -2701,10 +2772,34 @@ function Root() {
   const ffClear = () => Alert.alert('Tüm resimleri sil', 'Ormandaki bütün resimler silinecek.', [
     { text: 'Vazgeç', style: 'cancel' },
     { text: 'Sil', style: 'destructive', onPress: () => {
-      ((dataRef.current.forest || {}).items || []).forEach((x) => { [x.file, x.orig].forEach((fn) => { if (fn) FileSystem.deleteAsync(DIR + fn, { idempotent: true }).catch(() => {}); }); });
+      (forestOf(dataRef.current, ffKey.current).items || []).forEach((x) => { [x.file, x.orig].forEach((fn) => { if (fn) FileSystem.deleteAsync(DIR + fn, { idempotent: true }).catch(() => {}); }); });
       ffSet((f) => ({ ...f, items: [] }));
     } },
   ]);
+  const portalSet = (patch) => setData((d) => ({ ...d, portals: { ...(d.portals || {}), [screen.cuz]: { ...((d.portals || {})[screen.cuz] || DEFAULT_PORTAL), ...patch } } }));
+  const portalPick = async () => {
+    const assets = await pickImages(false);
+    if (!assets.length) return;
+    try {
+      await ensureDir();
+      const a0 = assets[0], file = 'por_' + uid() + '.' + extOf(a0.uri.split('?')[0]);
+      await FileSystem.copyAsync({ from: a0.uri, to: DIR + file });
+      const old = ((dataRef.current.portals || {})[screen.cuz] || {}).file;
+      if (old) FileSystem.deleteAsync(DIR + old, { idempotent: true }).catch(() => {});
+      portalSet({ file, w: a0.width, h: a0.height });
+    } catch (e) { Alert.alert('Buton resmi eklenemedi', e.message); }
+  };
+  const portalLabel = async () => {
+    const cur = ((dataRef.current.portals || {})[screen.cuz] || DEFAULT_PORTAL).label || '';
+    const n = await promptName('Butonun yazısı', cur);
+    if (n === null || n === undefined) return;
+    portalSet({ label: n.trim() });
+  };
+  const portalRemove = () => {
+    const old = ((dataRef.current.portals || {})[screen.cuz] || {}).file;
+    if (old) FileSystem.deleteAsync(DIR + old, { idempotent: true }).catch(() => {});
+    setData((d) => { const po = { ...(d.portals || {}) }; delete po[screen.cuz]; return { ...d, portals: po }; });
+  };
   const lastCuz = useRef(null);
   const openGarden = () => {
     const ks = Object.keys(dataRef.current.cuz || {});
@@ -2714,8 +2809,6 @@ function Root() {
   };
   const navItems = [
     { k: 'home', icon: '🏠', label: 'Ana Sayfa', onPress: () => setScreen({ name: 'home' }) },
-    { k: 'garden', icon: '🌳', label: 'Bahçe', onPress: openGarden },
-    { k: 'forest', icon: '🌲', label: 'Orman', onPress: () => setScreen({ name: 'forest' }) },
     { k: 'profile', icon: '👤', label: 'Profil', onPress: () => setProfileOpen(true) },
   ];
   const setCover = async (fid) => {
@@ -2917,15 +3010,19 @@ function Root() {
     );
   } else if (screen.name === 'forest') {
     body = (
+      <SlideIn key={'f' + screen.cuz} dir={1}>
       <FreeForestScreen
-        forest={data.forest || { items: [], cfg: {} }} ui={data.ui || {}} author={AUTHOR} insets={insets} nav={navItems} cuzData={data.cuz || {}}
+        onBack={() => setScreen({ name: 'cuz', cuz: screen.cuz, from: 'forest' })}
+        forest={forestOf(data, screen.cuz)} ui={data.ui || {}} author={AUTHOR} insets={insets} nav={navItems} cuzData={data.cuz || {}}
         onAdd={ffAdd} onMove={(id, dx) => ffUpdate(id, { dx })} onUpdate={ffUpdate} onDelete={ffDelete} onReorder={ffReorder} onCfg={ffCfg}
         onPickBg={pickBg} onUi={uiPatch} onLabel={ffLabel} onLink={ffLink} onReplace={ffReplace} onResetPos={ffResetPos} onClear={ffClear} onClean={ffClean} onRestore={ffRestore} onCleanAll={ffCleanAll}
         onOpenCuz={(n) => { lastCuz.current = n; setScreen({ name: 'cuz', cuz: n }); }} />
+      </SlideIn>
     );
   } else if (screen.name === 'cuz' && data.cuz && data.cuz[screen.cuz]) {
-    body = <CuzReader nav={navItems} key={screen.cuz} cd={data.cuz[screen.cuz]} insets={insets} onHome={() => setScreen({ name: 'home' })}
+    const cr = <CuzReader nav={navItems} key={screen.cuz} portal={(data.portals || {})[screen.cuz] || null} onPortalOpen={() => setScreen({ name: 'forest', cuz: screen.cuz })} onPortalMove={(x, y) => portalSet({ x, y })} onPortalUpdate={portalSet} onPortalPick={portalPick} onPortalLabel={portalLabel} onPortalRemove={portalRemove} cd={data.cuz[screen.cuz]} insets={insets} onHome={() => setScreen({ name: 'home' })}
       trees={data.trees || {}} ui={data.ui || {}} onPickBg={pickBg} onUi={uiPatch} onBgReset={bgReset} onTreeMove={treeMove} onTreesResetPos={treesResetPos} author={AUTHOR} onPickTree={pickTree} onTreeAnch={treeAnchSave} onTreeReset={treeReset} />;
+    body = screen.from === 'forest' ? <SlideIn key={'b' + screen.cuz} dir={-1}>{cr}</SlideIn> : cr;
   } else {
     body = (
       <Home
