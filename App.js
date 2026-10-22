@@ -38,6 +38,7 @@ import { sha256 } from '@noble/hashes/sha256';
 import UPNG from 'upng-js';
 import jpeg from 'jpeg-js';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { captureRef } from 'react-native-view-shot';
 
 let FileSystem;
 try { FileSystem = require('expo-file-system/legacy'); }   // SDK 54+
@@ -122,6 +123,30 @@ function playSound(file) {
     _player.play();
   } catch (e) { /* ses çalınamazsa sessizce geç */ }
 }
+
+// ---- tercihler (gece modu, yazı boyutu, ses ayarları): cihazda saklanır, tüm ekranlara anında yayılır
+const PREFS_KEY = 'hd_prefs_v1';
+const LAST_KEY = 'hd_last_v1';
+const PREF_DEF = { night: false, zoom: 1, mealSize: 17, rate: 1, repeat: 1, auto: false };
+let _prefs = { ...PREF_DEF };
+const _psubs = new Set();
+AsyncStorage.getItem(PREFS_KEY).then((v) => {
+  if (v) { try { _prefs = { ...PREF_DEF, ...JSON.parse(v) }; _psubs.forEach((f) => f(_prefs)); } catch (e) {} }
+}).catch(() => {});
+function setPrefs(patch) {
+  _prefs = { ..._prefs, ...patch };
+  _psubs.forEach((f) => f(_prefs));
+  AsyncStorage.setItem(PREFS_KEY, JSON.stringify(_prefs)).catch(() => {});
+}
+function usePrefs() {
+  const [p, setP] = useState(_prefs);
+  useEffect(() => { _psubs.add(setP); setP(_prefs); return () => { _psubs.delete(setP); }; }, []);
+  return p;
+}
+
+// ---- ayet sesi: her ayet sesler/SSSAAA.mp3 (sure 3 hane + ayet 3 hane), ör. 002255.mp3 = Bakara 255
+const pad3 = (n) => String(n).padStart(3, '0');
+const audioPath = (sura, no) => ADIR + pad3(sura) + pad3(no) + '.mp3';
 
 async function pickImages(multiple) {
   try {
@@ -322,12 +347,40 @@ async function exportPackage(data, onProgress, sectionId, password) {
 
 // Kullanıcıya dosya seçtirir, paketi açar, resimleri uygulama klasörüne yazar.
 // Başarılıysa {images, startId} döner; iptalse null.
-async function readPackage(onProgress, beforeWipe, askPw) {
-  const r = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
-  if (r.canceled || !r.assets || !r.assets.length) return null;
-  const b64 = await FileSystem.readAsStringAsync(r.assets[0].uri, { encoding: 'base64' });
+// Uygulamaya gömülü paketler (APK içinde bundle/<ad>.p01, .p02 … parçaları; Android assets klasöründen okunur)
+async function loadBundleBytes(base) {
+  const parts = [];
+  for (let i = 1; i <= 30; i++) {
+    const nm = base + '.p' + String(i).padStart(2, '0');
+    const tmp = FileSystem.cacheDirectory + 'bnd_' + nm;
+    try {
+      await FileSystem.copyAsync({ from: 'asset:///bundle/' + nm, to: tmp });
+    } catch (e) {
+      if (i === 1) throw new Error('Gömülü paket okunamadı (' + base + '): ' + (e && e.message ? e.message : e));
+      break;
+    }
+    const b64p = await FileSystem.readAsStringAsync(tmp, { encoding: 'base64' });
+    parts.push(b64ToBytes(b64p));
+    await FileSystem.deleteAsync(tmp, { idempotent: true }).catch(() => {});
+  }
+  let tot = 0; parts.forEach((p) => { tot += p.length; });
+  const all = new Uint8Array(tot); let o = 0;
+  parts.forEach((p) => { all.set(p, o); o += p.length; });
+  return all;
+}
+
+async function readPackage(onProgress, beforeWipe, askPw, bundle) {
+  let b64 = '';
+  let bundleBytes = null;
+  if (bundle) bundleBytes = await loadBundleBytes(bundle);
+  else {
+    const r = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
+    if (r.canceled || !r.assets || !r.assets.length) return null;
+    b64 = await FileSystem.readAsStringAsync(r.assets[0].uri, { encoding: 'base64' });
+  }
   let zip;
-  if (isHdzB64(b64)) {                               // şifreli paket (.hdz)
+  if (bundleBytes) zip = await JSZip.loadAsync(bundleBytes);
+  else if (isHdzB64(b64)) {                               // şifreli paket (.hdz)
     if (!askPw) throw new Error('Şifre sorulamadı.');
     const bytes = b64ToBytes(b64);
     let plain = null;
@@ -341,7 +394,9 @@ async function readPackage(onProgress, beforeWipe, askPw) {
   const pj = zip.file('project.json');
   if (!pj) throw new Error('Bu bir Hafız Dünyası paketi değil (project.json bulunamadı).');
   const meta = JSON.parse(await pj.async('string'));
+  if (meta && meta.kind === 'audio') return await readAudioPackage(zip, meta, onProgress);  // ayet ayet ses paketi
   if (meta && meta.kind === 'cuz') return await readCuzPackage(zip, meta, onProgress);   // meyve bahçesi paketi
+  if (meta && meta.kind === 'theme') return await readThemePackage(zip, meta, onProgress);  // ağaç + arka plan tema paketi
   if (!meta || !Array.isArray(meta.images) || !meta.images.length) throw new Error('Pakette resim yok.');
 
   const isSection = meta.kind === 'section';
@@ -398,6 +453,59 @@ async function readPackage(onProgress, beforeWipe, askPw) {
   const fset = new Set(folders.map((f) => f.id));
   images.forEach((im) => { if (im.folder && !fset.has(im.folder)) im.folder = null; });
   return { images, startId, folders, kind: isSection ? 'section' : 'all', section: meta.section || (folders[0] && folders[0].id) || null };
+}
+
+
+// ses paketi (kind:'audio'): içindeki SSSAAA.mp3 dosyaları sesler/ klasörüne yazılır (cüz cüz yüklenebilir)
+async function readAudioPackage(zip, meta, onProgress) {
+  await ensureDir();
+  const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir && /(^|\/)\d{6}\.mp3$/i.test(n));
+  let i = 0;
+  for (const n of names) {
+    i++; onProgress && onProgress(i, names.length);
+    const key = n.match(/(\d{6})\.mp3$/i)[1];
+    await FileSystem.writeAsStringAsync(ADIR + key + '.mp3', await zip.file(n).async('base64'), { encoding: 'base64' });
+  }
+  return { kind: 'audio', count: names.length, reciter: meta.reciter || '', name: meta.name || '' };
+}
+
+// tema paketi (kind:'theme'): 20 ağaç sprite'ı + arka plan görselleri + meyve çapaları
+async function readThemePackage(zip, meta, onProgress) {
+  await ensureDir();
+  const stamp = Date.now().toString(36);
+  const trees = {}, ui = {}, fruits = {};
+  const keys = Object.keys(meta.trees || {});
+  const shift = keys.length && !keys.includes('0') ? 1 : 0;      // paket 1'den başlıyorsa uygulama 0'dan başlar
+  const fl = Object.keys(zip.files).filter((p) => /^fruits\/\d+_\d\.png$/.test(p));
+  const total = keys.length + fl.length + Object.keys(meta.ui || {}).length;
+  let n = 0;
+  for (const k of keys) {
+    const t = meta.trees[k];
+    const f = zip.file('trees/' + t.file);
+    onProgress && onProgress(++n, total);
+    if (!f) continue;
+    const idx = String(Number(k) - shift);
+    const file = 'tree_' + idx + '_' + stamp + '.' + extOf(t.file);
+    await FileSystem.writeAsStringAsync(DIR + file, await f.async('base64'), { encoding: 'base64' });
+    trees[idx] = { file, w: t.w, h: t.h, anch: t.anch, dx: 0 };
+  }
+  for (const p of fl) {                                          // meyve sprite'ları: fruits/<ağaç>_<0-4>.png
+    onProgress && onProgress(++n, total);
+    const m = p.match(/^fruits\/(\d+)_(\d)\.png$/);
+    const idx = String(Number(m[1]) - shift), j = Number(m[2]);
+    const file = 'fr_' + idx + '_' + j + '_' + stamp + '.png';
+    await FileSystem.writeAsStringAsync(DIR + file, await zip.file(p).async('base64'), { encoding: 'base64' });
+    (fruits[idx] = fruits[idx] || [null, null, null, null, null])[j] = file;
+  }
+  for (const kind of Object.keys(meta.ui || {})) {
+    const f = zip.file('bg/' + meta.ui[kind]);
+    onProgress && onProgress(++n, total);
+    if (!f) continue;
+    const file = 'bg_' + kind + '_' + stamp + '.' + extOf(meta.ui[kind]);
+    await FileSystem.writeAsStringAsync(DIR + file, await f.async('base64'), { encoding: 'base64' });
+    ui[kind] = { file };
+  }
+  return { kind: 'theme', trees, ui, fruits };
 }
 
 // ------------------------------------------------------------ küçük bileşenler
@@ -1424,6 +1532,9 @@ function BottomBar({ active, insets, items }) {
   );
 }
 
+const trn = (t) => String(t || '').replace(/İ/g, 'i').replace(/I/g, 'i').toLowerCase()
+  .replace(/[âä]/g, 'a').replace(/[îï]/g, 'i').replace(/[ûü]/g, 'u').replace(/[êë]/g, 'e').replace(/[ôö]/g, 'o')
+  .replace(/ı/g, 'i').replace(/ş/g, 's').replace(/ğ/g, 'g').replace(/ç/g, 'c').replace(/[’'`]/g, '');
 function Home({ nav, cuz, onOpenCuz, onExportSec, data, user, author, insets, onPlay, onProfile, onLibrary, onExport, onImport, onPassword, onResetMode, onCover, onRenameSec, onAddTo }) {
   const { width } = useWindowDimensions();
   const [menu, setMenu] = useState(null);
@@ -1431,7 +1542,39 @@ function Home({ nav, cuz, onOpenCuz, onExportSec, data, user, author, insets, on
   const secs = (data.folders || []).filter((f) => isSec(f.id));
   const countOf = (id) => data.images.filter((i) => i.folder === id).length;
   const firstOf = (id) => { const im = data.images.find((i) => i.folder === id); return im ? im.id : null; };
-  const tw = Math.floor((width - 32 - 14) / 2) - 1;   // 2 sütun, ekranı doldurur
+  const cols = width >= 1000 ? 5 : width >= 760 ? 4 : width >= 560 ? 3 : 2;       // tablet / geniş ekranda daha çok sütun
+  const tw = Math.floor((width - 32 - 14 * (cols - 1)) / cols) - 1;
+  const [q, setQ] = useState('');
+  const [lastPos, setLastPos] = useState(null);
+  useEffect(() => {
+    AsyncStorage.getItem(LAST_KEY).then((v) => { if (v) { try { setLastPos(JSON.parse(v)); } catch (e) {} } }).catch(() => {});
+  }, []);
+  const index = useMemo(() => {                       // ağaç ve ayet arama dizini (yüklü cüzlerin hepsi)
+    const rows = [];
+    Object.keys(cuz || {}).forEach((n) => {
+      const cd = cuz[n]; let fl = 0;
+      (cd.pages || []).forEach((p, pi) => {
+        const tname = TREE_NAMES[pi % TREE_NAMES.length];
+        rows.push({ type: 'tree', n: +n, pi, title: `${pi + 1}. ağaç · ${tname}`, sub: (cd.name || n + '. Cüz'), hay: trn(tname + ' agac ' + (pi + 1)) });
+        if (p.kind === 'ayat') p.ayat.forEach((a) => {
+          rows.push({ type: 'ayah', n: +n, pi, fl, title: `${a.sname} · ${a.no}. ayet`, sub: `${tname} ağacı`, meal: a.meal || '', hay: trn(`${a.sname} ${a.no} ${a.sura}:${a.no} ${a.meal || ''}`) });
+          fl++;
+        });
+      });
+    });
+    return rows;
+  }, [cuz]);
+  const results = useMemo(() => {
+    const toks = trn(q).split(/\s+/).filter(Boolean);
+    if (!toks.length || trn(q).length < 2) return [];
+    const out = [];
+    for (const r of index) {
+      if (toks.every((t) => r.hay.includes(t))) { out.push(r); if (out.length >= 30) break; }
+    }
+    return out;
+  }, [q, index]);
+  const openRes = (r) => { setQ(''); onOpenCuz(r.n, r.type === 'ayah' ? { ayah: r.fl } : { tree: r.pi }); };
+  const resume = lastPos && cuz && cuz[lastPos.cuz] && (lastPos.ayah >= 0 || lastPos.tree >= 0) ? lastPos : null;
   const last = user.last && data.images.find((i) => i.id === user.last);
   const tap = (f) => {
     const cn = parseInt(String(f.id).replace('sec', ''), 10);
@@ -1471,7 +1614,21 @@ function Home({ nav, cuz, onOpenCuz, onExportSec, data, user, author, insets, on
           ) : (
             <Pressable style={[s.pill, { backgroundColor: C.accent }]} onPress={onImport}><Text style={[s.pillText, { color: '#1A1500' }]}>📦 Paket aç</Text></Pressable>
           )}
+          {!!resume && <Pressable style={[s.pill, { backgroundColor: '#2E7D4F' }]} onPress={() => onOpenCuz(resume.cuz, { ayah: resume.ayah, tree: resume.tree })}><Text style={s.pillText}>↩ Kaldığın yerden devam</Text></Pressable>}
         </ScrollView>
+
+        <View style={{ marginHorizontal: 16, marginTop: 14 }}>
+          <TextInput value={q} onChangeText={setQ} placeholder="🔍 Ağaç veya ayet ara  (ör. Bakara 255, zeytin, namaz)" placeholderTextColor={C.sub}
+            style={{ backgroundColor: C.card2, color: C.text, borderRadius: 14, borderWidth: 1.5, borderColor: C.line, paddingHorizontal: 14, paddingVertical: 11, fontSize: 15 }} />
+          {results.map((r, i) => (
+            <Pressable key={i} onPress={() => openRes(r)} style={{ backgroundColor: C.card, borderRadius: 12, padding: 11, marginTop: 6, borderWidth: 1, borderColor: C.line }}>
+              <Text style={{ color: C.accent, fontWeight: '800', fontSize: 14 }}>{r.type === 'tree' ? '🌳 ' : '📖 '}{r.title}</Text>
+              <Text style={{ color: C.sub, fontSize: 12, marginTop: 1 }}>{r.sub}</Text>
+              {!!r.meal && <Text style={{ color: C.text, fontSize: 12, marginTop: 3 }} numberOfLines={2}>{r.meal}</Text>}
+            </Pressable>
+          ))}
+          {q.trim().length >= 2 && !results.length && <Text style={{ color: C.sub, fontSize: 13, marginTop: 8 }}>Sonuç bulunamadı.</Text>}
+        </View>
 
         <Text style={[s.secTitle, { marginHorizontal: 16, marginTop: 22 }]}>Bölümler</Text>
         {!author && !data.images.length && (
@@ -1523,8 +1680,7 @@ function Home({ nav, cuz, onOpenCuz, onExportSec, data, user, author, insets, on
 // 5'ten fazlaysa "SAYFA DEVAMI" ile aynı sayfanın ikinci ağaç ekranı açılır.
 const TREE_IMGS = [];            // gömülü varsayılan ağaç yok: Yazar modunda galeriden eklenir
 const GARDEN_BG = null;           // gömülü varsayılan arka plan yok: Yazar modunda galeriden seçilir
-const TREE_NAMES = ['Kayısı', 'Portakal', 'Trabzon Hurması', 'Antep Fıstığı', 'Çam', 'Limon', 'Armut', 'Muz', 'Kiraz', 'Muşmula',
-  'Kuşburnu', 'Medine Hurması', 'Dut', 'Şeftali', 'Zeytin', 'İncir', 'Nar', 'Üzüm', 'Elma', 'Badem'];
+const TREE_NAMES = ['Kayısı', 'İncir', 'Medine Hurması', 'Zeytin', 'Elma', 'Üzüm', 'Nar', 'Armut', 'Kiraz', 'Portakal', 'Trabzon Hurması', 'Antep Fıstığı', 'Çam', 'Limon', 'Muz', 'Muşmula', 'Kuşburnu', 'Dut', 'Şeftali', 'Badem'];
 const TREE_ANCH = [[0.5, 0.25], [0.711, 0.358], [0.289, 0.358], [0.711, 0.5], [0.289, 0.5]];   // ağaç görselindeki 5 meyve konumu (oran)
 const FRUIT_COL = ['#111111', '#D32F2F', '#F2A900', '#2E9E4F', '#1F3C88'];                      // sıra: siyah, kırmızı, sarı, yeşil, lacivert
 const FRUIT_SIDE = ['top', 'right', 'left', 'right', 'left'];
@@ -1551,14 +1707,6 @@ function RoundBtn({ icon, onPress }) {
 function TreeTile({ i, w, onOpen }) {
   const sway = useRef(new Animated.Value(0)).current;
   const pop = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    const dur = 2400 + (i % 5) * 330;
-    const a = Animated.loop(Animated.sequence([
-      Animated.timing(sway, { toValue: 1, duration: dur, delay: (i % 4) * 220, useNativeDriver: true }),
-      Animated.timing(sway, { toValue: 0, duration: dur, useNativeDriver: true }),
-    ]));
-    a.start(); return () => a.stop();
-  }, []);
   const th = w * 0.92 * (4 / 3);
   const press = () => {
     Animated.sequence([
@@ -1581,28 +1729,42 @@ function TreeTile({ i, w, onOpen }) {
   );
 }
 
-function Fruit({ x, y, d, color, n, delay, onPress }) {
-  const bob = useRef(new Animated.Value(0)).current;
-  const pulse = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    const a = Animated.loop(Animated.sequence([
-      Animated.timing(bob, { toValue: 1, duration: 1700, delay, useNativeDriver: true }),
-      Animated.timing(bob, { toValue: 0, duration: 1700, useNativeDriver: true }),
-    ]));
-    a.start(); return () => a.stop();
-  }, []);
+// ağacın arkasında LED gibi yumuşak, nabız atan ışık + zemin gölgesi
+function TreeGlow({ w, h, color = '#FFE29A', strength = 1, shadow = true }) {
+  const op = 0.92;                                           // sabit ışık (nabız atmaz)
+  const layers = [1.0, 0.78, 0.56, 0.36];
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, width: w, height: h }}>
+      <Animated.View style={{ position: 'absolute', left: 0, top: 0, width: w, height: h, opacity: op }}>
+        {layers.map((k, i) => (
+          <View key={i} style={{ position: 'absolute', left: w / 2 - (w * 0.95 * k) / 2, top: h - 6 - (h * 0.11 * k) / 2, width: w * 0.95 * k, height: h * 0.11 * k, borderRadius: w, backgroundColor: color, opacity: 0.16 * strength }} />
+        ))}
+      </Animated.View>
+      
+    </View>
+  );
+}
+
+function Fruit({ x, y, d, color, n, delay, onPress, src }) {
+  const pulse = useRef(new Animated.Value(1)).current;     // gözü yormasın: sürekli hareket yok, sadece dokununca küçük zıplama
   const tap = () => {
     Animated.sequence([
-      Animated.timing(pulse, { toValue: 1.4, duration: 120, useNativeDriver: true }),
+      Animated.timing(pulse, { toValue: 1.25, duration: 120, useNativeDriver: true }),
       Animated.timing(pulse, { toValue: 1, duration: 150, useNativeDriver: true }),
     ]).start();
     setTimeout(onPress, 170);
   };
+  const rim = color === '#111111' ? 'rgba(235,235,235,0.75)' : color;          // siyah meyvenin çerçevesi koyu zeminde görünsün
+  const fs = d * 0.78;
   return (
-    <Animated.View style={{ position: 'absolute', left: x - d / 2, top: y - d / 2, width: d, height: d, transform: [{ translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [-3, 3] }) }, { scale: pulse }] }}>
-      <Pressable onPress={tap} hitSlop={12}
-        style={{ width: d, height: d, borderRadius: d / 2, borderWidth: 3.5, borderColor: color, backgroundColor: 'rgba(255,255,255,0.06)' }}>
-        <View style={{ position: 'absolute', top: -9, right: -9, width: 21, height: 21, borderRadius: 11, backgroundColor: color, borderWidth: 1.5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+    <Animated.View style={{ position: 'absolute', left: x - d / 2, top: y - d / 2, width: d, height: d, transform: [{ scale: pulse }] }}>
+      <Pressable onPress={tap} hitSlop={10}
+        style={{ width: d, height: d, borderRadius: d / 2, borderWidth: 2.2, borderColor: rim, backgroundColor: 'rgba(8,22,14,0.52)', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
+        <View style={{ position: 'absolute', left: d * 0.14, top: d * 0.08, width: d * 0.46, height: d * 0.22, borderRadius: d, backgroundColor: 'rgba(255,255,255,0.10)', transform: [{ rotate: '-28deg' }] }} />
+        {src
+          ? <Image source={src} style={{ width: fs, height: fs }} resizeMode="contain" />
+          : <View style={{ width: fs * 0.62, height: fs * 0.62, borderRadius: fs, backgroundColor: color, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.7)' }} />}
+        <View style={{ position: 'absolute', top: -8, right: -8, width: 21, height: 21, borderRadius: 11, backgroundColor: color, borderWidth: 1.5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ color: color === '#F2A900' ? '#222' : '#fff', fontSize: 11, fontWeight: '900' }}>{n}</Text>
         </View>
       </Pressable>
@@ -1619,40 +1781,298 @@ function VerseLabel({ ay, x, y, w, h, color, onPress }) {
   );
 }
 
-function AyahPanel({ item, idx, total, W, H, onPrev, onNext, onClose }) {
-  const sc = useRef(new Animated.Value(0.85)).current;
+// Küçük artı/eksi kontrolü
+function StepBtn({ label, onMinus, onPlus, dark }) {
+  const b = { width: 34, height: 34, borderRadius: 17, backgroundColor: dark ? '#2A281F' : '#0B0B0B', borderWidth: 1.5, borderColor: GOLD, alignItems: 'center', justifyContent: 'center' };
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <Text style={{ color: dark ? '#E6DCC0' : '#3B2A10', fontWeight: '800', fontSize: 13, width: 40 }}>{label}</Text>
+      <Pressable onPress={onMinus} hitSlop={6} style={b}><Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 16 }}>A−</Text></Pressable>
+      <Pressable onPress={onPlus} hitSlop={6} style={b}><Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 18 }}>A+</Text></Pressable>
+    </View>
+  );
+}
+function Chip({ label, on, onPress, dark }) {
+  return (
+    <Pressable onPress={onPress} style={{ paddingHorizontal: 13, paddingVertical: 7, borderRadius: 16, borderWidth: 1.5, borderColor: GOLD, backgroundColor: on ? GOLD : (dark ? '#2A281F' : '#0B0B0B') }}>
+      <Text style={{ color: on ? '#1A1500' : '#F2C94C', fontWeight: '900', fontSize: 14 }}>{label}</Text>
+    </Pressable>
+  );
+}
+
+// Meyveye dokununca: büyük meyve + tam ayet (harfler hiçbir zaman dışarıda kalmaz: görsel kutuya SIĞDIRILIR, taşarsa küçülür)
+// Ses (ayet ayet), meal, okuma görünümü (büyütme / yazı boyutu), gece modu, mushaf sayfası ve paylaşma burada.
+function AyahPanel({ item, idx, total, W, winW, H, insets, bg, fruitFile, onPrev, onNext, onClose, onSheet }) {
+  const prefs = usePrefs();
+  const N = prefs.night;
   const op = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    sc.setValue(0.85); op.setValue(0);
-    Animated.parallel([Animated.spring(sc, { toValue: 1, friction: 7, useNativeDriver: true }), Animated.timing(op, { toValue: 1, duration: 180, useNativeDriver: true })]).start();
-  }, [idx]);
-  const a = item.a, cw = Math.min(W - 24, 520), iw = cw - 30;
+  const sl = useRef(new Animated.Value(0)).current;
+  const [showMeal, setShowMeal] = useState(false);
+  const [big, setBig] = useState(false);
+  const [opts, setOpts] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const a = item.a;
+  const pr = useRef(prefs); pr.current = prefs;
   const nx = useRef(onNext), pv = useRef(onPrev), ix = useRef([idx, total]); nx.current = onNext; pv.current = onPrev; ix.current = [idx, total];
-  const swipe = useRef(PanResponder.create({                // sağa/sola kaydır: önceki / sonraki ayet
-    onMoveShouldSetPanResponder: (e, g) => Math.abs(g.dx) > 14 && Math.abs(g.dx) > Math.abs(g.dy) * 2,
+  const playerRef = useRef(null), repLeft = useRef(0), autoRef = useRef(false), shareRef = useRef(null);
+  const stopAudio = () => {
+    const p = playerRef.current; playerRef.current = null;
+    if (p) { try { p.remove(); } catch (e) {} }
+    setPlaying(false);
+  };
+  const startAudio = async () => {
+    stopAudio();
+    const f = audioPath(a.sura, a.no);
+    let ok = false;
+    try { ok = (await FileSystem.getInfoAsync(f)).exists; } catch (e) {}
+    if (!ok) { Alert.alert('Ses yok', 'Bu ayetin sesi yüklenmemiş. Ses paketini ana ekrandan "Paket aç" ile yükle.'); return; }
+    try {
+      const p = createAudioPlayer({ uri: f });
+      playerRef.current = p;
+      try { p.setPlaybackRate(pr.current.rate || 1); } catch (e) {}
+      repLeft.current = pr.current.repeat || 1;
+      p.addListener('playbackStatusUpdate', (st) => {
+        if (playerRef.current !== p || !st || !st.didJustFinish) return;
+        repLeft.current -= 1;
+        if (repLeft.current > 0) { try { p.seekTo(0); p.play(); } catch (e) {} }
+        else {
+          setPlaying(false);
+          if (pr.current.auto && ix.current[0] < ix.current[1] - 1) { autoRef.current = true; nx.current(); }
+        }
+      });
+      p.play(); setPlaying(true);
+    } catch (e) { setPlaying(false); }
+  };
+  useEffect(() => { setShowMeal(false); setOpts(false); stopAudio(); if (autoRef.current) { autoRef.current = false; startAudio(); } }, [idx]);
+  useEffect(() => () => { stopAudio(); }, []);
+  useEffect(() => {
+    op.setValue(0); sl.setValue(1);
+    Animated.parallel([Animated.timing(op, { toValue: 1, duration: 200, useNativeDriver: true }), Animated.timing(sl, { toValue: 0, duration: 220, useNativeDriver: true })]).start();
+  }, [idx]);
+  const bigRef = useRef(false); bigRef.current = big;
+  const swipe = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (e, g) => !bigRef.current && Math.abs(g.dx) > 14 && Math.abs(g.dx) > Math.abs(g.dy) * 2,
     onPanResponderRelease: (e, g) => {
       const [i, n] = ix.current;
       if (g.dx < -50 && i < n - 1) nx.current(); else if (g.dx > 50 && i > 0) pv.current();
     },
   })).current;
+  const doShare = async () => {
+    setOpts(false);
+    try {
+      await new Promise((r) => setTimeout(r, 350));
+      const uri = await captureRef(shareRef, { format: 'png', quality: 1, result: 'tmpfile' });
+      if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Ayeti paylaş' });
+      else Alert.alert('Paylaşılamadı', 'Bu cihazda paylaşma desteklenmiyor.');
+    } catch (e) { Alert.alert('Paylaşılamadı', String((e && e.message) || e)); }
+  };
+  const col = FRUIT_COL[item.k];
+  const top = insets.top;
+  const pw = W - 44;                                           // panel genişliği (çerçeveden içeride)
+  const padX = 16, padY = 12;
+  const ratio = a.full.w / a.full.h;
+  const maxPh = H * (ratio < 1.9 ? 0.42 : 0.30);               // uzun (çok satırlı) ayet daha yüksek panel alır
+  let iw = pw - padX * 2, ih = iw / ratio;
+  if (ih > maxPh - padY * 2) { ih = maxPh - padY * 2; iw = ih * ratio; }   // uzun ayet: küçült, asla kırpma
+  const ph = ih + padY * 2;
+  const panelTop = H * 0.36;
+  const fruitBottom = H * 0.84;
+  const fruitSize = Math.max(70, Math.min(W * 0.62, H * 0.30, fruitBottom - (panelTop + ph + 36)));
+  const cream = N ? '#B9AD87' : '#FFF8DE', creamLine = N ? '#8E7F4E' : '#E8C86E';
+  const mealBg = N ? 'rgba(26,24,17,0.97)' : 'rgba(255,248,222,0.97)', mealFg = N ? '#E6DCC0' : '#2B2418';
+  const hasAudioBtn = (
+    <Pressable onPress={playing ? stopAudio : startAudio} style={{ position: 'absolute', left: 26, bottom: insets.bottom + 26, width: 56, height: 56, borderRadius: 28, backgroundColor: '#A87C1E', borderWidth: 3, borderColor: '#F0CD64', alignItems: 'center', justifyContent: 'center', zIndex: 30 }}>
+      <Text style={{ color: '#F7E7A8', fontSize: 22, marginLeft: playing ? 0 : 3 }}>{playing ? '❚❚' : '▶'}</Text>
+    </Pressable>
+  );
+  const moreBtn = (
+    <Pressable onPress={() => setOpts(true)} style={{ position: 'absolute', left: W / 2 - 23, bottom: insets.bottom + 29, width: 46, height: 46, borderRadius: 23, backgroundColor: '#0B0B0B', borderWidth: 2.5, borderColor: GOLD, alignItems: 'center', justifyContent: 'center', zIndex: 30 }}>
+      <Text style={{ color: '#F2C94C', fontSize: 20, fontWeight: '900', marginTop: -4 }}>⋯</Text>
+    </Pressable>
+  );
   return (
-    <Animated.View {...swipe.panHandlers} style={{ width: cw, maxHeight: H * 0.88, opacity: op, transform: [{ scale: sc }], backgroundColor: '#FFF8E1', borderRadius: 18, borderWidth: 3, borderColor: GOLD, padding: 14 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: FRUIT_COL[item.k], marginRight: 8 }} />
-        <Text style={{ flex: 1, color: '#3B2A10', fontWeight: '900', fontSize: 16 }}>{a.sname} · {a.no}. ayet</Text>
-        <Pressable onPress={onClose} hitSlop={10} style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#3B2A10', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '900' }}>✕</Text>
-        </Pressable>
+    <View style={{ width: winW, height: H, backgroundColor: '#E9F0DA' }}>
+      <View ref={shareRef} collapsable={false} style={{ position: 'absolute', left: 0, top: 0, width: 360, backgroundColor: '#FFF8DE', padding: 18, alignItems: 'center' }}>
+        <Text style={{ color: '#7A5A10', fontWeight: '900', fontSize: 16, marginBottom: 10 }}>{a.sname} · {a.no}. ayet</Text>
+        <Image fadeDuration={0} source={{ uri: DIR + a.full.file }} style={{ width: 324, height: 324 / ratio }} resizeMode="contain" />
+        {!!a.meal && <Text style={{ color: '#2B2418', fontSize: 15, lineHeight: 22, marginTop: 12, textAlign: 'left', width: 324 }}>{a.meal}</Text>}
+        <Text style={{ color: '#9A8756', fontSize: 11, marginTop: 14 }}>Hafız Dünyası · Diyanet meali</Text>
       </View>
-      <ScrollView style={{ maxHeight: H * 0.6 }} showsVerticalScrollIndicator={false}>
-        <Image source={{ uri: DIR + a.full.file }} style={{ width: iw, aspectRatio: a.full.w / a.full.h, alignSelf: 'center' }} resizeMode="contain" />
+      {bg ? <Image source={bg} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: '#5E8F4B' }]} />}
+      {N && <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(8,10,6,0.58)' }]} />}
+      <View {...swipe.panHandlers} style={{ width: W, height: H, alignSelf: 'center' }}>
+        <View pointerEvents="none" style={{ position: 'absolute', left: W * 0.5 - W * 0.3, top: fruitBottom - 12, width: W * 0.6, height: 26, borderRadius: 30, backgroundColor: 'rgba(25,55,10,0.38)' }} />
+        <Animated.View style={{ flex: 1, opacity: op, transform: [{ translateX: sl.interpolate({ inputRange: [0, 1], outputRange: [0, 60] }) }] }}>
+          <View style={{ position: 'absolute', left: 0, right: 0, top: top + H * 0.075, alignItems: 'center' }}>
+            <View style={{ backgroundColor: '#0B0B0B', borderWidth: 2.5, borderColor: GOLD, borderRadius: 14, paddingHorizontal: 20, paddingVertical: 8, alignItems: 'center' }}>
+              <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 16 }}>{a.sname} · {a.no}. ayet</Text>
+              <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>{item.title}</Text>
+            </View>
+          </View>
+          <View style={{ position: 'absolute', left: 0, right: 0, top: panelTop - 52, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14 }}>
+            <Pressable onPress={idx > 0 ? onPrev : undefined} style={{ flexDirection: 'row', alignItems: 'center', opacity: idx > 0 ? 1 : 0.4 }}>
+              <View style={{ width: 22, height: 22, backgroundColor: '#0B0B0B', borderWidth: 2, borderColor: GOLD, transform: [{ rotate: '45deg' }], marginRight: -8, zIndex: 2 }} />
+              <View style={{ backgroundColor: '#0B0B0B', borderWidth: 2, borderColor: GOLD, paddingHorizontal: 18, paddingVertical: 5 }}><Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 13 }}>ÖNCE</Text></View>
+            </Pressable>
+            <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: col, borderWidth: 1.5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ color: col === '#F2A900' ? '#222' : '#fff', fontWeight: '900', fontSize: 13 }}>{item.k + 1}</Text>
+            </View>
+            <Pressable onPress={idx < total - 1 ? onNext : undefined} style={{ flexDirection: 'row', alignItems: 'center', opacity: idx < total - 1 ? 1 : 0.4 }}>
+              <View style={{ backgroundColor: '#0B0B0B', borderWidth: 2, borderColor: GOLD, paddingHorizontal: 18, paddingVertical: 5 }}><Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 13 }}>SONRA</Text></View>
+              <View style={{ width: 22, height: 22, backgroundColor: '#0B0B0B', borderWidth: 2, borderColor: GOLD, transform: [{ rotate: '45deg' }], marginLeft: -8, zIndex: 2 }} />
+            </Pressable>
+          </View>
+          <View style={{ position: 'absolute', left: 22, top: panelTop, width: pw, height: ph, backgroundColor: cream, borderRadius: 16, borderWidth: 2, borderColor: creamLine, alignItems: 'center', justifyContent: 'center', elevation: 4, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } }}>
+            <Image source={{ uri: DIR + a.full.file }} style={{ width: iw, height: ih }} resizeMode="contain" />
+          </View>
+          <View pointerEvents="none" style={{ position: 'absolute', left: 26, right: 26, top: panelTop + ph + 16, height: 14, justifyContent: 'center' }}>
+            <View style={{ height: 1.5, backgroundColor: GOLD, marginBottom: 3 }} /><View style={{ height: 1.5, backgroundColor: GOLD }} />
+            <View style={{ position: 'absolute', left: W / 2 - 26 - 11, top: 0, width: 14, height: 14, backgroundColor: GOLD, transform: [{ rotate: '45deg' }] }} />
+          </View>
+          <View pointerEvents="none" style={{ position: 'absolute', left: (W - fruitSize) / 2, top: fruitBottom - fruitSize, width: fruitSize, height: fruitSize, alignItems: 'center', justifyContent: 'flex-end' }}>
+            {fruitFile
+              ? <Image source={{ uri: DIR + fruitFile }} style={{ width: fruitSize, height: fruitSize }} resizeMode="contain" />
+              : <View style={{ width: fruitSize * 0.55, height: fruitSize * 0.55, borderRadius: fruitSize, backgroundColor: col, borderWidth: 3, borderColor: 'rgba(255,255,255,0.8)' }} />}
+          </View>
+          {showMeal && (
+            <View style={{ position: 'absolute', left: 22, right: 22, top: panelTop + ph + 40, bottom: insets.bottom + 96, backgroundColor: mealBg, borderRadius: 16, borderWidth: 2, borderColor: creamLine, padding: 14 }}>
+              <Text style={{ color: N ? '#D9A8D9' : '#963C96', fontWeight: '900', fontSize: 13, marginBottom: 6 }}>MEAL · Diyanet</Text>
+              <ScrollView showsVerticalScrollIndicator>
+                <Text style={{ color: mealFg, fontSize: prefs.mealSize, lineHeight: prefs.mealSize * 1.45 }}>{a.meal || 'Bu ayet için meal bulunamadı.'}</Text>
+              </ScrollView>
+            </View>
+          )}
+          {!big && (
+            <Pressable onPress={() => setShowMeal((v) => !v)} style={{ position: 'absolute', right: 26, bottom: insets.bottom + 28, width: 48, height: 48, borderRadius: 24, backgroundColor: showMeal ? '#F0CD64' : '#FAF4E4', borderWidth: 3, borderColor: '#F0CD64', alignItems: 'center', justifyContent: 'center', zIndex: 30 }}>
+              <Text style={{ color: '#963C96', fontSize: 20, fontWeight: '900' }}>M</Text>
+            </Pressable>
+          )}
+          <Pressable onPress={onClose} hitSlop={10} style={{ position: 'absolute', right: 20, top: top + 14, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(11,11,11,0.85)', borderWidth: 1.5, borderColor: GOLD, alignItems: 'center', justifyContent: 'center', zIndex: 30 }}>
+            <Text style={{ color: '#F2C94C', fontSize: 16, fontWeight: '900' }}>✕</Text>
+          </Pressable>
+        </Animated.View>
+
+        {big && (
+          <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: N ? '#14130E' : '#FBF3D5', zIndex: 20 }}>
+            <View style={{ paddingTop: top + 10, paddingHorizontal: 14, paddingBottom: 8, backgroundColor: N ? '#1C1A13' : '#F1E4B4', borderBottomWidth: 1.5, borderColor: creamLine }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <Text style={{ color: N ? '#F2C94C' : '#6B4E0A', fontWeight: '900', fontSize: 16 }}>{a.sname} · {a.no}. ayet</Text>
+                <Pressable onPress={() => setBig(false)} hitSlop={10} style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, backgroundColor: '#0B0B0B', borderWidth: 1.5, borderColor: GOLD }}><Text style={{ color: '#F2C94C', fontWeight: '900' }}>✕ Kapat</Text></Pressable>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <StepBtn dark={N} label="Ayet" onMinus={() => setPrefs({ zoom: clamp(+(prefs.zoom - 0.2).toFixed(2), 0.6, 3) })} onPlus={() => setPrefs({ zoom: clamp(+(prefs.zoom + 0.2).toFixed(2), 0.6, 3) })} />
+                <StepBtn dark={N} label="Meal" onMinus={() => setPrefs({ mealSize: clamp(prefs.mealSize - 2, 12, 34) })} onPlus={() => setPrefs({ mealSize: clamp(prefs.mealSize + 2, 12, 34) })} />
+              </View>
+            </View>
+            <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: insets.bottom + 110 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+                <View style={{ backgroundColor: cream, borderRadius: 14, borderWidth: 2, borderColor: creamLine, padding: 12 }}>
+                  <Image source={{ uri: DIR + a.full.file }} style={{ width: (W - 56) * prefs.zoom, height: ((W - 56) * prefs.zoom) / ratio }} resizeMode="contain" />
+                </View>
+              </ScrollView>
+              <Text style={{ color: N ? '#D9A8D9' : '#963C96', fontWeight: '900', fontSize: 13, marginTop: 16, marginBottom: 6 }}>MEAL · Diyanet</Text>
+              <Text style={{ color: N ? '#E6DCC0' : '#2B2418', fontSize: prefs.mealSize, lineHeight: prefs.mealSize * 1.45 }}>{a.meal || 'Bu ayet için meal bulunamadı.'}</Text>
+            </ScrollView>
+          </View>
+        )}
+
+        {hasAudioBtn}
+        {moreBtn}
+
+        {opts && (
+          <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 50 }}>
+            <Pressable onPress={() => setOpts(false)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.62)', alignItems: 'center', justifyContent: 'center' }}>
+              <Pressable onPress={() => {}} style={{ width: Math.min(W - 36, 380), backgroundColor: '#16140E', borderWidth: 2, borderColor: GOLD, borderRadius: 18, padding: 16, gap: 12 }}>
+                <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 17 }}>Ayet ayarları</Text>
+                <View>
+                  <Text style={{ color: '#CFC4A3', fontSize: 12, marginBottom: 6 }}>Ayet tekrarı</Text>
+                  <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                    {[1, 2, 3, 5, 10].map((n) => <Chip key={n} dark label={n + '×'} on={prefs.repeat === n} onPress={() => setPrefs({ repeat: n })} />)}
+                  </View>
+                </View>
+                <View>
+                  <Text style={{ color: '#CFC4A3', fontSize: 12, marginBottom: 6 }}>Ses hızı</Text>
+                  <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                    {[0.75, 1, 1.25, 1.5].map((n) => <Chip key={n} dark label={n + '×'} on={prefs.rate === n} onPress={() => { setPrefs({ rate: n }); try { if (playerRef.current) playerRef.current.setPlaybackRate(n); } catch (e) {} }} />)}
+                  </View>
+                </View>
+                <Btn title={prefs.auto ? '✔ Bitince sonraki ayete geç: AÇIK' : 'Bitince sonraki ayete geç: kapalı'} kind="ghost" onPress={() => setPrefs({ auto: !prefs.auto })} />
+                <Btn title="🔍 Okuma görünümü (büyüt / yazı boyutu)" kind="ghost" onPress={() => { setOpts(false); setBig(true); }} />
+                {!!onSheet && <Btn title="📖 Mushaf sayfasında göster / ayeti gizle" kind="ghost" onPress={() => { setOpts(false); onSheet(); }} />}
+                <Btn title={N ? '☀ Gündüz moduna geç' : '🌙 Gece modu (gözü yormaz)'} kind="ghost" onPress={() => setPrefs({ night: !N })} />
+                <Btn title="⤴ Ayeti resim olarak paylaş" onPress={doShare} />
+              </Pressable>
+            </Pressable>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+
+// Mushaf sayfasının tamamı (PDF'ten). "Ayetleri gizle": her ayet krem bir kapakla örtülür, dokununca açılır (ezber).
+function SheetViewer({ sheets, focus, winW, H, insets, onClose }) {
+  const prefs = usePrefs();
+  const N = prefs.night;
+  const [hide, setHide] = useState(false);
+  const [shown, setShown] = useState({});
+  const [zoom, setZoom] = useState(1);
+  const sc = useRef(null);
+  const baseW = Math.min(winW - 16, 760);
+  const iw = baseW * zoom;
+  const key = (r) => r.sura + ':' + r.no;
+  useEffect(() => {
+    if (!focus) return;
+    const t = setTimeout(() => {
+      let y = 0;
+      for (const sh of sheets) {
+        const ih = baseW * (sh.h / sh.w);
+        const r = sh.rects.find((q) => q.sura === focus.sura && q.no === focus.no);
+        if (r) { if (sc.current) sc.current.scrollTo({ y: Math.max(0, y + r.y * ih - 110), animated: false }); return; }
+        y += ih + 12;
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, []);
+  const openAll = () => { const o = {}; sheets.forEach((s2) => s2.rects.forEach((r) => { o[key(r)] = true; })); setShown(o); };
+  return (
+    <View style={{ width: winW, height: H, backgroundColor: N ? '#0F0E0A' : '#2B2B2B' }}>
+      <View style={{ paddingTop: insets.top + 6, paddingBottom: 8, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#0B0B0B', borderBottomWidth: 1.5, borderColor: GOLD }}>
+        <Plate small title="✕" onPress={onClose} />
+        <Plate small title={hide ? '👁 Göster' : '🙈 Ayetleri gizle'} onPress={() => { setHide((h) => !h); setShown({}); }} />
+        {hide && <Plate small title="Hepsini aç" onPress={openAll} />}
+        <View style={{ flex: 1 }} />
+        <Plate small title="−" onPress={() => setZoom((z) => clamp(+(z - 0.25).toFixed(2), 1, 3))} />
+        <Plate small title="＋" onPress={() => setZoom((z) => clamp(+(z + 0.25).toFixed(2), 1, 3))} />
+        <Plate small title={N ? '☀' : '🌙'} onPress={() => setPrefs({ night: !N })} />
+      </View>
+      {hide && <Text style={{ color: '#F2C94C', textAlign: 'center', fontSize: 12, fontWeight: '700', paddingVertical: 5, backgroundColor: '#1B1A14' }}>Gizli ayete dokun: açılır · açık ayete dokun: tekrar gizlenir</Text>}
+      <ScrollView ref={sc} contentContainerStyle={{ paddingVertical: 8, paddingBottom: insets.bottom + 24 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={zoom > 1} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 8 }}>
+          <View style={{ width: iw }}>
+            {sheets.map((sh, si) => {
+              const ih = iw * (sh.h / sh.w);
+              return (
+                <View key={si} style={{ width: iw, height: ih, marginBottom: 12 }}>
+                  <Image source={{ uri: DIR + sh.file }} style={{ width: iw, height: ih }} resizeMode="contain" />
+                  {sh.rects.map((r, ri) => {
+                    const covered = hide && !shown[key(r)];
+                    const isF = !hide && focus && r.sura === focus.sura && r.no === focus.no;
+                    return (
+                      <Pressable key={ri} pointerEvents={hide ? 'auto' : 'none'} onPress={() => setShown((o) => ({ ...o, [key(r)]: !o[key(r)] }))}
+                        style={{ position: 'absolute', left: r.x * iw, top: r.y * ih, width: r.w * iw, height: r.h * ih, borderRadius: covered ? 6 : 3,
+                          backgroundColor: covered ? '#EADFB6' : isF ? 'rgba(255,200,0,0.25)' : 'transparent',
+                          borderWidth: covered ? 1 : isF ? 1.5 : 0, borderColor: covered ? '#C9B77A' : GOLD }} />
+                    );
+                  })}
+                  {N && <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.40)' }]} />}
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
       </ScrollView>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
-        <Plate small title="◀ ÖNCEKİ" onPress={idx > 0 ? onPrev : undefined} style={{ opacity: idx > 0 ? 1 : 0.35 }} />
-        <Text style={{ color: '#6B5A3A', fontWeight: '700' }}>{idx + 1} / {total}</Text>
-        <Plate small title="SONRAKİ ▶" onPress={idx < total - 1 ? onNext : undefined} style={{ opacity: idx < total - 1 ? 1 : 0.35 }} />
-      </View>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -1749,7 +2169,7 @@ function ForestPicker({ bottomPad, arrange, onMove, trees, author, onMenu, pages
   const lastFront = useRef(0);
   const [front, setFront] = useState(0);
   const [moved, setMoved] = useState(false);
-  const hint = useRef(new Animated.Value(0)).current;
+  const hint = useRef(new Animated.Value(1)).current;
   const dxAVs = useRef({}).current;
   const dxAV = (i) => { if (!dxAVs[i]) dxAVs[i] = new Animated.Value(((trees && trees[i] && trees[i].dx) || 0) * W); return dxAVs[i]; };
   useEffect(() => { Object.keys(dxAVs).forEach((kk) => dxAVs[kk].setValue(((trees && trees[kk] && trees[kk].dx) || 0) * W)); }, [trees]);
@@ -1759,12 +2179,7 @@ function ForestPicker({ bottomPad, arrange, onMove, trees, author, onMenu, pages
       const r = Math.round(value);
       if (r !== lastFront.current) { lastFront.current = r; setFront(r); if (r > 0) setMoved(true); }
     });
-    const a = Animated.loop(Animated.sequence([
-      Animated.timing(hint, { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.timing(hint, { toValue: 0, duration: 800, useNativeDriver: true }),
-    ]));
-    a.start();
-    return () => { pos.removeListener(id); a.stop(); };
+    return () => { pos.removeListener(id); };
   }, []);
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const settle = (t) => Animated.spring(pos, { toValue: t, friction: 8, tension: 60, useNativeDriver: true }).start();
@@ -2165,8 +2580,140 @@ function PortalButton({ p, W, H, arrange, author, onPress, onMove, onMenu }) {
 }
 
 const forestOf = (d, k) => (d.forests && d.forests[k]) || (String(k) === '1' && d.forest) || { items: [], cfg: {} };
-function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPortalPick, onPortalLabel, onPortalRemove, nav, ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesResetPos, cd, insets, onHome, trees, author, onPickTree, onTreeAnch, onTreeReset }) {
-  const { width: W, height: H } = useWindowDimensions();
+// ======================================================= BAHÇE (4×5 buzlu cam kartlar) ve ORMAN YOLU (C şeklinde patikalar)
+// Bahçe: 20 ağaç sağdan sola 4 sütun × 5 satır. Her kartın altında o sayfanın ilk ayet başı plakası durur.
+function GardenGrid({ pages, trees, W, H, insets, author, onOpen, onLong, onNext }) {
+  const gw = Math.min(W, 720), padX = 10, gap = 8;
+  const cw = (gw - padX * 2 - gap * 3) / 4;
+  const top = insets.top + 72, bot = NAV_H + insets.bottom + 58;
+  const availH = H - top - bot;
+  const ch = Math.max(112, Math.min(176, (availH - gap * 4) / 5));
+  return (
+    <>
+      <ScrollView style={{ position: 'absolute', left: 0, right: 0, top, bottom: bot }} contentContainerStyle={{ alignItems: 'center', paddingBottom: 6 }} showsVerticalScrollIndicator={false}>
+        <View style={{ width: gw, height: ch * 5 + gap * 4 + 6 }}>
+          {pages.slice(0, 20).map((p, i) => {
+            const row = Math.floor(i / 4), col = 3 - (i % 4);        // sağdan sola
+            const src = treeSrc(trees, i);
+            const st = p.kind === 'ayat' && p.ayat.length ? p.ayat[0].start : null;
+            return (
+              <Pressable key={i} onPress={() => onOpen(i)} onLongPress={author ? () => onLong(i) : undefined} delayLongPress={500}
+                style={{ position: 'absolute', left: padX + col * (cw + gap), top: 3 + row * (ch + gap), width: cw, height: ch, borderRadius: 14, backgroundColor: 'rgba(8,22,14,0.55)', borderWidth: 2, borderColor: '#FFE29A', shadowColor: '#FFD56B', shadowOpacity: 0.85, shadowRadius: 7, shadowOffset: { width: 0, height: 0 }, elevation: 6 }}>
+                <View pointerEvents="none" style={{ position: 'absolute', left: 3, right: 3, top: 3, bottom: 3, borderRadius: 11, borderWidth: 1, borderColor: 'rgba(255,226,154,0.35)' }} />
+                {src
+                  ? <Image source={src} style={{ position: 'absolute', left: 4, right: 4, top: 5, height: ch * 0.64, width: cw - 8 }} resizeMode="contain" />
+                  : <Text style={{ position: 'absolute', left: 0, right: 0, top: ch * 0.2, textAlign: 'center', color: '#fff', fontWeight: '900', fontSize: 22 }}>{TREE_NAMES[i % 20]}</Text>}
+                <View style={{ position: 'absolute', left: 5, right: 5, bottom: 5, height: ch * 0.25, borderRadius: 8, borderWidth: 2, borderColor: GOLD, backgroundColor: '#FFF6D9', alignItems: 'center', justifyContent: 'center' }}>
+                  {st
+                    ? <Image source={{ uri: DIR + st.file }} style={{ width: cw - 24, height: ch * 0.25 - 8 }} resizeMode="contain" />
+                    : <Text style={{ color: '#3B2A10', fontWeight: '800', fontSize: 11 }} numberOfLines={1}>{TREE_NAMES[i % 20]}</Text>}
+                </View>
+                <View style={{ position: 'absolute', right: 5, top: 5, minWidth: 22, height: 22, paddingHorizontal: 4, borderRadius: 11, backgroundColor: '#0B0B0B', borderWidth: 1.5, borderColor: GOLD, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 11 }}>{i + 1}</Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
+      <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: NAV_H + insets.bottom + 8, alignItems: 'center' }}>
+        <Plate title="İLERİ ▶  ORMAN YOLU" onPress={onNext} style={{ paddingHorizontal: 26, paddingVertical: 10 }} />
+      </View>
+    </>
+  );
+}
+
+// Orman yolu: ağaçlar ikişerli, yakın planda; aralarından C şeklinde kıvrılan bir DERE akar (1. ağaç sağ üstte, dere sola doğru ilerler).
+function PathForest({ pages, trees, W, H, insets, onOpen, onBack, ui }) {
+  const uf = (k) => (ui && ui[k] && ui[k].file ? { uri: DIR + ui[k].file } : null);
+  const sH = uf('streamH'), sV = uf('streamV'), sC = uf('streamC');
+  const pics = !!(sH && sV && sC);                              // resimli dere (tema paketinden); yoksa çizilmiş dere
+  const gw = Math.min(W, 640), sideM = pics ? 50 : 44;
+  const nodeW = (gw - sideM * 2) / 2;
+  const treeH = nodeW * 1.22, rowH = treeH + 64;
+  const bw = 15, R = 30;                                       // dere genişliği, dönüş yarıçapı
+  const top = insets.top + 76;
+  const cx = (c) => sideM + nodeW * (c + 0.5);
+  const roadY = (r) => r * rowH + treeH * 0.92;
+  const turns = [];
+  for (let r = 0; r < 9; r++) {
+    const left = r % 2 === 0;                                   // çift satır sonunda dere solda döner, tek satır sonunda sağda
+    const x0 = left ? cx(0) - nodeW / 2 - 20 : cx(0);
+    const x1 = left ? cx(1) : cx(1) + nodeW / 2 + 20;
+    const y0 = roadY(r) - bw / 2, y1 = roadY(r + 1) + bw / 2;
+    const layer = (key, grow, wd, color, rad) => (
+      <View key={key + r} pointerEvents="none" style={{
+        position: 'absolute', left: x0 - bw / 2 - grow, top: y0 - grow, width: x1 - x0 + bw + grow * 2, height: y1 - y0 + grow * 2,
+        borderTopWidth: wd, borderBottomWidth: wd, [left ? 'borderLeftWidth' : 'borderRightWidth']: wd, borderColor: color,
+        [left ? 'borderTopLeftRadius' : 'borderTopRightRadius']: rad, [left ? 'borderBottomLeftRadius' : 'borderBottomRightRadius']: rad,
+      }} />
+    );
+    turns.push(layer('bank', 4, bw + 8, 'rgba(120,96,58,0.85)', R + 4));     // kıyı (toprak)
+    turns.push(layer('water', 0, bw, '#4FA9DA', R));                          // su
+    turns.push(layer('shine', -(bw / 2 - 1.5), 3, 'rgba(214,240,255,0.75)', R - bw / 2 + 1.5));  // suyun parlak orta çizgisi
+  }
+  // resimli dere: yatay + dikey döşeme ve köşe parçası (köşe çevrilerek dört yöne kullanılır)
+  const pieces = [];
+  if (pics) {
+    const hb = 64, rc = 32, xvL = 30, xvR = gw - 30, TWD = 128;
+    const bar = (key, x0, x1, yc) => {
+      const L = x1 - x0, n = Math.ceil(L / TWD), tiles = [];
+      for (let k = 0; k < n; k++) tiles.push(<Image key={k} source={sH} style={{ position: 'absolute', left: k * TWD, top: 0, width: TWD, height: hb }} />);
+      pieces.push(<View key={key} pointerEvents="none" style={{ position: 'absolute', left: x0, top: yc - hb / 2, width: L, height: hb, overflow: 'hidden' }}>{tiles}</View>);
+    };
+    const vbar = (key, xc, y0, y1) => {
+      const L = y1 - y0, n = Math.ceil(L / TWD), tiles = [];
+      for (let k = 0; k < n; k++) tiles.push(<Image key={k} source={sV} style={{ position: 'absolute', top: k * TWD, left: 0, width: hb, height: TWD }} />);
+      pieces.push(<View key={key} pointerEvents="none" style={{ position: 'absolute', left: xc - hb / 2, top: y0, width: hb, height: L, overflow: 'hidden' }}>{tiles}</View>);
+    };
+    const corner = (key, x, y, fx, fy) => pieces.push(
+      <Image key={key} source={sC} pointerEvents="none" style={{ position: 'absolute', left: x, top: y, width: hb, height: hb, transform: [{ scaleX: fx ? -1 : 1 }, { scaleY: fy ? -1 : 1 }] }} />);
+    for (let r = 0; r < 10; r++) bar('b' + r, xvL + rc, r === 0 || r === 9 ? gw : xvR - rc, roadY(r));   // ilk ve son satırda dere kenardan girip çıkar
+    for (let t = 0; t < 9; t++) {
+      const yT = roadY(t), yB = roadY(t + 1), left = t % 2 === 0, xv = left ? xvL : xvR;
+      corner('ct' + t, xv - hb / 2, yT - hb / 2, !left, false);
+      corner('cb' + t, xv - hb / 2, yB - hb / 2, !left, true);
+      vbar('v' + t, xv, yT + rc, yB - rc);
+    }
+  }
+  return (
+    <>
+      <ScrollView style={{ position: 'absolute', left: 0, right: 0, top, bottom: NAV_H + insets.bottom + 56 }} contentContainerStyle={{ alignItems: 'center', paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
+        <View style={{ width: gw, height: rowH * 10 + 20 }}>
+          {pics ? pieces : turns}
+          {pages.slice(0, 20).map((p, i) => {
+            const r = Math.floor(i / 2), k = i % 2, c = r % 2 === 0 ? 1 - k : k;
+            const src = treeSrc(trees, i);
+            const st = p.kind === 'ayat' && p.ayat.length ? p.ayat[0].start : null;
+            return (
+              <Pressable key={i} onPress={() => onOpen(i)} style={{ position: 'absolute', left: cx(c) - nodeW / 2, top: r * rowH, width: nodeW, alignItems: 'center' }}>
+                {src
+                  ? <Image source={src} style={{ width: nodeW * 0.96, height: treeH }} resizeMode="contain" />
+                  : <View style={{ width: nodeW * 0.7, height: treeH, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontWeight: '900' }}>{TREE_NAMES[i % 20]}</Text></View>}
+                <View style={{ position: 'absolute', left: 4, top: 4, minWidth: 26, height: 26, paddingHorizontal: 5, borderRadius: 13, backgroundColor: '#0B0B0B', borderWidth: 1.5, borderColor: GOLD, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#F2C94C', fontWeight: '900', fontSize: 13 }}>{i + 1}</Text>
+                </View>
+                <View style={{ marginTop: 14, width: nodeW - 8, height: 44, borderRadius: 10, borderWidth: 2, borderColor: GOLD, backgroundColor: '#FFF6D9', alignItems: 'center', justifyContent: 'center' }}>
+                  {st
+                    ? <Image source={{ uri: DIR + st.file }} style={{ width: nodeW - 30, height: 36 }} resizeMode="contain" />
+                    : <Text style={{ color: '#3B2A10', fontWeight: '800', fontSize: 12 }} numberOfLines={1}>{TREE_NAMES[i % 20]}</Text>}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
+      <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: NAV_H + insets.bottom + 8, alignItems: 'center' }}>
+        <Plate title="◀ GERİ  BAHÇE" onPress={onBack} style={{ paddingHorizontal: 26, paddingVertical: 10 }} />
+      </View>
+    </>
+  );
+}
+
+function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPortalPick, onPortalLabel, onPortalRemove, nav, ui, onPickBg, onUi, onBgReset, onTreeMove, onTreesResetPos, cd, insets, onHome, trees, fruits, author, onPickTree, onTreeAnch, onTreeReset, initial }) {
+  const { width: winW, height: H } = useWindowDimensions();
+  const W = Math.min(winW, 600);                 // tablet / geniş ekran: sayfa ve ayet ekranları ortada, rahat okunur genişlikte
+  const prefs = usePrefs();
   const pages = cd.pages;
   const seq = useMemo(() => {
     const s = [];
@@ -2181,8 +2728,15 @@ function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPorta
     pages.forEach((p, pi) => { if (p.kind === 'ayat') p.ayat.forEach((a, j) => f.push({ p: pi, s: Math.floor(j / 5), k: j % 5, a })); });
     return f;
   }, [cd]);
-  const [cur, setCur] = useState(-1);          // -1 = bahçe
-  const [open, setOpen] = useState(-1);        // açık ayet (flat sırası)
+  const initAyah = initial && initial.ayah >= 0 && initial.ayah < flat.length ? initial.ayah : -1;
+  const initTree = initAyah >= 0 ? seq.findIndex((x) => x.p === flat[initAyah].p && x.s === flat[initAyah].s) : (initial && initial.tree >= 0 ? seq.findIndex((x) => x.p === initial.tree) : -1);
+  const [cur, setCur] = useState(initTree);          // -1 = bahçe
+  const [open, setOpen] = useState(initAyah);        // açık ayet (flat sırası)
+  const [sheetFor, setSheetFor] = useState(null);    // mushaf sayfası: {p, sura, no}
+  const [gview, setGview] = useState('grid');        // bahçe görünümü: 'grid' (4×5 kartlar) | 'path' (orman yolu)
+  useEffect(() => {                                   // kaldığın yerden devam: son konum saklanır
+    AsyncStorage.setItem(LAST_KEY, JSON.stringify({ cuz: cd.cuz, tree: cur >= 0 && seq[cur] ? seq[cur].p : -1, ayah: open })).catch(() => {});
+  }, [cur, open]);
   const [tmenu, setTmenu] = useState(-1);       // yazar: ağaç menüsü
   const [settings, setSettings] = useState(false); // yazar: bahçe ayarları
   const [arrange, setArrange] = useState(false);   // yazar: ağaçları sağa sola yerleştirme modu
@@ -2204,7 +2758,11 @@ function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPorta
   if (cur < 0) {
     content = (
       <View style={{ flex: 1 }}>
-        <ForestPicker bottomPad={NAV_H - 8} arrange={arrange} onMove={onTreeMove} trees={trees} author={author} onMenu={setTmenu} pages={pages} W={W} H={H} insets={insets} onOpen={(i) => { const k = seq.findIndex((x) => x.p === i); if (k >= 0) go(k, 1); }} />
+        {ui.gardenForest !== false
+          ? <ForestPicker bottomPad={NAV_H - 8} arrange={arrange} onMove={onTreeMove} trees={trees} author={author} onMenu={setTmenu} pages={pages} W={winW} H={H} insets={insets} onOpen={(i) => { const k = seq.findIndex((x) => x.p === i); if (k >= 0) go(k, 1); }} />
+          : gview === 'path'
+            ? <PathForest ui={ui} pages={pages} trees={trees} W={winW} H={H} insets={insets} onBack={() => setGview('grid')} onOpen={(i) => { const k = seq.findIndex((x) => x.p === i); if (k >= 0) go(k, 1); }} />
+            : <GardenGrid pages={pages} trees={trees} W={winW} H={H} insets={insets} author={author} onLong={setTmenu} onNext={() => setGview('path')} onOpen={(i) => { const k = seq.findIndex((x) => x.p === i); if (k >= 0) go(k, 1); }} />}
         <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 }}>
           <RoundBtn icon="🏠" onPress={onHome} />
           <View style={{ flex: 1, alignItems: 'center' }}>
@@ -2214,9 +2772,12 @@ function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPorta
               </View>
             )}
           </View>
-          {author ? <RoundBtn icon="⚙" onPress={() => setSettings(true)} /> : <View style={{ width: 44 }} />}
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <RoundBtn icon={prefs.night ? '☀' : '🌙'} onPress={() => setPrefs({ night: !prefs.night })} />
+            {author && <RoundBtn icon="⚙" onPress={() => setSettings(true)} />}
+          </View>
         </View>
-        {portal && <PortalButton p={portal} W={W} H={H} arrange={arrange} author={author} onPress={onPortalOpen} onMove={onPortalMove} onMenu={() => setPmenu(true)} />}
+        {portal && <PortalButton p={portal} W={winW} H={H} arrange={arrange} author={author} onPress={onPortalOpen} onMove={onPortalMove} onMenu={() => setPmenu(true)} />}
         <BottomBar active="garden" insets={insets} items={nav} />
         {arrange && (
           <View style={{ position: 'absolute', left: 12, right: 12, top: insets.top + 66, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.74)', borderWidth: 1.5, borderColor: GOLD, borderRadius: 14, padding: 8 }}>
@@ -2239,7 +2800,10 @@ function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPorta
               <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>{TREE_NAMES[it.p]}{it.n > 1 ? `  (${it.s + 1}/${it.n})` : ''}</Text>
             </View>
           </View>
-          <RoundBtn icon="🌳" onPress={toGarden} />
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {page.kind === 'ayat' && !!(page.sheets && page.sheets.length) && <RoundBtn icon="📖" onPress={() => setSheetFor({ p: it.p, sura: page.ayat[0].sura, no: page.ayat[0].no })} />}
+            <RoundBtn icon="🌳" onPress={toGarden} />
+          </View>
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 10, marginTop: 8 }}>
           <Plate title="◀ ÖNCE" onPress={back} />
@@ -2261,23 +2825,27 @@ function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPorta
       const sh = Math.min(avail, (W * 0.84) * (4 / 3), 700), sw = sh * 0.75;
       const sl = (W - sw) / 2, st = topH + (avail - sh) / 2;
       const group = page.ayat.slice(it.s * 5, it.s * 5 + 5);
-      const fd = sw * 0.155, lh = Math.min(56, sh * 0.142 - 5);
+      const fd = sw * 0.155 * 1.2, lh = Math.min(56, sh * 0.142 - 5);          // fd = cam buton çapı
+      const LWB = Math.min(W * 0.235, 96), off = W / 2 - 6 - LWB - 6 - fd / 2;   // kutular iki kenarda aynı genişlikte, meyveler ortada simetrik
+      const POS = [[W / 2, st + 0.19 * sh], [W / 2 + off, st + 0.44 * sh], [W / 2 - off, st + 0.44 * sh], [W / 2 + off, st + 0.70 * sh], [W / 2 - off, st + 0.70 * sh]];
       const nodes = [];
       group.forEach((ay, k) => {
-        const an = treeAnch(trees, it.p)[k], ax = sl + an[0] * sw, ay_ = st + an[1] * sh, side = FRUIT_SIDE[k];
-        let lx, lw, ly = ay_ - lh / 2;
-        if (side === 'top') { lw = Math.min(150, W * 0.4); lx = ax - lw / 2; ly = ay_ - fd / 2 - 14 - lh; }
-        else if (side === 'left') { lx = 6; lw = Math.max(72, ax - fd / 2 - 10 - 6); }
-        else { lx = ax + fd / 2 + 10; lw = Math.max(72, W - 6 - lx); lx = W - 6 - lw; }
+        const ax = POS[k][0], ay_ = POS[k][1], side = FRUIT_SIDE[k];
+        let lx, lw = LWB, ly = ay_ - lh / 2;
+        if (side === 'top') { lw = Math.min(150, W * 0.4); lx = ax - lw / 2; ly = ay_ - fd / 2 - 8 - lh; }
+        else if (side === 'left') lx = 6;
+        else lx = W - 6 - lw;
         const fi = flat.findIndex((f) => f.p === it.p && f.s === it.s && f.k === k);
+        const fsrc = ((fruits || {})[it.p] || [])[k];
         nodes.push(
           <VerseLabel key={'l' + k} ay={ay} x={lx} y={ly} w={lw} h={lh} color={FRUIT_COL[k]} onPress={() => setOpen(fi)} />,
-          <Fruit key={'f' + k} x={ax} y={ay_} d={fd} n={k + 1} color={FRUIT_COL[k]} delay={k * 260} onPress={() => setOpen(fi)} />,
+          <Fruit key={'f' + k} x={ax} y={ay_} d={fd} n={k + 1} color={FRUIT_COL[k]} delay={k * 260} src={fsrc ? { uri: DIR + fsrc } : null} onPress={() => setOpen(fi)} />,
         );
       });
       body = (
         <>
           <Pressable onLongPress={author ? () => setTmenu(it.p) : undefined} delayLongPress={500} style={{ position: 'absolute', left: sl, top: st, width: sw, height: sh }}>
+            <TreeGlow w={sw} h={sh} />
             {treeSrc(trees, it.p) ? <Image source={treeSrc(trees, it.p)} style={{ width: sw, height: sh }} resizeMode="contain" /> : <TreeHole author={author} />}
           </Pressable>
           {nodes}
@@ -2297,7 +2865,7 @@ function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPorta
       } else bottom = <Plate title="🌳  BAHÇEYE DÖN" onPress={toGarden} style={{ paddingHorizontal: 26, paddingVertical: 12 }} />;
     }
     content = (
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, width: W, alignSelf: 'center' }}>
         <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.10)' }]} />
         {body}
         {header}
@@ -2309,7 +2877,7 @@ function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPorta
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       {(() => {
-        const b = cur < 0 ? ui.bgGarden : ui.bgPage;
+        const b = cur < 0 ? (gview === 'path' && ui.gardenForest === false && ui.bgForest && ui.bgForest.file ? ui.bgForest : ui.bgGarden) : ui.bgPage;
         return b && b.file
           ? <Image source={{ uri: DIR + b.file }} style={StyleSheet.absoluteFill} resizeMode="cover" />
           : <View style={StyleSheet.absoluteFill}><View style={{ flex: 3, backgroundColor: '#8EC9F2' }} /><View style={{ flex: 7, backgroundColor: '#4C8F57' }} /></View>;
@@ -2317,13 +2885,17 @@ function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPorta
       <Animated.View style={{ flex: 1, opacity: trans, transform: [{ translateX: trans.interpolate({ inputRange: [0, 1], outputRange: [dirRef.current * 44, 0] }) }] }}>
         {content}
       </Animated.View>
-      <Modal transparent visible={open >= 0} animationType="fade" onRequestClose={closePanel}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.74)', alignItems: 'center', justifyContent: 'center' }}>
-          {open >= 0 && flat[open] && (
-            <AyahPanel item={flat[open]} idx={open} total={flat.length} W={W} H={H}
-              onPrev={() => setOpen(open - 1)} onNext={() => setOpen(open + 1)} onClose={closePanel} />
-          )}
-        </View>
+      {prefs.night && <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(6,9,5,0.42)' }]} />}
+      <Modal visible={open >= 0 || !!sheetFor} animationType="fade" onRequestClose={() => { if (sheetFor) setSheetFor(null); else closePanel(); }} statusBarTranslucent>
+        {sheetFor && pages[sheetFor.p] && pages[sheetFor.p].sheets
+          ? <SheetViewer sheets={pages[sheetFor.p].sheets} focus={sheetFor} winW={winW} H={H} insets={insets} onClose={() => setSheetFor(null)} />
+          : (open >= 0 && flat[open] && (
+            <AyahPanel item={{ ...flat[open], title: (cd.name || 'Cüz') + ' · ' + TREE_NAMES[flat[open].p % TREE_NAMES.length] }} idx={open} total={flat.length} W={W} winW={winW} H={H} insets={insets}
+              bg={ui.bgAyet && ui.bgAyet.file ? { uri: DIR + ui.bgAyet.file } : null}
+              fruitFile={((fruits || {})[flat[open].p] || [])[flat[open].k] || null}
+              onPrev={() => setOpen(open - 1)} onNext={() => setOpen(open + 1)} onClose={closePanel}
+              onSheet={(pages[flat[open].p] && pages[flat[open].p].sheets) ? () => setSheetFor({ p: flat[open].p, sura: flat[open].a.sura, no: flat[open].a.no }) : null} />
+          ))}
       </Modal>
       <Modal transparent visible={tmenu >= 0} animationType="fade" onRequestClose={() => setTmenu(-1)}>
         <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center' }} onPress={() => setTmenu(-1)}>
@@ -2342,6 +2914,7 @@ function CuzReader({ portal, onPortalOpen, onPortalMove, onPortalUpdate, onPorta
             <Text style={{ color: '#fff', fontWeight: '900', fontSize: 17, marginBottom: 2 }}>Bahçe ayarları</Text>
             <Btn title={portal ? '🔀 Geçiş butonunu düzenle' : '🔀 Geçiş butonu ekle'} onPress={() => { setSettings(false); if (!portal) onPortalUpdate({}); setTimeout(() => setPmenu(true), 250); }} />
             <Btn title="🌲 Orman ekranını aç" kind="ghost" onPress={() => { setSettings(false); setTimeout(onPortalOpen, 250); }} />
+            <Btn title={ui.gardenForest !== false ? '▦ Bahçeyi 4×5 kartlarla göster' : '🌳 Bahçeyi derinlikli orman olarak göster'} kind="ghost" onPress={() => onUi({ gardenForest: ui.gardenForest === false })} />
             <Btn title="✥ Ağaçları sağa sola yerleştir" kind="ghost" onPress={() => { setSettings(false); setArrange(true); }} />
             <Btn title="🖼 Orman arka planı seç" kind="ghost" onPress={() => { setSettings(false); setTimeout(() => onPickBg('bgGarden'), 250); }} />
             <Btn title="🖼 Ağaç sayfası arka planı seç" kind="ghost" onPress={() => { setSettings(false); setTimeout(() => onPickBg('bgPage'), 250); }} />
@@ -2382,6 +2955,7 @@ async function readCuzPackage(zip, meta, onProgress) {
   (meta.pages || []).forEach((p) => {
     if (p.kind === 'special') (p.imgs || []).forEach((im) => all.push(im));
     else (p.ayat || []).forEach((a) => { all.push(a.start); all.push(a.full); });
+    (p.sheets || []).forEach((sh) => all.push(sh));
   });
   const map = {};
   let i = 0;
@@ -2397,7 +2971,7 @@ async function readCuzPackage(zip, meta, onProgress) {
   const fix = (im) => ({ file: map[im.file], w: im.w, h: im.h });
   const pages = (meta.pages || []).map((p) => (p.kind === 'special'
     ? { kind: 'special', title: p.title, imgs: (p.imgs || []).map(fix) }
-    : { kind: 'ayat', ayat: (p.ayat || []).map((a) => ({ sura: a.sura, sname: a.sname, no: a.no, start: fix(a.start), full: fix(a.full) })) }));
+    : { kind: 'ayat', sheets: (p.sheets || []).map((sh) => ({ ...fix(sh), rects: sh.rects || [] })), ayat: (p.ayat || []).map((a) => ({ sura: a.sura, sname: a.sname, no: a.no, meal: a.meal || '', start: fix(a.start), full: fix(a.full) })) }));
   return { kind: 'cuz', cuz: meta.cuz, name: meta.name || meta.cuz + '. Cüz', pages, files: names };
 }
 
@@ -2406,7 +2980,7 @@ function Root() {
   const insets = useSafeAreaInsets();
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);            // false | 'mesaj'
-  const [mode, setMode] = useState(null);             // null | 'author' | 'reader'
+  const [mode, setMode] = useState('reader');         // uygulama doğrudan kullanıcı (okuyucu) olarak açılır; yazar modu kapalı
   const [data, setData] = useState({ images: [], startId: null });
   const [user, setUser] = useState({ anchors: {}, last: null, seen: false, hide: false });
   const [screen, setScreen] = useState({ name: 'home' });
@@ -2429,8 +3003,6 @@ function Root() {
         const raw = await AsyncStorage.getItem(STORE_KEY);
         const d = ensureSections(raw ? JSON.parse(raw) : { images: [], startId: null });
         setData(d);
-        const m = await AsyncStorage.getItem(MODE_KEY);
-        if (m === 'author' || m === 'reader') setMode(m);
         const u = await AsyncStorage.getItem(USER_KEY);
         if (u) setUser((p) => ({ ...p, ...JSON.parse(u) }));
       } catch (e) { /* ilk açılış */ }
@@ -2929,19 +3501,33 @@ function Root() {
       { text: 'Devam', onPress: () => res(true) },
     ], { onDismiss: () => res(false) })));
 
-  const doImport = async () => {
-    setBusy('Paket açılıyor…');
+  const BUNDLE_LABEL = { cuz1: 'bahçe', theme1: 'ağaçlar ve meyveler', ses1: 'ses' };
+  const runImport = async (bundle, quiet) => {
+    const say = (t, m) => { if (!quiet) Alert.alert(t, m); };
+    const pre = bundle ? `İlk kurulum – ${BUNDLE_LABEL[bundle] || bundle}…` : 'Paket açılıyor…';
+    setBusy(pre);
     try {
       const pkg = await readPackage(
-        (i, n, ph) => setBusy(ph === 'dec' ? `Şifre çözülüyor… ${i}/${n}` : `Paket açılıyor… ${i}/${n}`),
+        (i, n, ph) => setBusy(ph === 'dec' ? `Şifre çözülüyor… ${i}/${n}` : `${pre} ${i}/${n}`),
         confirmWipe,
-        (check) => askPass('enter', check, { title: '🔒 Paket şifresi', desc: 'Bu paketin şifresini yaz. Şifreyi paketi gönderen kişi sana iletmiş olmalı.' }));
-      if (pkg && pkg.kind === 'cuz') {
+        (check) => askPass('enter', check, { title: '🔒 Paket şifresi', desc: 'Bu paketin şifresini yaz. Şifreyi paketi gönderen kişi sana iletmiş olmalı.' }),
+        bundle || null);
+      if (pkg && pkg.kind === 'audio') {
+        say('Ses yüklendi', `${pkg.count} ayetin sesi eklendi${pkg.reciter ? ' (' + pkg.reciter + ')' : ''}. Ayet ekranında ▶ ile dinleyebilirsin.`);
+      } else if (pkg && pkg.kind === 'theme') {
+        const d0 = dataRef.current;
+        Object.values(d0.trees || {}).forEach((t) => { if (t && t.file) FileSystem.deleteAsync(DIR + t.file, { idempotent: true }).catch(() => {}); });
+        ['bgGarden', 'bgForest', 'bgPage', 'bgAyet', 'streamH', 'streamV', 'streamC'].forEach((kk) => { const b = (d0.ui || {})[kk]; if (b && b.file && pkg.ui[kk]) FileSystem.deleteAsync(DIR + b.file, { idempotent: true }).catch(() => {}); });
+        Object.values(d0.fruits || {}).forEach((a) => (a || []).forEach((fn) => { if (fn) FileSystem.deleteAsync(DIR + fn, { idempotent: true }).catch(() => {}); }));
+        setData((d) => ({ ...d, trees: pkg.trees, fruits: pkg.fruits || {}, ui: { ...(d.ui || {}), ...pkg.ui } }));
+        setScreen({ name: 'home' });
+        say('Tema yüklendi', Object.keys(pkg.trees).length + ' ağaç, ' + Object.keys(pkg.fruits || {}).length + ' meyve takımı ve arka planlar hazır.');
+      } else if (pkg && pkg.kind === 'cuz') {
         const old = (dataRef.current.cuz || {})[pkg.cuz];
         if (old && old.files) old.files.forEach((fn) => FileSystem.deleteAsync(DIR + fn, { idempotent: true }).catch(() => {}));
-        setData((d) => ({ ...d, cuz: { ...(d.cuz || {}), [pkg.cuz]: { name: pkg.name, pages: pkg.pages, files: pkg.files } } }));
+        setData((d) => ({ ...d, cuz: { ...(d.cuz || {}), [pkg.cuz]: { cuz: pkg.cuz, name: pkg.name, pages: pkg.pages, files: pkg.files } } }));
         setScreen({ name: 'home' });
-        Alert.alert('Hazır', `${pkg.name} meyve bahçesi yüklendi. Ana ekranda ${pkg.cuz}. bölüme dokun.`);
+        say('Hazır', `${pkg.name} meyve bahçesi yüklendi. Ana ekranda ${pkg.cuz}. bölüme dokun.`);
       } else if (pkg && pkg.kind === 'section') {
         // sadece bu bölümü değiştir; diğer bölümlere dokunma
         const d = dataRef.current, sid = pkg.section;
@@ -2965,9 +3551,29 @@ function Root() {
         setScreen({ name: 'home' });
         Alert.alert('Hazır', `${pkg.images.length} sayfa yüklendi.`);
       }
-    } catch (e) { Alert.alert('Paket açılamadı', e.message); }
+    } catch (e) { Alert.alert(bundle ? 'İlk kurulum tamamlanamadı' : 'Paket açılamadı', e.message); }
     setBusy(false);
   };
+  const doImport = () => runImport(null, false);
+
+  // İlk açılış: gömülü cüz, tema ve ses paketleri kendiliğinden yüklenir (eksik olanlar her açılışta tamamlanır)
+  const bootRef = useRef(false);
+  useEffect(() => {
+    if (!ready || bootRef.current) return;
+    bootRef.current = true;
+    (async () => {
+      try {
+        const d = dataRef.current;
+        const steps = [];
+        if (!(d.cuz && d.cuz[1])) steps.push('cuz1');
+        if (!Object.keys(d.trees || {}).length) steps.push('theme1');
+        let hasAudio = false;
+        try { hasAudio = (await FileSystem.getInfoAsync(ADIR + '001001.mp3')).exists; } catch (e) {}
+        if (!hasAudio) steps.push('ses1');
+        for (const b of steps) await runImport(b, true);
+      } catch (e) {}
+    })();
+  }, [ready]);
 
   const homeId = data.startId && data.images.find((i) => i.id === data.startId) ? data.startId : (data.images[0] && data.images[0].id);
   const play = (id, from = 'library') => setScreen({ name: 'viewer', id: id || homeId, from });
@@ -3020,13 +3626,13 @@ function Root() {
       </SlideIn>
     );
   } else if (screen.name === 'cuz' && data.cuz && data.cuz[screen.cuz]) {
-    const cr = <CuzReader nav={navItems} key={screen.cuz} portal={(data.portals || {})[screen.cuz] || null} onPortalOpen={() => setScreen({ name: 'forest', cuz: screen.cuz })} onPortalMove={(x, y) => portalSet({ x, y })} onPortalUpdate={portalSet} onPortalPick={portalPick} onPortalLabel={portalLabel} onPortalRemove={portalRemove} cd={data.cuz[screen.cuz]} insets={insets} onHome={() => setScreen({ name: 'home' })}
-      trees={data.trees || {}} ui={data.ui || {}} onPickBg={pickBg} onUi={uiPatch} onBgReset={bgReset} onTreeMove={treeMove} onTreesResetPos={treesResetPos} author={AUTHOR} onPickTree={pickTree} onTreeAnch={treeAnchSave} onTreeReset={treeReset} />;
+    const cr = <CuzReader nav={navItems} key={screen.cuz} portal={(data.portals || {})[screen.cuz] || null} onPortalOpen={() => setScreen({ name: 'forest', cuz: screen.cuz })} onPortalMove={(x, y) => portalSet({ x, y })} onPortalUpdate={portalSet} onPortalPick={portalPick} onPortalLabel={portalLabel} onPortalRemove={portalRemove} cd={data.cuz[screen.cuz]} initial={screen.initial || null} insets={insets} onHome={() => setScreen({ name: 'home' })}
+      trees={data.trees || {}} fruits={data.fruits || {}} ui={data.ui || {}} onPickBg={pickBg} onUi={uiPatch} onBgReset={bgReset} onTreeMove={treeMove} onTreesResetPos={treesResetPos} author={AUTHOR} onPickTree={pickTree} onTreeAnch={treeAnchSave} onTreeReset={treeReset} />;
     body = screen.from === 'forest' ? <SlideIn key={'b' + screen.cuz} dir={-1}>{cr}</SlideIn> : cr;
   } else {
     body = (
       <Home
-        nav={navItems} cuz={data.cuz || {}} onOpenCuz={(n) => { lastCuz.current = n; setScreen({ name: 'cuz', cuz: n }); }}
+        nav={navItems} cuz={data.cuz || {}} onOpenCuz={(n, initial) => { lastCuz.current = n; setScreen({ name: 'cuz', cuz: n, initial: initial || null }); }}
         data={data} user={user} author={AUTHOR} insets={insets}
         onPlay={(id) => play(id, 'home')} onProfile={() => setProfileOpen(true)}
         onLibrary={(fold) => setScreen({ name: 'library', fold })}
@@ -3046,7 +3652,7 @@ function Root() {
       <NameModal prompt={namePrompt} onDone={finishPrompt} />
       <PassModal prompt={passPrompt} onDone={finishPass} />
       <ProfileModal visible={profileOpen} profile={user.profile || {}} onSave={saveProfileName}
-        onPhoto={pickPhoto} onRemovePhoto={removePhoto} onAuthor={AUTHOR ? null : authorFromProfile} onClose={() => setProfileOpen(false)} />
+        onPhoto={pickPhoto} onRemovePhoto={removePhoto} onAuthor={null} onClose={() => setProfileOpen(false)} />
       {!!busy && (
         <View style={[StyleSheet.absoluteFill, s.center, { backgroundColor: 'rgba(0,0,0,0.55)' }]}>
           <ActivityIndicator color="#fff" size="large" />
