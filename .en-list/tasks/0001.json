@@ -1,0 +1,17 @@
+{
+  "id": "0001",
+  "title": "ses ayarlarında sürekli tekrarla yok.",
+  "group": "",
+  "status": "done",
+  "order": 10,
+  "notes": [
+    {
+      "by": "ai",
+      "text": "Flutter: Ayet ayarları > Ayet tekrarı'na '∞ Sürekli' eklendi (repeat=0). Ses, ▶/❚❚ ile durdurulana kadar tekrar eder; sürekli tekrarda 'bitince sonraki ayete geç' çalışmaz. Web'de derlendi; sesin gerçekten döndüğünü kulakla test etmedim. (flutter_app/lib/ayet.dart) RN App.js'e uygulanmadı.",
+      "at": "2026-10-22T18:59:09.894Z"
+    }
+  ],
+  "created": "2026-10-22T18:51:31.102Z",
+  "updated": "2026-10-22T18:59:09.894Z",
+  "closed": "2026-10-22T18:59:09.894Z"
+}

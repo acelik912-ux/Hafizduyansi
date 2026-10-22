@@ -1,0 +1,222 @@
+// Veri katmanı: gömülü paketler (assets/paket/<ad>/project.json), tercihler, son konum, sabitler.
+// Paketler tools/flutter_varlik.py ile bundle/ parçalarından olduğu gibi açılır; uygulama zip okumaz.
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// ----------------------------------------------------------------- renkler / sabitler
+class C {
+  static const bg = Color(0xFF0B1020), card = Color(0xFF151B2E), card2 = Color(0xFF1F2740), line = Color(0xFF2C3654);
+  static const text = Color(0xFFF4F1E8), sub = Color(0xFF98A2BC), accent = Color(0xFFD4AF37), danger = Color(0xFFFF5C6C);
+}
+
+const gold = Color(0xFFD4AF37);
+const goldText = Color(0xFFF2C94C);
+const ink = Color(0xFF0B0B0B);
+const cream = Color(0xFFFFF6D9);
+
+const treeNames = ['Kayısı', 'İncir', 'Medine Hurması', 'Zeytin', 'Elma', 'Üzüm', 'Nar', 'Armut', 'Kiraz', 'Portakal', 'Trabzon Hurması', 'Antep Fıstığı', 'Çam', 'Limon', 'Muz', 'Muşmula', 'Kuşburnu', 'Dut', 'Şeftali', 'Badem'];
+// sıra: siyah, kırmızı, sarı, yeşil, lacivert
+const fruitCol = [Color(0xFF111111), Color(0xFFD32F2F), Color(0xFFF2A900), Color(0xFF2E9E4F), Color(0xFF1F3C88)];
+const fruitSide = ['top', 'right', 'left', 'right', 'left'];
+Color fruitFg(int k) => k == 2 ? const Color(0xFF222222) : Colors.white;
+String treeName(int i) => treeNames[i % treeNames.length];
+
+const navH = 76.0;
+
+// Türkçe arama için sadeleştirme (İ/ı, şapkalı harfler, kesme işaretleri)
+String trn(String t) => t
+    .replaceAll('İ', 'i').replaceAll('I', 'i').toLowerCase()
+    .replaceAll(RegExp('[âä]'), 'a').replaceAll(RegExp('[îï]'), 'i').replaceAll(RegExp('[ûü]'), 'u')
+    .replaceAll(RegExp('[êë]'), 'e').replaceAll(RegExp('[ôö]'), 'o')
+    .replaceAll('ı', 'i').replaceAll('ş', 's').replaceAll('ğ', 'g').replaceAll('ç', 'c')
+    .replaceAll(RegExp("[’'`]"), '');
+
+String greeting() {
+  final h = DateTime.now().hour;
+  return h < 6 ? 'İyi geceler' : h < 12 ? 'Günaydın' : h < 18 ? 'İyi günler' : 'İyi akşamlar';
+}
+
+// ----------------------------------------------------------------- modeller
+class Gorsel {
+  final String path; // tam varlık yolu
+  final double w, h;
+  const Gorsel(this.path, this.w, this.h);
+  double get ratio => w / h;
+  static Gorsel of(String base, Map m) => Gorsel(base + m['file'], (m['w'] as num).toDouble(), (m['h'] as num).toDouble());
+}
+
+class Ayet {
+  final int sura, no;
+  final String sname, meal;
+  final Gorsel start, full;
+  Ayet(this.sura, this.no, this.sname, this.meal, this.start, this.full);
+}
+
+class AyetRect {
+  final int sura, no;
+  final double x, y, w, h;
+  AyetRect(this.sura, this.no, this.x, this.y, this.w, this.h);
+  String get key => '$sura:$no';
+}
+
+class Sheet {
+  final Gorsel g;
+  final List<AyetRect> rects;
+  Sheet(this.g, this.rects);
+}
+
+class Sayfa {
+  final String kind; // 'ayat' | 'special'
+  final List<Ayet> ayat;
+  final List<Gorsel> imgs;
+  final List<Sheet> sheets;
+  Sayfa(this.kind, this.ayat, this.imgs, this.sheets);
+}
+
+class Cuz {
+  final int no;
+  final String name;
+  final List<Sayfa> pages;
+  Cuz(this.no, this.name, this.pages);
+}
+
+class Tema {
+  final Map<int, String> trees = {}; // ağaç sırası (0'dan) -> görsel
+  final Map<int, List<String?>> fruits = {}; // ağaç -> 5 meyve görseli
+  final Map<String, String> ui = {}; // bgGarden, bgPage, bgAyet, streamH ...
+}
+
+// ----------------------------------------------------------------- gömülü paketler
+class Depo {
+  final Map<int, Cuz> cuz = {};
+  final Tema tema = Tema();
+  final Set<String> sesler = {}; // 'SSSAAA' -> assets/paket/<ad>/a/SSSAAA.mp3
+  final Map<String, String> sesYolu = {};
+
+  static Future<Depo> yukle() async {
+    final d = Depo();
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final all = manifest.listAssets();
+    for (final pj in all.where((a) => RegExp(r'^assets/paket/[^/]+/project\.json$').hasMatch(a))) {
+      final base = pj.substring(0, pj.length - 'project.json'.length);
+      final meta = jsonDecode(await rootBundle.loadString(pj)) as Map;
+      switch (meta['kind']) {
+        case 'cuz':
+          d._cuz(base, meta);
+        case 'theme':
+          d._tema(base, meta, all);
+        case 'audio':
+          final re = RegExp(r'(\d{6})\.mp3$', caseSensitive: false);
+          for (final a in all.where((a) => a.startsWith(base))) {
+            final m = re.firstMatch(a);
+            if (m != null) { d.sesler.add(m[1]!); d.sesYolu[m[1]!] = a; }
+          }
+      }
+    }
+    return d;
+  }
+
+  void _cuz(String base, Map meta) {
+    final pages = <Sayfa>[];
+    for (final p in (meta['pages'] as List? ?? [])) {
+      if (p['kind'] == 'special') {
+        pages.add(Sayfa('special', const [], [for (final im in p['imgs'] ?? []) Gorsel.of(base, im)], const []));
+      } else {
+        pages.add(Sayfa(
+          'ayat',
+          [for (final a in p['ayat'] ?? []) Ayet(a['sura'], a['no'], a['sname'] ?? '', a['meal'] ?? '', Gorsel.of(base, a['start']), Gorsel.of(base, a['full']))],
+          const [],
+          [
+            for (final sh in p['sheets'] ?? [])
+              Sheet(Gorsel.of(base, sh), [
+                for (final r in sh['rects'] ?? [])
+                  AyetRect(r['sura'], r['no'], (r['x'] as num).toDouble(), (r['y'] as num).toDouble(), (r['w'] as num).toDouble(), (r['h'] as num).toDouble())
+              ])
+          ],
+        ));
+      }
+    }
+    final n = meta['cuz'] as int;
+    cuz[n] = Cuz(n, meta['name'] ?? '$n. Cüz', pages);
+  }
+
+  void _tema(String base, Map meta, List<String> all) {
+    final trees = (meta['trees'] as Map? ?? {});
+    final shift = trees.isNotEmpty && !trees.containsKey('0') ? 1 : 0; // paket 1'den başlıyorsa uygulama 0'dan başlar
+    trees.forEach((k, t) => tema.trees[int.parse(k) - shift] = '${base}trees/${t['file']}');
+    final re = RegExp(r'fruits/(\d+)_(\d)\.png$');
+    for (final a in all.where((a) => a.startsWith('${base}fruits/'))) {
+      final m = re.firstMatch(a);
+      if (m == null) continue;
+      final idx = int.parse(m[1]!) - shift, j = int.parse(m[2]!);
+      (tema.fruits[idx] ??= List<String?>.filled(5, null))[j] = a;
+    }
+    (meta['ui'] as Map? ?? {}).forEach((k, f) => tema.ui[k] = '${base}bg/$f');
+  }
+
+  String? sesOf(int sura, int no) => sesYolu[sura.toString().padLeft(3, '0') + no.toString().padLeft(3, '0')];
+}
+
+// ----------------------------------------------------------------- tercihler (cihazda saklanır, tüm ekranlara yayılır)
+class Tercihler extends ChangeNotifier {
+  static const _key = 'hd_prefs_v1';
+  bool night = false, auto = false;
+  bool forest = true; // bahçe görünümü: derinlikli orman (true) | 4×5 kart + orman yolu (false)
+  double zoom = 1, mealSize = 17, rate = 1;
+  int repeat = 1;
+  SharedPreferences? _sp;
+
+  Future<void> yukle() async {
+    try {
+      _sp = await SharedPreferences.getInstance();
+      final v = _sp!.getString(_key);
+      if (v != null) {
+        final m = jsonDecode(v) as Map;
+        night = m['night'] ?? night;
+        auto = m['auto'] ?? auto;
+        forest = m['forest'] ?? forest;
+        zoom = (m['zoom'] as num?)?.toDouble() ?? zoom;
+        mealSize = (m['mealSize'] as num?)?.toDouble() ?? mealSize;
+        rate = (m['rate'] as num?)?.toDouble() ?? rate;
+        repeat = (m['repeat'] as num?)?.toInt() ?? repeat;
+      }
+    } catch (_) {}
+  }
+
+  void degistir(void Function(Tercihler t) f) {
+    f(this);
+    notifyListeners();
+    _sp?.setString(_key, jsonEncode({'night': night, 'auto': auto, 'forest': forest, 'zoom': zoom, 'mealSize': mealSize, 'rate': rate, 'repeat': repeat}));
+  }
+}
+
+final tercih = Tercihler();
+
+// son konum (kaldığın yerden devam) ve profil adı
+class Konum {
+  final int cuz, tree, ayah;
+  const Konum(this.cuz, this.tree, this.ayah);
+}
+
+class Kayit {
+  static const _last = 'hd_last_v1', _profil = 'hd_profil_v1';
+  static Future<Konum?> sonKonum() async {
+    try {
+      final v = (await SharedPreferences.getInstance()).getString(_last);
+      if (v == null) return null;
+      final m = jsonDecode(v);
+      return Konum(m['cuz'], m['tree'] ?? -1, m['ayah'] ?? -1);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static void konumYaz(int cuz, int tree, int ayah) =>
+      SharedPreferences.getInstance().then((sp) => sp.setString(_last, jsonEncode({'cuz': cuz, 'tree': tree, 'ayah': ayah})));
+
+  static Future<String> profilAdi() async => (await SharedPreferences.getInstance()).getString(_profil) ?? '';
+  static Future<void> profilYaz(String ad) async => (await SharedPreferences.getInstance()).setString(_profil, ad);
+}
