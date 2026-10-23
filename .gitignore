@@ -1,0 +1,10 @@
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+android/
+ios/
+*.apk
+*.aab
+pubspec.lock

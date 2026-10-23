@@ -1,0 +1,37 @@
+name: Flutter APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [flutter]
+    paths: ['lib/**', 'pubspec.yaml', 'assets/**', '.github/workflows/flutter_apk.yml']
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Android klasörünü oluştur (depoda yoksa)
+        run: |
+          if [ ! -d android ]; then
+            flutter create --org com.hafizdunyasi --project-name gezgin --platforms android .
+            rm -rf test
+          fi
+          sed -i 's/android:label="[^"]*"/android:label="Hafız Dünyası"/' android/app/src/main/AndroidManifest.xml
+      - run: flutter pub get
+      - name: Uygulama simgesi
+        run: dart run flutter_launcher_icons
+      - name: Kod kontrolü
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+      - name: APK derle
+        run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HafizDunyasi-apk
+          path: build/app/outputs/flutter-apk/app-release.apk

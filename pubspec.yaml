@@ -1,0 +1,38 @@
+name: gezgin
+description: "Hafız Dünyası – Kuran ezberi için görsel meyve bahçesi."
+publish_to: 'none'
+version: 2.0.0+20
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  archive: ^4.0.0
+  path_provider: ^2.1.5
+  just_audio: ^0.10.4
+  file_picker: ^10.1.0
+  image_picker: ^1.1.2
+  share_plus: ^11.0.0
+  pinenacl: ^0.6.0
+  crypto: ^3.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon.png"
+  adaptive_icon_background: "#0B1020"
+  adaptive_icon_foreground: "assets/adaptive-icon.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png
+    - assets/bundle/
