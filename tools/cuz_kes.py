@@ -148,7 +148,8 @@ def process_page(img, first, files, debug=None, pno=0):
     ink, marker = masks(rgb)
     box = frame_box(ink)
     bands = line_bands(ink, box)
-    mk = find_markers(marker, bands)
+    # yalnızca çerçeve içindeki işaretler (kenar boşluğundaki cüz/hizb süsleri ayet sonu değildir)
+    mk = [m for m in find_markers(marker, bands) if m['x0'] > box[0] and m['x1'] < box[2]]
     bg = page_bg(rgb, box)
     tx0, tx1 = box[0] + 10, box[2] - 10
     # okuma sırası: satır satır, sağdan sola
