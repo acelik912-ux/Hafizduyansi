@@ -41,6 +41,8 @@ class _CuzReaderState extends State<CuzReader> {
   int dir = 1;
 
   List<CuzPage> get pages => widget.cd.pages;
+  late final CuzTheme theme = widget.data.themeFor(widget.cd.cuz);
+  String tname(int i) => themeTreeName(theme, i);
 
   @override
   void initState() {
@@ -127,7 +129,7 @@ class _CuzReaderState extends State<CuzReader> {
 
   @override
   Widget build(BuildContext context) {
-    final ui = widget.data.ui;
+    final ui = theme.ui;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -170,14 +172,13 @@ class _CuzReaderState extends State<CuzReader> {
   Widget _panel() {
     final f = flat[open];
     final pg = pages[f.p];
-    final fr = widget.data.fruits[f.p];
     return AyahPanel(
       item: f,
-      title: '${widget.cd.name} · ${treeName(f.p)}',
+      title: '${widget.cd.name} · ${tname(f.p)}',
       idx: open,
       total: flat.length,
-      bgFile: widget.data.ui['bgAyet'],
-      fruitFile: fr != null && f.k < fr.length ? fr[f.k] : null,
+      bgFile: theme.ui['bgAyet'],
+      fruitFile: theme.fruit(f.p, f.k),
       onPrev: () => setOpen(open - 1),
       onNext: () => setOpen(open + 1),
       onClose: closePanel,
@@ -190,7 +191,7 @@ class _CuzReaderState extends State<CuzReader> {
     final top = MediaQuery.of(context).padding.top;
     return Stack(children: [
       Positioned.fill(
-        child: ForestPicker(pages: pages, trees: widget.data.trees, bottomPad: navH - 8, onOpen: openTree),
+        child: ForestPicker(pages: pages, trees: theme.trees, names: tname, bottomPad: navH - 8, onOpen: openTree),
       ),
       Positioned(
         left: 12,
@@ -241,7 +242,7 @@ class _CuzReaderState extends State<CuzReader> {
                   decoration: BoxDecoration(color: plateBg, borderRadius: BorderRadius.circular(12), border: Border.all(color: gold, width: 2.5)),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text('${widget.cd.name.toUpperCase()} · SAYFA ${it.p + 1}', style: ts(goldText, 15, FontWeight.w900)),
-                    Text('${treeName(it.p)}${it.n > 1 ? '  (${it.s + 1}/${it.n})' : ''}', style: ts(Colors.white, 11)),
+                    Text('${tname(it.p)}${it.n > 1 ? '  (${it.s + 1}/${it.n})' : ''}', style: ts(Colors.white, 11)),
                   ]),
                 ),
               ),
@@ -304,7 +305,7 @@ class _CuzReaderState extends State<CuzReader> {
         [W / 2 + off, st + 0.70 * sh],
         [W / 2 - off, st + 0.70 * sh],
       ];
-      final tree = widget.data.trees[it.p];
+      final tree = theme.trees[it.p];
       children.add(Positioned(
         left: sl,
         top: st,
@@ -315,7 +316,6 @@ class _CuzReaderState extends State<CuzReader> {
           if (tree != null) Positioned.fill(child: pic(tree.file, width: sw, height: sh)) else const Positioned.fill(child: _TreeHole()),
         ]),
       ));
-      final fruits = widget.data.fruits[it.p];
       for (var k = 0; k < group.length; k++) {
         final ay = group[k];
         final ax = pos[k][0], ayy = pos[k][1], side = fruitSide[k];
@@ -330,7 +330,7 @@ class _CuzReaderState extends State<CuzReader> {
           lx = W - 6 - lw;
         }
         final fi = flat.indexWhere((f) => f.p == it.p && f.s == it.s && f.k == k);
-        final fsrc = fruits != null && k < fruits.length ? fruits[k] : null;
+        final fsrc = theme.fruit(it.p, k);
         children.add(Positioned(
           left: lx,
           top: ly,
@@ -506,9 +506,10 @@ double _fBox(double d) => d > 2.6 ? 0.0 : d > 1.6 ? 2.6 - d : d >= -0.4 ? 1 : ma
 class ForestPicker extends StatefulWidget {
   final List<CuzPage> pages;
   final Map<int, TreeInfo> trees;
+  final String Function(int) names;
   final double bottomPad;
   final void Function(int idx) onOpen;
-  const ForestPicker({super.key, required this.pages, required this.trees, required this.bottomPad, required this.onOpen});
+  const ForestPicker({super.key, required this.pages, required this.trees, required this.names, required this.bottomPad, required this.onOpen});
   @override
   State<ForestPicker> createState() => _ForestPickerState();
 }
@@ -641,7 +642,7 @@ class _ForestPickerState extends State<ForestPicker> with SingleTickerProviderSt
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                       decoration: const BoxDecoration(color: plateBg, borderRadius: BorderRadius.only(bottomRight: Radius.circular(10))),
-                                      child: Text('${idx + 1} · ${treeName(idx)}', style: ts(goldText, 11, FontWeight.w900)),
+                                      child: Text('${idx + 1} · ${widget.names(idx)}', style: ts(goldText, 11, FontWeight.w900)),
                                     ),
                                   ),
                                 ]),

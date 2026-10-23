@@ -66,10 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final keys = widget.data.cuz.keys.toList()..sort();
     for (final n in keys) {
       final cd = widget.data.cuz[n]!;
+      final th = widget.data.themeFor(n);
       var fl = 0;
       for (var pi = 0; pi < cd.pages.length; pi++) {
         final p = cd.pages[pi];
-        final tname = treeName(pi);
+        final tname = themeTreeName(th, pi);
         rows.add(_Row(true, n, pi, -1, '${pi + 1}. ağaç · $tname', cd.name, '', trn('$tname agac ${pi + 1}')));
         if (!p.isSpecial) {
           for (final a in p.ayat) {

@@ -75,15 +75,32 @@ class _RootState extends State<Root> {
       if (j != null) data = AppData.fromJson(j);
     } catch (_) {}
     setState(() => ready = true);
-    // İlk açılış: gömülü cüz, tema ve ses paketleri kendiliğinden yüklenir (eksik olanlar her açılışta tamamlanır)
-    final steps = <String>[];
-    if (!data.cuz.containsKey(1)) steps.add('cuz1');
-    if (data.trees.isEmpty) steps.add('theme1');
-    if (!await audioFile(1, 1).exists()) steps.add('ses1');
-    for (final b in steps) {
-      await runImport(bundle: b, quiet: true);
+    // Gömülü paketler (assets/bundle/<ad>.p01 …): yüklenmemiş olanlar ilk açılışta kendiliğinden yüklenir.
+    // Önce cüzler, sonra temalar, en son sesler.
+    final names = await bundleNames();
+    int order(String n) => n.startsWith('cuz') ? 0 : n.startsWith('theme') ? 1 : 2;
+    names.sort((a, b) => order(a) != order(b) ? order(a) - order(b) : a.compareTo(b));
+    for (final b in names) {
+      if (data.installed.contains(b) || await _alreadyThere(b)) {
+        data.installed.add(b);
+        continue;
+      }
+      if (await runImport(bundle: b, quiet: true)) update(() => data.installed.add(b));
     }
+    save();
   }
+
+  /// 2.0 sürümünden kalan kurulumlarda "installed" listesi yok: içerikten anla
+  Future<bool> _alreadyThere(String b) async {
+    final n = int.tryParse(b.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    if (b.startsWith('cuz')) return data.cuz.containsKey(n);
+    if (b == 'theme1') return data.base.trees.isNotEmpty;
+    if (b.startsWith('theme')) return data.themes.containsKey(n);
+    if (b == 'ses1') return audioFile(1, 1).exists();
+    return false;
+  }
+
+  CuzTheme themes(int c) => data.themes[c] ?? CuzTheme();
 
   void save() => writeJson('data.json', data.toJson());
 
@@ -92,14 +109,21 @@ class _RootState extends State<Root> {
     save();
   }
 
-  static const bundleLabel = {'cuz1': 'bahçe', 'theme1': 'ağaçlar ve meyveler', 'ses1': 'ses'};
+  static String bundleLabel(String b) {
+    final n = b.replaceAll(RegExp(r'[^0-9]'), '');
+    if (b.startsWith('cuz')) return '$n. cüz bahçesi';
+    if (b.startsWith('theme')) return '$n. cüz ağaçları ve meyveleri';
+    if (b.startsWith('ses')) return '$n. cüz sesi';
+    return b;
+  }
 
-  Future<void> runImport({String? bundle, bool quiet = false}) async {
+  /// Başarılıysa true döner.
+  Future<bool> runImport({String? bundle, bool quiet = false}) async {
     void say(String t, String m) {
       if (!quiet && mounted) alert(context, t, m);
     }
 
-    final pre = bundle != null ? 'İlk kurulum – ${bundleLabel[bundle] ?? bundle}…' : 'Paket açılıyor…';
+    final pre = bundle != null ? 'İlk kurulum – ${bundleLabel(bundle)}…' : 'Paket açılıyor…';
     try {
       Uint8List bytes;
       if (bundle != null) {
@@ -107,7 +131,7 @@ class _RootState extends State<Root> {
         bytes = await loadBundleBytes(bundle);
       } else {
         final r = await FilePicker.platform.pickFiles(type: FileType.any);
-        if (r == null || r.files.isEmpty || r.files.single.path == null) return;
+        if (r == null || r.files.isEmpty || r.files.single.path == null) return false;
         setState(() => busy = pre);
         bytes = await File(r.files.single.path!).readAsBytes();
       }
@@ -115,14 +139,16 @@ class _RootState extends State<Root> {
       if (isHdz(bytes)) {
         setState(() => busy = null);
         pkg = await askPassword(bytes);
-        if (pkg == null) return;
+        if (pkg == null) return false;
         setState(() => busy = pre);
       } else {
         pkg = await importPackageBytes(bytes, imgDir, audDir);
       }
       _applyPackage(pkg, say);
+      return true;
     } catch (e) {
       if (mounted) alert(context, bundle != null ? 'İlk kurulum tamamlanamadı' : 'Paket açılamadı', '$e');
+      return false;
     } finally {
       if (mounted) setState(() => busy = null);
     }
@@ -135,27 +161,32 @@ class _RootState extends State<Root> {
         say('Ses yüklendi', '${pkg['count']} ayetin sesi eklendi${rc.isNotEmpty ? ' ($rc)' : ''}. Ayet ekranında ▶ ile dinleyebilirsin.');
         break;
       case 'theme':
-        // eski tema dosyalarını sil
-        for (final t in data.trees.values) {
+        final th = CuzTheme.fromPkg(pkg);
+        final c = pkg['cuz'] is num ? (pkg['cuz'] as num).toInt() : 0;
+        final old = c > 0 ? themes(c) : data.base;
+        // eski tema dosyalarını sil (arka planlarda yalnızca yenisi gelenleri)
+        for (final t in old.trees.values) {
           safeDelete(imgFile(t.file).path);
         }
-        for (final l in data.fruits.values) {
+        for (final l in old.fruits.values) {
           for (final f in l) {
             if (f != null) safeDelete(imgFile(f).path);
           }
         }
-        final newUi = (pkg['ui'] as Map).map((k, v) => MapEntry('$k', '$v'));
-        for (final k in newUi.keys) {
-          final old = data.ui[k];
-          if (old != null) safeDelete(imgFile(old).path);
+        for (final k in th.ui.keys) {
+          final o = old.ui[k];
+          if (o != null) safeDelete(imgFile(o).path);
         }
         update(() {
-          data.trees = (pkg['trees'] as Map).map((k, v) => MapEntry(int.parse('$k'), TreeInfo.fromJson(v as Map)));
-          data.fruits = (pkg['fruits'] as Map).map((k, v) => MapEntry(int.parse('$k'), (v as List).map((e) => e as String?).toList()));
-          data.ui.addAll(newUi);
+          final merged = CuzTheme(trees: th.trees, fruits: th.fruits, ui: {...old.ui, ...th.ui}, names: th.names ?? old.names);
+          if (c > 0) {
+            data.themes[c] = merged;
+          } else {
+            data.base = merged;
+          }
           screen = const _Screen('home');
         });
-        say('Tema yüklendi', '${data.trees.length} ağaç, ${data.fruits.length} meyve takımı ve arka planlar hazır.');
+        say('Tema yüklendi', '${c > 0 ? '$c. cüz için ' : ''}${th.trees.length} ağaç, ${th.fruits.length} meyve takımı ve arka planlar hazır.');
         break;
       case 'cuz':
         final c = Cuz.fromJson(pkg);

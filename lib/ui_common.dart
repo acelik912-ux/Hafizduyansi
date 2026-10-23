@@ -29,6 +29,9 @@ const treeNames = [
 ];
 String treeName(int i) => treeNames[i % treeNames.length];
 
+/// Temada ağaç adları verildiyse onlar, yoksa varsayılan 20 ad
+String themeTreeName(CuzTheme t, int i) => (t.names != null && i < t.names!.length) ? t.names![i] : treeName(i);
+
 // meyve sırası: siyah, kırmızı, sarı, yeşil, lacivert
 const fruitCol = [Color(0xFF111111), Color(0xFFD32F2F), Color(0xFFF2A900), Color(0xFF2E9E4F), Color(0xFF1F3C88)];
 const fruitSide = ['top', 'right', 'left', 'right', 'left'];

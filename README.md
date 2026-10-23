@@ -14,7 +14,7 @@ Eski Expo / React Native sürümü `main` dalında duruyor; bu dal (`flutter`) a
 - `lib/store.dart`: veri modeli, kayıt, tercihler
 - `lib/ui_common.dart`: renkler ve ortak butonlar
 - `assets/bundle/`: APK'ya gömülen paketler, 8 MB'lık parçalar (`cuz1.pNN` bahçe, `theme1.pNN` ağaç+meyve+arka plan, `ses1.pNN` Cüz 1 sesi)
-- `tools/`: paket hazırlama betikleri (`ses_paketle.py`, `bolumle.py`)
+- `tools/`: paket hazırlama betikleri (aşağıda)
 - `veri/Kuran_meal_Diyanet.json`: 6236 ayetin Diyanet meali
 
 ## APK derleme (GitHub)
@@ -36,3 +36,18 @@ flutter run
 - `kind:'audio'`: `a/SSSAAA.mp3` (sure 3 hane + ayet 3 hane), `{cuz,name,reciter}`
 
 Uygulama içinde "Paket aç" ile ya da ilk açılışta gömülü paketlerden otomatik yüklenir.
+
+## Yeni cüz ekleme (ör. 2. cüz)
+1. **Bahçe (ayetler):** mushaf PDF'inden sayfaları kes. Ayet işaretleri sayılarak ayetler kendiliğinden bulunur; `--hata-ayikla` klasöründeki sayfa resimlerinden kutuları kontrol et.
+   ```
+   python3 tools/cuz_kes.py --pdf Mushaf.pdf --sayfalar 23-42 --cuz 2 --bas 2:142 --cikis Cuz2_bahce.zip --hata-ayikla kontrol
+   python3 tools/bolumle.py Cuz2_bahce.zip cuz2
+   ```
+2. **Tema (illüstrasyonlar):** `agaclar/01.png…20.png`, `meyveler/01.png…20.png` (tek meyve; 5 renk kendiliğinden boyanır), isteğe bağlı `arka_plan/bahce.jpg, sayfa.jpg, ayet.jpg` ve `adlar.txt`.
+   ```
+   python3 tools/tema_paketle.py Cuz2_cizimler --cuz 2 --cikis Tema_Cuz2.zip
+   python3 tools/bolumle.py Tema_Cuz2.zip theme2
+   ```
+   Cüze özel tema yalnızca o cüzde kullanılır; eksik arka planlar 1. cüz temasından alınır.
+3. **Ses:** `python3 tools/ses_paketle.py mp3_klasoru cikis` → `Ses_Cuz02.zip`, sonra `python3 tools/bolumle.py cikis/Ses_Cuz02.zip ses2`.
+4. Push et. Yeni APK açıldığında yeni parçaları kendiliğinden yükler; eski kurulumdaki veriler korunur.

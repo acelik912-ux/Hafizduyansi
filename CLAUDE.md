@@ -15,6 +15,8 @@ Eski Expo/React Native sürümü `main` dalında (`App.js`); Flutter sürümü `
 - Veri: belge klasöründe `data.json` (cuz, trees, fruits, ui, profile), `prefs.json` (gece, yakınlaştırma, meal boyutu, hız, tekrar, otomatik), `last.json` (son konum).
 - Dosyalar: görseller `sayfalar/`, ses `sesler/SSSAAA.mp3`.
 - Paketler: `importPackageBytes` (isolate içinde) → `_readCuz` / `_readTheme` / `_readAudio`. Gömülü paketler `loadBundleBytes` (`assets/bundle/<ad>.pNN`), ilk açılışta otomatik.
+- Temalar: `AppData.base` (varsayılan, theme1) + `AppData.themes[cüz]` (tema paketinde `cuz` alanı). `themeFor(cüz)` ikisini birleştirir. Gömülü paketler `installed` listesinde tutulur.
+- Araçlar: `tools/cuz_kes.py` (mushaf → cüz paketi; Cüz 1 sayfalarıyla doğrulandı: ayet aralıkları ve kutu sayıları birebir), `tools/tema_paketle.py`, `tools/ses_paketle.py`, `tools/bolumle.py`.
 - Bahçe: `ForestPicker` (öndeki büyük, arkadakiler küçük). Ağaç sayfası `_treePage`, ayet paneli `AyahPanel`, mushaf `SheetViewer`.
 
 ## Derleme kontrolü

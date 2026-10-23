@@ -10,7 +10,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 import 'package:pinenacl/x25519.dart' show SecretBox, EncryptedMessage;
 
 class PkgError implements Exception {
@@ -35,6 +35,17 @@ Future<Uint8List> loadBundleBytes(String base) async {
     }
   }
   return b.takeBytes();
+}
+
+/// APK'ya gömülü paketlerin adları (assets/bundle içindeki .p01 dosyalarından): cuz1, theme1, ses1, cuz2 …
+Future<List<String>> bundleNames() async {
+  try {
+    final m = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final re = RegExp(r'^assets/bundle/([A-Za-z0-9_]+)\.p01$');
+    return m.listAssets().map((a) => re.firstMatch(a)?.group(1)).whereType<String>().toList();
+  } catch (_) {
+    return ['cuz1', 'theme1', 'ses1'];
+  }
 }
 
 bool isHdz(Uint8List b) => b.length >= 4 && b[0] == 0x48 && b[1] == 0x44 && b[2] == 0x5a && b[3] == 0x31;
@@ -159,7 +170,7 @@ Map<String, dynamic> _readTheme(Archive zip, Map<String, dynamic> meta, String i
     File('$imgDir/$file').writeAsBytesSync(_bytes(f));
     ui['$kind'] = file;
   });
-  return {'kind': 'theme', 'trees': trees, 'fruits': fruits, 'ui': ui};
+  return {'kind': 'theme', 'cuz': meta['cuz'], 'name': meta['name'] ?? '', 'names': meta['names'], 'trees': trees, 'fruits': fruits, 'ui': ui};
 }
 
 Map<String, dynamic> _readAudio(Archive zip, Map<String, dynamic> meta, String audDir) {

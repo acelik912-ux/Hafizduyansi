@@ -136,32 +136,89 @@ class Profile {
   Profile({this.name = '', this.photo});
 }
 
-/// Uygulamanın tüm kalıcı verisi (eski App.js'teki "data" + "user").
-class AppData {
-  Map<int, Cuz> cuz = {};
-  Map<int, TreeInfo> trees = {};
-  Map<int, List<String?>> fruits = {};
-  Map<String, String> ui = {}; // bgGarden, bgForest, bgPage, bgAyet, streamH/V/C -> dosya adı
-  Profile profile = Profile();
+/// Bir temanın içeriği: 20 ağaç, ağaç başına 5 meyve görseli, arka planlar ve (isteğe bağlı) ağaç adları.
+class CuzTheme {
+  Map<int, TreeInfo> trees;
+  Map<int, List<String?>> fruits;
+  Map<String, String> ui; // bgGarden, bgForest, bgPage, bgAyet, streamH/V/C -> dosya adı
+  List<String>? names;
+  CuzTheme({Map<int, TreeInfo>? trees, Map<int, List<String?>>? fruits, Map<String, String>? ui, this.names})
+      : trees = trees ?? {},
+        fruits = fruits ?? {},
+        ui = ui ?? {};
 
-  String? uiFile(String k) => ui[k];
+  bool get isEmpty => trees.isEmpty && fruits.isEmpty && ui.isEmpty;
+
+  /// Paket okuyucunun döndürdüğü Map'ten
+  factory CuzTheme.fromPkg(Map j) => CuzTheme(
+        trees: (j['trees'] as Map? ?? {}).map((k, v) => MapEntry(_i(k), TreeInfo.fromJson(v as Map))),
+        fruits: (j['fruits'] as Map? ?? {}).map((k, v) => MapEntry(_i(k), (v as List).map((e) => e == null ? null : '$e').toList())),
+        ui: (j['ui'] as Map? ?? {}).map((k, v) => MapEntry('$k', '$v')),
+        names: (j['names'] as List?)?.map((e) => '$e').toList(),
+      );
 
   Map<String, dynamic> toJson() => {
-        'cuz': cuz.map((k, v) => MapEntry('$k', v.toJson())),
         'trees': trees.map((k, v) => MapEntry('$k', v.toJson())),
         'fruits': fruits.map((k, v) => MapEntry('$k', v)),
         'ui': ui,
+        if (names != null) 'names': names,
+      };
+
+  /// Tema dosyalarının hepsi (silmek için)
+  Iterable<String> get files sync* {
+    for (final t in trees.values) {
+      yield t.file;
+    }
+    for (final l in fruits.values) {
+      for (final f in l) {
+        if (f != null) yield f;
+      }
+    }
+    yield* ui.values;
+  }
+
+  /// [over] temasındaki her şey önce gelir; eksik olan (ör. arka plan) bu temadan alınır.
+  CuzTheme overlaidWith(CuzTheme? over) {
+    if (over == null) return this;
+    return CuzTheme(
+      trees: {...trees, ...over.trees},
+      fruits: {...fruits, ...over.fruits},
+      ui: {...ui, ...over.ui},
+      names: over.names ?? names,
+    );
+  }
+
+  String? fruit(int page, int k) {
+    final l = fruits[page];
+    return l != null && k < l.length ? l[k] : null;
+  }
+}
+
+/// Uygulamanın tüm kalıcı verisi.
+class AppData {
+  Map<int, Cuz> cuz = {};
+  CuzTheme base = CuzTheme(); // varsayılan tema (cüz belirtmeyen tema paketi, ör. theme1)
+  Map<int, CuzTheme> themes = {}; // cüze özel temalar (tema paketinde "cuz": N)
+  Set<String> installed = {}; // yüklenmiş gömülü paketler (cuz1, theme1, ses1, cuz2 …)
+  Profile profile = Profile();
+
+  /// Bu cüzde kullanılacak tema: cüze özel tema + eksikler için varsayılan tema
+  CuzTheme themeFor(int c) => base.overlaidWith(themes[c]);
+
+  Map<String, dynamic> toJson() => {
+        'cuz': cuz.map((k, v) => MapEntry('$k', v.toJson())),
+        ...base.toJson(), // eski biçimle uyumlu: trees / fruits / ui en üstte
+        'themes': themes.map((k, v) => MapEntry('$k', v.toJson())),
+        'installed': installed.toList(),
         'profile': {'name': profile.name, 'photo': profile.photo},
       };
 
   static AppData fromJson(Map j) {
     final d = AppData();
     (j['cuz'] as Map? ?? {}).forEach((k, v) => d.cuz[_i(k)] = Cuz.fromJson(v as Map));
-    (j['trees'] as Map? ?? {}).forEach((k, v) => d.trees[_i(k)] = TreeInfo.fromJson(v as Map));
-    (j['fruits'] as Map? ?? {}).forEach((k, v) => d.fruits[_i(k)] = (v as List).map((e) => e == null ? null : '$e').toList());
-    (j['ui'] as Map? ?? {}).forEach((k, v) {
-      if (v != null) d.ui['$k'] = '$v';
-    });
+    d.base = CuzTheme.fromPkg(j);
+    (j['themes'] as Map? ?? {}).forEach((k, v) => d.themes[_i(k)] = CuzTheme.fromPkg(v as Map));
+    d.installed = ((j['installed'] as List?) ?? []).map((e) => '$e').toSet();
     final p = j['profile'] as Map? ?? {};
     d.profile = Profile(name: '${p['name'] ?? ''}', photo: p['photo'] as String?);
     return d;
