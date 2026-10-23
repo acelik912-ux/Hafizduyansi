@@ -21,7 +21,7 @@ class PkgError implements Exception {
   String toString() => message;
 }
 
-/// APK'ya gömülü paketi (assets/bundle/<ad>.p01, .p02 …) birleştirip bayt olarak döndürür.
+/// APK'ya gömülü paketi (`assets/bundle/<ad>.p01`, `.p02` …) birleştirip bayt olarak döndürür.
 Future<Uint8List> loadBundleBytes(String base) async {
   final b = BytesBuilder(copy: false);
   for (var i = 1; i <= 30; i++) {
@@ -74,11 +74,7 @@ Map<String, dynamic> _importSync(Uint8List bytes, String imgDir, String audDir, 
   }
 }
 
-Uint8List _bytes(ArchiveFile f) {
-  final c = f.content;
-  if (c is Uint8List) return c;
-  return Uint8List.fromList(c as List<int>);
-}
+Uint8List _bytes(ArchiveFile f) => f.content;
 
 String _safe(String s) => s.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
 String _ext(String f, [String d = 'png']) {

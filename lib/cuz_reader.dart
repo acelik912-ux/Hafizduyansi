@@ -582,10 +582,9 @@ class _ForestPickerState extends State<ForestPicker> with SingleTickerProviderSt
               if (op <= 0.01) continue;
               final ty = (yF - yH) * (sc - 1), tx = sg * x0 * (sc - 1);
               final m = Matrix4.identity()
-                ..translate(tx, ty)
-                ..translate(wt / 2, ht)
-                ..scale(sc, sc)
-                ..translate(-wt / 2, -ht);
+                ..translateByDouble(tx + wt / 2, ty + ht, 0, 1)
+                ..scaleByDouble(sc, sc, 1, 1)
+                ..translateByDouble(-wt / 2, -ht, 0, 1);
               final tree = widget.trees[idx];
               items.add(Positioned(
                 left: W / 2 + sg * x0 - wt / 2,
