@@ -321,7 +321,7 @@ class _CuzReaderState extends State<CuzReader> {
         final ax = pos[k][0], ayy = pos[k][1], side = fruitSide[k];
         double lx, lw = lwb, ly = ayy - lh / 2;
         if (side == 'top') {
-          lw = math.min(150, W * 0.4);
+          lw = math.min(150.0, W * 0.4);
           lx = ax - lw / 2;
           ly = ayy - fd / 2 - 8 - lh;
         } else if (side == 'left') {
@@ -500,8 +500,8 @@ class _FruitState extends State<_Fruit> {
 // arkadaki ağaca dokunursan önce öne gelir.
 const _fa = 0.6, _horizon = 0.30, _x0 = 0.26, _wt = 0.54, _boxH = 66.0, _step = 150.0;
 double _fS(double d) => 1 / (1 + _fa * d);
-double _fOp(double d) => d >= 0 ? math.max(0.55, 1 - 0.06 * d) : math.max(0, 1 + d * 1.3);
-double _fBox(double d) => d > 2.6 ? 0 : d > 1.6 ? 2.6 - d : d >= -0.4 ? 1 : math.max(0, 1 + (d + 0.4) * 2);
+double _fOp(double d) => d >= 0 ? math.max(0.55, 1 - 0.06 * d) : math.max(0.0, 1 + d * 1.3);
+double _fBox(double d) => d > 2.6 ? 0.0 : d > 1.6 ? 2.6 - d : d >= -0.4 ? 1 : math.max(0.0, 1 + (d + 0.4) * 2);
 
 class ForestPicker extends StatefulWidget {
   final List<CuzPage> pages;
