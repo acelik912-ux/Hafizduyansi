@@ -1,6 +1,6 @@
 // MEYVE BAHÇESİ (CÜZ): bahçe görünümleri (derinlikli orman, 4×5 kart, orman yolu) ve ağaç sayfası.
 // Bir cüz = 20 ağaç = 20 sayfa. Her ağaçta en çok 5 meyve = 5 ayet başı (siyah, kırmızı, sarı, yeşil, lacivert).
-// 5'ten fazlaysa "SAYFA DEVAMI" ile aynı sayfanın ikinci ağaç ekranı açılır.
+// 5'ten fazlaysa "Sayfa devamı" ile aynı sayfanın ikinci ağaç ekranı açılır.
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -14,19 +14,13 @@ class _Adim {
   const _Adim(this.p, this.s, this.n);
 }
 
-class Duz {
-  final int p, s, k; // sayfa, grup, gruptaki sıra (meyve rengi)
-  final Ayet a;
-  const Duz(this.p, this.s, this.k, this.a);
-}
-
 class CuzOkuyucu extends StatefulWidget {
   final Depo depo;
   final Cuz cd;
   final int initAyah, initTree;
-  final List<NavItem> nav;
-  final VoidCallback onHome;
-  const CuzOkuyucu({super.key, required this.depo, required this.cd, this.initAyah = -1, this.initTree = -1, required this.nav, required this.onHome});
+  final int initSheet; // açılışta mushaf sayfası: 0 yok, 1 göster, 2 ezber modunda (ayetler gizli)
+  final VoidCallback onClose;
+  const CuzOkuyucu({super.key, required this.depo, required this.cd, this.initAyah = -1, this.initTree = -1, this.initSheet = 0, required this.onClose});
   @override
   State<CuzOkuyucu> createState() => _CuzOkuyucuState();
 }
@@ -34,23 +28,19 @@ class CuzOkuyucu extends StatefulWidget {
 class _CuzOkuyucuState extends State<CuzOkuyucu> {
   late final List<_Adim> seq = [
     for (var pi = 0; pi < pages.length; pi++)
-      for (var k = 0, n = _ozel(pi) ? 1 : _grupSay(pages[pi]); k < n; k++) _Adim(pi, k, n)
+      for (var k = 0, n = ozelSayfa(widget.cd, pi) ? 1 : _grupSay(pages[pi]); k < n; k++) _Adim(pi, k, n)
   ];
-  late final List<Duz> flat = [
-    for (var pi = 0; pi < pages.length; pi++)
-      if (pages[pi].kind == 'ayat')
-        for (var j = 0; j < pages[pi].ayat.length; j++) Duz(pi, j ~/ 5, j % 5, pages[pi].ayat[j])
-  ];
+  late final List<Duz> flat = duzListe(widget.cd);
   List<Sayfa> get pages => widget.cd.pages;
   Tema get tema => widget.depo.tema;
+  String? _agac(int i) => widget.depo.agacOf(widget.cd, i);
   int cur = -1; // -1 = bahçe
   int open = -1; // açık ayet (flat sırası)
+  bool dinle = false; // "Sayfayı dinle": açılan ayetten sayfa sonuna kadar sırayla okunur
   Duz? sheetFor; // mushaf sayfası
+  bool sheetGizle = false;
   String gview = 'grid'; // 'grid' (4×5 kartlar) | 'path' (orman yolu)
   int dir = 1;
-
-  // 1. cüzün 1. sayfası (Kayısı): 5 meyve yerine tek sarı kayısı; dokununca Fâtiha + Bakara mushaf sayfası açılır
-  bool _ozel(int p) => widget.cd.no == 1 && p == 0;
 
   static int _grupSay(Sayfa p) => p.kind == 'special' ? p.imgs.length : math.max(1, (p.ayat.length / 5).ceil());
 
@@ -61,9 +51,14 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
     final ia = widget.initAyah >= 0 && widget.initAyah < flat.length ? widget.initAyah : -1;
     if (ia >= 0) {
       cur = seq.indexWhere((x) => x.p == flat[ia].p && x.s == flat[ia].s);
+      if (ozelSayfa(widget.cd, flat[ia].p)) cur = seq.indexWhere((x) => x.p == flat[ia].p);
       open = ia;
     } else if (widget.initTree >= 0) {
       cur = seq.indexWhere((x) => x.p == widget.initTree);
+      if (widget.initSheet > 0 && cur >= 0 && pages[seq[cur].p].sheets.isNotEmpty) {
+        sheetFor = Duz(seq[cur].p, 0, 0, pages[seq[cur].p].ayat.first);
+        sheetGizle = widget.initSheet == 2;
+      }
     }
     _kaydet();
   }
@@ -93,32 +88,51 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
   void openTree(int p) { final k = seq.indexWhere((x) => x.p == p); if (k >= 0) go(k, 1); }
   void closePanel() {
     final f = open >= 0 ? flat[open] : null;
-    _set(() => open = -1);
-    if (f != null) { final i = seq.indexWhere((x) => x.p == f.p && x.s == f.s); if (i >= 0 && i != cur) go(i, 1); }
+    _set(() { open = -1; dinle = false; });
+    if (f != null && !ozelSayfa(widget.cd, f.p)) { final i = seq.indexWhere((x) => x.p == f.p && x.s == f.s); if (i >= 0 && i != cur) go(i, 1); }
   }
 
-  String? treeSrc(int i) => tema.trees[i];
-  String? bg(String k) => tema.ui[k];
+  void _sayfayiDinle() {
+    final it = seq[cur];
+    final i = ozelSayfa(widget.cd, it.p) ? flat.indexWhere((f) => f.p == it.p) : flat.indexWhere((f) => f.p == it.p && f.s == it.s);
+    if (i >= 0) _set(() { open = i; dinle = true; });
+  }
 
-  void _ayarlar() {
-    showDialog(
+  void _gorunum() {
+    showModalBottomSheet(
       context: context,
-      builder: (c) => Dialog(
-        backgroundColor: C.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: R.surface,
+      showDragHandle: true,
+      builder: (c) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text('Bahçe görünümü', style: ts(Colors.white, 17)),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Bahçe görünümü', style: ts(R.text, 18, FontWeight.w700)),
+            const SizedBox(height: 14),
+            _secenek(c, Icons.forest_rounded, 'Derinlikli orman', 'Aşağı çekerek ağaçlar arasında ilerle', tercih.forest, () => tercih.degistir((t) => t.forest = true)),
             const SizedBox(height: 10),
-            Btn(tercih.forest ? '✔ 🌳 Derinlikli orman' : '🌳 Derinlikli orman', () { tercih.degistir((t) => t.forest = true); Navigator.pop(c); }, primary: tercih.forest),
-            const SizedBox(height: 8),
-            Btn(!tercih.forest ? '✔ ▦ 4×5 kartlar + orman yolu' : '▦ 4×5 kartlar + orman yolu', () { tercih.degistir((t) => t.forest = false); setState(() => gview = 'grid'); Navigator.pop(c); }, primary: !tercih.forest),
+            _secenek(c, Icons.grid_view_rounded, 'Kartlar ve orman yolu', '20 ağaç tek bakışta, dere boyunca patika', !tercih.forest, () {
+              tercih.degistir((t) => t.forest = false);
+              gview = 'grid';
+            }),
           ]),
         ),
       ),
     );
   }
+
+  Widget _secenek(BuildContext c, IconData ic, String t, String s, bool on, VoidCallback f) => Kart(
+        onTap: () { f(); Navigator.pop(c); },
+        color: on ? R.primarySoft : R.surface2,
+        border: on ? R.primary : R.outline,
+        padding: const EdgeInsets.all(14),
+        child: Row(children: [
+          Icon(ic, color: on ? R.primary : R.sub),
+          const SizedBox(width: 14),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(t, style: ts(R.text, 15)), Text(s, style: ts(R.sub, 12.5, FontWeight.w400))])),
+          if (on) const Icon(Icons.check_circle_rounded, color: R.primary),
+        ]),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -133,166 +147,144 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
       content = Stack(key: const ValueKey('bahce'), children: [
         Positioned.fill(
           child: tercih.forest
-              ? ForestPicker(pages: pages, tema: tema, W: winW, H: H, pad: pad, bottomPad: navH - 8, onOpen: openTree)
+              ? ForestPicker(pages: pages, tema: tema, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree)
               : gview == 'path'
-                  ? PathForest(pages: pages, tema: tema, W: winW, H: H, pad: pad, onOpen: openTree, onBack: () => setState(() => gview = 'grid'))
-                  : GardenGrid(pages: pages, tema: tema, W: winW, H: H, pad: pad, onOpen: openTree, onNext: () => setState(() => gview = 'path')),
+                  ? PathForest(pages: pages, tema: tema, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree, onBack: () => setState(() => gview = 'grid'))
+                  : GardenGrid(pages: pages, tema: tema, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree, onNext: () => setState(() => gview = 'path')),
         ),
         Positioned(
           left: 12, right: 12, top: pad.top + 10,
           child: Row(children: [
-            RoundBtn('🏠', widget.onHome),
-            Expanded(
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
-                  decoration: BoxDecoration(color: ink, border: Border.all(color: gold, width: 2.5), borderRadius: BorderRadius.circular(12)),
-                  child: Text(widget.cd.name.toUpperCase(), style: ts(goldText, 20).copyWith(letterSpacing: 1)),
-                ),
-              ),
-            ),
-            RoundBtn(N ? '☀' : '🌙', () => tercih.degistir((t) => t.night = !t.night)),
+            CamIkon(Icons.arrow_back_rounded, widget.onClose, ipucu: 'Geri'),
+            const SizedBox(width: 10),
+            Expanded(child: Center(child: CamBaslik(widget.cd.name, sub: '${pages.length} ağaç · ${flat.length} ayet'))),
+            const SizedBox(width: 10),
+            CamIkon(N ? Icons.light_mode_rounded : Icons.dark_mode_rounded, () => tercih.degistir((t) => t.night = !t.night), ipucu: 'Gece modu'),
             const SizedBox(width: 8),
-            RoundBtn('⚙', _ayarlar),
+            CamIkon(Icons.tune_rounded, _gorunum, ipucu: 'Görünüm'),
           ]),
         ),
-        BottomBar('garden', widget.nav),
       ]);
     } else {
       content = Center(key: ValueKey('agac$cur'), child: SizedBox(width: W, height: H, child: _agacSayfasi(W, H, pad)));
     }
 
-    final b = cur < 0 ? (!tercih.forest && gview == 'path' && bg('bgForest') != null ? bg('bgForest') : bg('bgGarden')) : bg('bgPage');
+    final b = cur < 0 ? (!tercih.forest && gview == 'path' && tema.ui['bgForest'] != null ? tema.ui['bgForest'] : tema.ui['bgGarden']) : tema.ui['bgPage'];
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (did, _) {
         if (did) return;
-        if (sheetFor != null) { setState(() => sheetFor = null); }
-        else if (open >= 0) { closePanel(); }
-        else { widget.onHome(); }
+        if (sheetFor != null) {
+          setState(() => sheetFor = null);
+        } else if (open >= 0) {
+          closePanel();
+        } else if (cur >= 0) {
+          toGarden();
+        } else {
+          widget.onClose();
+        }
       },
-      child: Stack(children: [
-        Positioned.fill(child: Container(color: C.bg)),
-        Positioned.fill(
-          child: b != null
-              ? img(b, fit: BoxFit.cover)
-              : Column(children: [Expanded(flex: 3, child: Container(color: const Color(0xFF8EC9F2))), Expanded(flex: 7, child: Container(color: const Color(0xFF4C8F57)))]),
-        ),
-        Positioned.fill(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 280),
-            transitionBuilder: (child, a) => FadeTransition(
-              opacity: a,
-              child: SlideTransition(position: Tween(begin: Offset(dir * 44 / winW, 0), end: Offset.zero).animate(a), child: child),
-            ),
-            child: content,
-          ),
-        ),
-        if (N) const Positioned.fill(child: IgnorePointer(child: ColoredBox(color: Color(0x6B060905)))),
-        if (open >= 0 && sheetFor == null)
+      child: Scaffold(
+        backgroundColor: R.bg,
+        body: Stack(children: [
           Positioned.fill(
-            child: AyetPaneli(
-              depo: widget.depo,
-              item: flat[open],
-              title: '${widget.cd.name} · ${treeName(flat[open].p)}',
-              idx: open, total: flat.length, W: W, winW: winW, H: H,
-              onPrev: () => _set(() => open--),
-              onNext: () => _set(() => open++),
-              onClose: closePanel,
-              onSheet: pages[flat[open].p].sheets.isNotEmpty ? () => setState(() => sheetFor = flat[open]) : null,
+            child: b != null
+                ? img(b, fit: BoxFit.cover)
+                : Column(children: [Expanded(flex: 3, child: Container(color: const Color(0xFF8EC9F2))), Expanded(flex: 7, child: Container(color: const Color(0xFF4C8F57)))]),
+          ),
+          Positioned.fill(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 260),
+              transitionBuilder: (child, a) => FadeTransition(
+                opacity: a,
+                child: SlideTransition(position: Tween(begin: Offset(dir * 30 / winW, 0), end: Offset.zero).animate(a), child: child),
+              ),
+              child: content,
             ),
           ),
-        if (sheetFor != null)
-          Positioned.fill(child: MushafSayfasi(sheets: pages[sheetFor!.p].sheets, focus: _ozel(sheetFor!.p) && open < 0 ? null : sheetFor!.a, onClose: () => setState(() => sheetFor = null))),
-      ]),
+          if (N) const Positioned.fill(child: IgnorePointer(child: ColoredBox(color: Color(0x6B060905)))),
+          if (open >= 0 && sheetFor == null)
+            Positioned.fill(
+              child: AyetPaneli(
+                depo: widget.depo,
+                item: flat[open],
+                title: '${widget.cd.name} · ${treeName(flat[open].p)} ağacı',
+                idx: open, total: flat.length, W: W, winW: winW, H: H,
+                dinle: dinle,
+                sayfaSonu: dinle && open + 1 < flat.length && flat[open + 1].p == flat[open].p ? false : true,
+                onPrev: () => _set(() => open--),
+                onNext: () => _set(() => open++),
+                onClose: closePanel,
+                onSheet: pages[flat[open].p].sheets.isNotEmpty ? () => setState(() { sheetFor = flat[open]; sheetGizle = false; }) : null,
+              ),
+            ),
+          if (sheetFor != null)
+            Positioned.fill(
+              child: MushafSayfasi(
+                sheets: pages[sheetFor!.p].sheets,
+                baslik: '${widget.cd.name} · Sayfa ${sheetFor!.p + 1}',
+                focus: ozelSayfa(widget.cd, sheetFor!.p) && open < 0 ? null : sheetFor!.a,
+                gizle: sheetGizle,
+                onClose: () => setState(() => sheetFor = null),
+              ),
+            ),
+        ]),
+      ),
     );
   }
 
   Widget _agacSayfasi(double W, double H, EdgeInsets pad) {
     final it = seq[cur], page = pages[it.p];
-    final topH = pad.top + 112, botH = pad.bottom + 96;
+    final ozel = ozelSayfa(widget.cd, it.p);
+    final topH = pad.top + 76, botH = pad.bottom + 150;
     final header = Positioned(
-      left: 0, right: 0, top: pad.top + 8,
-      child: Column(children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(children: [
-            RoundBtn('🏠', widget.onHome),
-            Expanded(
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                  decoration: BoxDecoration(color: ink, border: Border.all(color: gold, width: 2.5), borderRadius: BorderRadius.circular(12)),
-                  child: Column(children: [
-                    Text('${widget.cd.name.toUpperCase()} · SAYFA ${it.p + 1}', style: ts(goldText, 15)),
-                    Text('${treeName(it.p)}${it.n > 1 ? '  (${it.s + 1}/${it.n})' : ''}', style: ts(Colors.white, 11, FontWeight.w700)),
-                  ]),
-                ),
-              ),
-            ),
-            if (page.kind == 'ayat' && page.sheets.isNotEmpty) ...[
-              RoundBtn('📖', () => setState(() => sheetFor = Duz(it.p, 0, 0, page.ayat.first))),
-              const SizedBox(width: 8),
-            ],
-            RoundBtn('🌳', toGarden),
-          ]),
+      left: 12, right: 12, top: pad.top + 10,
+      child: Row(children: [
+        CamIkon(Icons.forest_rounded, toGarden, ipucu: 'Bahçe'),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Center(
+            child: CamBaslik('Sayfa ${it.p + 1} · ${treeName(it.p)}', sub: '${widget.cd.name}${it.n > 1 ? '  ·  ${it.s + 1}/${it.n}' : ''}'),
+          ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Plate('◀ ÖNCE', onTap: back), Plate('SONRA ▶', onTap: next)]),
-        ),
+        const SizedBox(width: 10),
+        CamIkon(Icons.menu_book_rounded, page.kind == 'ayat' && page.sheets.isNotEmpty ? () => setState(() { sheetFor = Duz(it.p, 0, 0, page.ayat.first); sheetGizle = false; }) : null, ipucu: 'Mushaf sayfası'),
       ]),
     );
-    final children = <Widget>[const Positioned.fill(child: ColoredBox(color: Color(0x1A000000)))];
-    Widget? bottom;
+    final children = <Widget>[const Positioned.fill(child: ColoredBox(color: Color(0x14000000)))];
     if (page.kind == 'special') {
       final im = page.imgs[it.s];
       children.add(Positioned(
         left: 0, right: 0, top: topH, bottom: 0,
         child: SingleChildScrollView(
           padding: EdgeInsets.only(bottom: pad.bottom + 20),
-          child: Column(children: [
-            Text(it.s == 0 ? 'Fatiha Suresi' : 'Bakara Suresi', style: ts(Colors.white, 15).copyWith(shadows: const [Shadow(blurRadius: 4)])),
-            const SizedBox(height: 6),
-            Container(
-              decoration: BoxDecoration(border: Border.all(color: gold, width: 2), borderRadius: BorderRadius.circular(8)),
-              child: img(im.path, w: W - 16, h: (W - 16) / im.ratio),
-            ),
-          ]),
+          child: Center(child: ClipRRect(borderRadius: BorderRadius.circular(R.r12), child: img(im.path, w: W - 16, h: (W - 16) / im.ratio))),
         ),
       ));
     } else {
       final avail = H - topH - botH;
       final sh = [avail, (W * 0.84) * (4 / 3), 700.0].reduce(math.min), sw = sh * 0.75;
       final sl = (W - sw) / 2, st = topH + (avail - sh) / 2;
-      final group = page.ayat.skip(it.s * 5).take(5).toList();
-      final fd = sw * 0.155 * 1.2, lh = math.min(56.0, sh * 0.142 - 5); // fd = cam buton çapı
-      final lwb = math.min(W * 0.235, 96.0), off = W / 2 - 6 - lwb - 6 - fd / 2; // kutular iki kenarda aynı genişlikte, meyveler ortada simetrik
+      final group = ozel ? <Ayet>[] : page.ayat.skip(it.s * 5).take(5).toList();
+      final fd = sw * 0.155 * 1.2, lh = math.min(56.0, sh * 0.142 - 5); // fd = cam meyve çapı
+      final lwb = math.min(W * 0.235, 96.0), off = W / 2 - 6 - lwb - 6 - fd / 2; // etiketler iki kenarda, meyveler ortada simetrik
       final pos = [
         [W / 2, st + 0.19 * sh], [W / 2 + off, st + 0.44 * sh], [W / 2 - off, st + 0.44 * sh], [W / 2 + off, st + 0.70 * sh], [W / 2 - off, st + 0.70 * sh],
       ];
+      final tsrc = _agac(it.p);
       children.add(Positioned(
         left: sl, top: st, width: sw, height: sh,
-        child: Stack(children: [
-          _TreeGlow(sw, sh),
-          if (_ozel(it.p))
-            img('assets/ozel/tree01_temiz.png', w: sw, h: sh) // renkli topları yaprakla örtülmüş kayısı ağacı (tools/kayisi_temizle.py)
-          else if (treeSrc(it.p) != null)
-            img(treeSrc(it.p)!, w: sw, h: sh)
-          else
-            const _TreeHole(),
-        ]),
+        child: Stack(children: [_TreeGlow(sw, sh), if (tsrc != null) img(tsrc, w: sw, h: sh) else const _TreeHole()]),
       ));
-      if (_ozel(it.p)) {
-        final kd = sw * 0.42, ksrc = tema.fruits[it.p]?[2]; // sarı (orijinal) kayısı, ağacın tacının ortasında
+      if (ozel) {
+        final kd = sw * 0.42, ksrc = tema.fruits[it.p]?[2]; // sarı (orijinal) kayısı, tacın ortasında
         children.add(Positioned(
           left: sl + sw * 0.5 - kd / 2, top: st + sh * 0.40 - kd / 2, width: kd, height: kd,
           child: Bas(
-            onTap: () => setState(() => sheetFor = Duz(it.p, 0, 0, page.ayat.first)),
+            onTap: () => setState(() { sheetFor = Duz(it.p, 0, 0, page.ayat.first); sheetGizle = false; }),
             child: ksrc != null ? img(ksrc, w: kd, h: kd) : _Fruit(kd, 2, null, () {}),
           ),
         ));
-        group.clear();
       }
       for (var k = 0; k < group.length; k++) {
         final ay = group[k], ax = pos[k][0], ayy = pos[k][1], side = fruitSide[k];
@@ -302,36 +294,72 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         else { lx = W - 6 - lw; }
         final fi = flat.indexWhere((f) => f.p == it.p && f.s == it.s && f.k == k);
         final fsrc = tema.fruits[it.p]?[k];
-        void ac() => _set(() => open = fi);
-        children.add(Positioned(left: lx, top: ly, width: lw, height: lh, child: _VerseLabel(ay, fruitCol[k], ac)));
+        void ac() => _set(() { open = fi; dinle = false; });
+        children.add(Positioned(left: lx, top: ly, width: lw, height: lh, child: Bas(onTap: ac, child: AyetEtiket(ay.start.path, lw, lh, border: fruitCol[k], radius: 12))));
         children.add(Positioned(left: ax - fd / 2, top: ayy - fd / 2, width: fd, height: fd, child: _Fruit(fd, k, fsrc, ac)));
       }
-      final nextPage = it.p + 1 < pages.length ? pages[it.p + 1] : null;
-      if (it.s < it.n - 1) {
-        bottom = Plate('SAYFA DEVAMI  ▶', onTap: next, pad: const EdgeInsets.symmetric(horizontal: 26, vertical: 12));
-      } else if (nextPage != null && nextPage.kind == 'ayat' && nextPage.ayat.isNotEmpty) {
-        bottom = Bas(
-          onTap: next,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(color: cream, border: Border.all(color: gold, width: 3), borderRadius: BorderRadius.circular(16)),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Text('📌', style: TextStyle(fontSize: 22)),
-              const SizedBox(width: 10),
-              img(nextPage.ayat.first.start.path, w: 110, h: 42),
-              const SizedBox(width: 10),
-              Text('SONRAKİ SAYFA ▶', style: ts(const Color(0xFF3B2A10), 14)),
-            ]),
-          ),
-        );
-      } else {
-        bottom = Plate('🌳  BAHÇEYE DÖN', onTap: toGarden, pad: const EdgeInsets.symmetric(horizontal: 26, vertical: 12));
-      }
+    }
+
+    // alt alan: sayfayı dinle + önceki / sonraki
+    final nextPage = it.p + 1 < pages.length ? pages[it.p + 1] : null;
+    Widget orta;
+    if (it.s < it.n - 1) {
+      orta = _altKart(null, 'Sayfa devamı', '${it.s + 2}/${it.n}', next);
+    } else if (nextPage != null && nextPage.kind == 'ayat' && nextPage.ayat.isNotEmpty) {
+      orta = _altKart(nextPage.ayat.first.start.path, 'Sonraki sayfa', '${it.p + 2} · ${treeName(it.p + 1)}', next);
+    } else {
+      orta = _altKart(null, 'Bahçeye dön', widget.cd.name, toGarden);
     }
     children.add(header);
-    if (bottom != null) children.add(Positioned(left: 0, right: 0, bottom: pad.bottom + 16, child: Center(child: bottom)));
+    children.add(Positioned(
+      left: 12, right: 12, bottom: pad.bottom + 12,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        if (page.kind == 'ayat')
+          Bas(
+            onTap: _sayfayiDinle,
+            child: Cam(
+              radius: 22,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.headphones_rounded, color: R.gold, size: 20),
+                const SizedBox(width: 8),
+                Text(it.s > 0 ? 'Buradan dinle' : 'Sayfayı dinle', style: ts(R.text, 14, FontWeight.w700)),
+              ]),
+            ),
+          ),
+        const SizedBox(height: 10),
+        Row(children: [
+          CamIkon(Icons.chevron_left_rounded, back, size: 52, ipucu: 'Önceki'),
+          const SizedBox(width: 10),
+          Expanded(child: orta),
+          const SizedBox(width: 10),
+          CamIkon(Icons.chevron_right_rounded, next, size: 52, ipucu: 'Sonraki'),
+        ]),
+      ]),
+    ));
     return Stack(clipBehavior: Clip.none, children: children);
   }
+
+  Widget _altKart(String? start, String t, String s, VoidCallback f) => Bas(
+        onTap: f,
+        child: Cam(
+          radius: 26,
+          padding: const EdgeInsets.fromLTRB(8, 6, 14, 6),
+          child: SizedBox(
+            height: 40,
+            child: Row(children: [
+              if (start != null) AyetEtiket(start, 84, 40, radius: 18) else const SizedBox(width: 6),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text(t, maxLines: 1, style: ts(R.text, 14, FontWeight.w700)),
+                  Text(s, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.sub, 12, FontWeight.w500)),
+                ]),
+              ),
+            ]),
+          ),
+        ),
+      );
 }
 
 // ---------------------------------------------------------------- ağaç sayfası parçaları
@@ -344,7 +372,7 @@ class _TreeGlow extends StatelessWidget {
         for (final k in const [1.0, 0.78, 0.56, 0.36])
           Positioned(
             left: w / 2 - (w * 0.95 * k) / 2, top: h - 6 - (h * 0.11 * k) / 2, width: w * 0.95 * k, height: h * 0.11 * k,
-            child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(color: const Color(0xFFFFE29A).withValues(alpha: 0.16 * 0.92), borderRadius: BorderRadius.circular(w)))),
+            child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(color: const Color(0xFFFFE29A).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(w)))),
           ),
       ]);
 }
@@ -354,9 +382,9 @@ class _TreeHole extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: const Color(0x24000000), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xB3FFFFFF), width: 2)),
+        decoration: BoxDecoration(color: const Color(0x24000000), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0x66FFFFFF), width: 1.5)),
         alignment: Alignment.center,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [const Text('🌳', style: TextStyle(fontSize: 34)), Text('Ağaç yok', style: ts(Colors.white, 12, FontWeight.w800))]),
+        child: const Icon(Icons.park_outlined, color: Colors.white70, size: 40),
       );
 }
 
@@ -370,25 +398,27 @@ class _Fruit extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = fruitCol[k];
     final rim = k == 0 ? const Color(0xBFEBEBEB) : color; // siyah meyvenin çerçevesi koyu zeminde görünsün
-    final fs = d * 0.78;
+    final fs = d * 0.8;
     return Bas(
       onTap: onTap,
       child: Stack(clipBehavior: Clip.none, alignment: Alignment.center, children: [
-        Container(width: d, height: d, decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0x8508160E), border: Border.all(color: rim, width: 2.2))),
-        Positioned(
-          left: d * 0.14, top: d * 0.08,
-          child: Transform.rotate(angle: -28 * math.pi / 180, child: Container(width: d * 0.46, height: d * 0.22, decoration: BoxDecoration(color: const Color(0x1AFFFFFF), borderRadius: BorderRadius.circular(d)))),
+        Container(
+          width: d, height: d,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle, color: const Color(0x7308160E), border: Border.all(color: rim, width: 2.2),
+            boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 8, offset: Offset(0, 3))],
+          ),
         ),
         if (src != null)
           img(src!, w: fs, h: fs)
         else
           Container(width: fs * 0.62, height: fs * 0.62, decoration: BoxDecoration(shape: BoxShape.circle, color: color, border: Border.all(color: const Color(0xB3FFFFFF), width: 1.5))),
         Positioned(
-          top: -8, right: -8,
+          top: -6, right: -6,
           child: Container(
-            width: 21, height: 21, alignment: Alignment.center,
+            width: 22, height: 22, alignment: Alignment.center,
             decoration: BoxDecoration(shape: BoxShape.circle, color: color, border: Border.all(color: Colors.white, width: 1.5)),
-            child: Text('${k + 1}', style: ts(fruitFg(k), 11)),
+            child: Text('${k + 1}', style: ts(fruitFg(k), 11.5, FontWeight.w800)),
           ),
         ),
       ]),
@@ -396,32 +426,19 @@ class _Fruit extends StatelessWidget {
   }
 }
 
-class _VerseLabel extends StatelessWidget {
-  final Ayet ay;
-  final Color color;
-  final VoidCallback onTap;
-  const _VerseLabel(this.ay, this.color, this.onTap);
-  @override
-  Widget build(BuildContext context) => Bas(
-        onTap: onTap,
-        child: LayoutBuilder(
-          builder: (c, bc) => Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: cream, borderRadius: BorderRadius.circular(12), border: Border.all(color: color, width: 3),
-              boxShadow: const [BoxShadow(color: Color(0x59000000), blurRadius: 4, offset: Offset(0, 2))],
-            ),
-            child: img(ay.start.path, w: bc.maxWidth - 10, h: bc.maxHeight - 8),
-          ),
-        ),
-      );
-}
+
+// ağaç numarası rozeti (bahçe görünümlerinde)
+Widget _no(int i, [double s = 22]) => Container(
+      height: s, constraints: BoxConstraints(minWidth: s), padding: const EdgeInsets.symmetric(horizontal: 5), alignment: Alignment.center,
+      decoration: BoxDecoration(color: const Color(0xCC0A0F1C), borderRadius: BorderRadius.circular(s / 2), border: Border.all(color: R.glassLine)),
+      child: Text('$i', style: ts(Colors.white, s * 0.5, FontWeight.w700)),
+    );
 
 // ======================================================= ORMAN GEZGİNİ (derinlikli ağaç seçici)
 // 20 ağaç = 10 çift. Ön çift büyük, arkaya doğru küçülür. Parmağı AŞAĞI çekince öndeki çift aşağı kayıp çıkar,
 // arkadaki çift öne gelir. Yukarı çekince geri dönersin. Bırakınca en yakın çifte oturur.
 // Öndeki ağaca/kutuya dokununca sayfa açılır; arkadaki ağaca dokunursan önce öne gelir.
-const _fA = 0.6, _fHorizon = 0.30, _fX0 = 0.26, _fWt = 0.54, _fBoxH = 66.0, _fStep = 150.0;
+const _fA = 0.6, _fHorizon = 0.30, _fX0 = 0.26, _fWt = 0.54, _fBoxH = 62.0, _fStep = 150.0;
 double _fS(double d) => 1 / (1 + _fA * d);
 double _fOp(double d) => d >= 0 ? math.max(0.55, 1 - 0.06 * d) : math.max(0, 1 + d * 1.3);
 double _fBox(double d) => d > 2.6 ? 0 : d > 1.6 ? 2.6 - d : d >= -0.4 ? 1 : math.max(0, 1 + (d + 0.4) * 2);
@@ -429,10 +446,11 @@ double _fBox(double d) => d > 2.6 ? 0 : d > 1.6 ? 2.6 - d : d >= -0.4 ? 1 : math
 class ForestPicker extends StatefulWidget {
   final List<Sayfa> pages;
   final Tema tema;
-  final double W, H, bottomPad;
+  final String? Function(int) agac;
+  final double W, H;
   final EdgeInsets pad;
   final void Function(int) onOpen;
-  const ForestPicker({super.key, required this.pages, required this.tema, required this.W, required this.H, required this.pad, required this.bottomPad, required this.onOpen});
+  const ForestPicker({super.key, required this.pages, required this.tema, required this.agac, required this.W, required this.H, required this.pad, required this.onOpen});
   @override
   State<ForestPicker> createState() => _ForestPickerState();
 }
@@ -460,7 +478,7 @@ class _ForestPickerState extends State<ForestPicker> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final W = widget.W, H = widget.H, pad = widget.pad;
-    final wt = W * _fWt, ht = wt * (4 / 3), yH = H * _fHorizon, yF = H - pad.bottom - 118 - widget.bottomPad;
+    final wt = W * _fWt, ht = wt * (4 / 3), yH = H * _fHorizon, yF = H - pad.bottom - 110;
     final x0 = W * _fX0;
     final p = pos.value, front = p.round();
     final items = <Widget>[];
@@ -472,7 +490,7 @@ class _ForestPickerState extends State<ForestPicker> with SingleTickerProviderSt
         final d = (j - p).clamp(-1.2, 10.0);
         final sc = _fS(d), ty = (yF - yH) * (sc - 1), tx = sg * x0 * (sc - 1), op = _fOp(d), bo = _fBox(d);
         if (op <= 0.01) continue;
-        final src = widget.tema.trees[idx];
+        final src = widget.agac(idx);
         items.add(Positioned(
           left: W / 2 + sg * x0 - wt / 2, top: yF - ht, width: wt, height: ht + 8 + _fBoxH,
           child: Transform(
@@ -495,30 +513,21 @@ class _ForestPickerState extends State<ForestPicker> with SingleTickerProviderSt
                 ),
                 if (bo > 0)
                   Positioned(
-                    left: 0, top: ht + 8, width: wt, height: _fBoxH,
+                    left: 6, top: ht + 8, width: wt - 12, height: _fBoxH,
                     child: Opacity(
                       opacity: bo.clamp(0.0, 1.0),
                       child: GestureDetector(
                         onTap: () => tap(idx, j),
-                        child: Container(
-                          clipBehavior: Clip.antiAlias,
-                          decoration: BoxDecoration(color: cream, borderRadius: BorderRadius.circular(12), border: Border.all(color: gold, width: 3)),
-                          child: Stack(children: [
-                            Positioned.fill(
-                              top: 14,
-                              child: Center(
-                                child: page.kind == 'special'
-                                    ? Text('Fatiha · Bakara', style: ts(const Color(0xFF3B2A10), 15))
-                                    : img(page.ayat.first.start.path, w: wt - 24, h: _fBoxH - 28),
-                              ),
-                            ),
-                            Positioned(
-                              left: 0, top: 0,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: const BoxDecoration(color: ink, borderRadius: BorderRadius.only(bottomRight: Radius.circular(10))),
-                                child: Text('${idx + 1} · ${treeName(idx)}', style: ts(goldText, 11)),
-                              ),
+                        child: Cam(
+                          radius: 18,
+                          padding: const EdgeInsets.fromLTRB(6, 5, 6, 6),
+                          child: Column(children: [
+                            Text('${idx + 1} · ${treeName(idx)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(Colors.white, 11, FontWeight.w700)),
+                            const SizedBox(height: 3),
+                            Expanded(
+                              child: page.kind == 'special'
+                                  ? Center(child: Text('Fatiha · Bakara', style: ts(Colors.white, 13)))
+                                  : AyetEtiket(page.ayat.first.start.path, double.infinity, double.infinity, radius: 12),
                             ),
                           ]),
                         ),
@@ -542,25 +551,33 @@ class _ForestPickerState extends State<ForestPicker> with SingleTickerProviderSt
       child: Stack(clipBehavior: Clip.none, children: [
         ...items,
         Positioned(
-          right: 8, top: yH + 20,
-          child: Column(children: [
-            for (var i = 0; i < pairs; i++)
-              Container(
-                margin: const EdgeInsets.only(bottom: 6),
-                width: i == front ? 9 : 6, height: i == front ? 9 : 6,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: i == front ? gold : const Color(0x8CFFFFFF)),
-              ),
-          ]),
+          right: 10, top: yH + 20,
+          child: Cam(
+            radius: 12,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+            child: Column(children: [
+              for (var i = 0; i < pairs; i++)
+                Container(
+                  margin: EdgeInsets.only(bottom: i == pairs - 1 ? 0 : 6),
+                  width: 7, height: i == front ? 16 : 7,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: i == front ? R.gold : const Color(0x8CFFFFFF)),
+                ),
+            ]),
+          ),
         ),
         if (!moved)
           Positioned(
-            left: 0, right: 0, top: pad.top + 122,
+            left: 0, right: 0, top: pad.top + 76,
             child: IgnorePointer(
               child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(color: const Color(0x99000000), border: Border.all(color: gold, width: 1.5), borderRadius: BorderRadius.circular(16)),
-                  child: Text('▼  aşağı çek, ormanda ilerle', style: ts(Colors.white, 14, FontWeight.w800)),
+                child: Cam(
+                  radius: 18,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.swipe_down_rounded, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                    Text('Aşağı çek, ormanda ilerle', style: ts(Colors.white, 13.5)),
+                  ]),
                 ),
               ),
             ),
@@ -574,16 +591,17 @@ class _ForestPickerState extends State<ForestPicker> with SingleTickerProviderSt
 class GardenGrid extends StatelessWidget {
   final List<Sayfa> pages;
   final Tema tema;
+  final String? Function(int) agac;
   final double W, H;
   final EdgeInsets pad;
   final void Function(int) onOpen;
   final VoidCallback onNext;
-  const GardenGrid({super.key, required this.pages, required this.tema, required this.W, required this.H, required this.pad, required this.onOpen, required this.onNext});
+  const GardenGrid({super.key, required this.pages, required this.tema, required this.agac, required this.W, required this.H, required this.pad, required this.onOpen, required this.onNext});
   @override
   Widget build(BuildContext context) {
     final gw = math.min(W, 720.0), padX = 10.0, gap = 8.0;
     final cw = (gw - padX * 2 - gap * 3) / 4;
-    final top = pad.top + 72, bot = navH + pad.bottom + 58;
+    final top = pad.top + 70, bot = pad.bottom + 76;
     final ch = ((H - top - bot - gap * 4) / 5).clamp(112.0, 176.0);
     final n = math.min(20, pages.length);
     return Stack(children: [
@@ -605,43 +623,35 @@ class GardenGrid extends StatelessWidget {
           ),
         ),
       ),
-      Positioned(left: 0, right: 0, bottom: navH + pad.bottom + 8, child: Center(child: Plate('İLERİ ▶  ORMAN YOLU', onTap: onNext, pad: const EdgeInsets.symmetric(horizontal: 26, vertical: 10)))),
+      Positioned(
+        left: 0, right: 0, bottom: pad.bottom + 14,
+        child: Center(child: Bas(onTap: onNext, child: Cam(radius: 24, padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text('Orman yolu', style: ts(Colors.white, 14, FontWeight.w700)),
+          const SizedBox(width: 6),
+          const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+        ])))),
+      ),
     ]);
   }
 
   Widget _kart(int i, double cw, double ch) {
-    final p = pages[i], src = tema.trees[i];
+    final p = pages[i], src = agac(i);
     final st = p.kind == 'ayat' && p.ayat.isNotEmpty ? p.ayat.first.start : null;
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0x8C08160E), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFFFE29A), width: 2),
-        boxShadow: const [BoxShadow(color: Color(0xD9FFD56B), blurRadius: 7)],
-      ),
+    return Cam(
+      radius: 16,
+      color: const Color(0x8008160E),
       child: Stack(children: [
-        Positioned.fill(
-          left: 1, right: 1, top: 1, bottom: 1,
-          child: DecoratedBox(decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), border: Border.all(color: const Color(0x59FFE29A)))),
-        ),
         if (src != null)
-          Positioned(left: 2, top: 3, width: cw - 8, height: ch * 0.64, child: img(src))
+          Positioned(left: 4, top: 5, width: cw - 8, height: ch * 0.64, child: img(src))
         else
-          Positioned(left: 0, right: 0, top: ch * 0.2, child: Text(treeName(i), textAlign: TextAlign.center, style: ts(Colors.white, 22))),
+          Positioned(left: 0, right: 0, top: ch * 0.2, child: Text(treeName(i), textAlign: TextAlign.center, style: ts(Colors.white, 14))),
         Positioned(
-          left: 3, right: 3, bottom: 3, height: ch * 0.25,
-          child: Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: cream, borderRadius: BorderRadius.circular(8), border: Border.all(color: gold, width: 2)),
-            child: st != null ? img(st.path, w: cw - 24, h: ch * 0.25 - 8) : Text(treeName(i), maxLines: 1, style: ts(const Color(0xFF3B2A10), 11, FontWeight.w800)),
-          ),
+          left: 4, right: 4, bottom: 4, height: ch * 0.25,
+          child: st != null
+              ? AyetEtiket(st.path, cw - 8, ch * 0.25)
+              : Center(child: Text(treeName(i), maxLines: 1, style: ts(Colors.white, 11))),
         ),
-        Positioned(
-          right: 3, top: 3,
-          child: Container(
-            height: 22, constraints: const BoxConstraints(minWidth: 22), padding: const EdgeInsets.symmetric(horizontal: 4), alignment: Alignment.center,
-            decoration: BoxDecoration(color: ink, borderRadius: BorderRadius.circular(11), border: Border.all(color: gold, width: 1.5)),
-            child: Text('${i + 1}', style: ts(goldText, 11)),
-          ),
-        ),
+        Positioned(right: 5, top: 5, child: _no(i + 1)),
       ]),
     );
   }
@@ -651,11 +661,12 @@ class GardenGrid extends StatelessWidget {
 class PathForest extends StatelessWidget {
   final List<Sayfa> pages;
   final Tema tema;
+  final String? Function(int) agac;
   final double W, H;
   final EdgeInsets pad;
   final void Function(int) onOpen;
   final VoidCallback onBack;
-  const PathForest({super.key, required this.pages, required this.tema, required this.W, required this.H, required this.pad, required this.onOpen, required this.onBack});
+  const PathForest({super.key, required this.pages, required this.tema, required this.agac, required this.W, required this.H, required this.pad, required this.onOpen, required this.onBack});
   @override
   Widget build(BuildContext context) {
     final sH = tema.ui['streamH'], sV = tema.ui['streamV'], sC = tema.ui['streamC'];
@@ -699,27 +710,31 @@ class PathForest extends StatelessWidget {
     final n = math.min(20, pages.length);
     return Stack(children: [
       Positioned(
-        left: 0, right: 0, top: pad.top + 76, bottom: navH + pad.bottom + 56,
+        left: 0, right: 0, top: pad.top + 70, bottom: pad.bottom + 74,
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 20),
           child: Center(
             child: SizedBox(
               width: gw, height: rowH * 10 + 20,
-              child: Stack(children: [
-                ...pieces,
-                for (var i = 0; i < n; i++) _dugum(i, cx, nodeW, treeH, rowH),
-              ]),
+              child: Stack(children: [...pieces, for (var i = 0; i < n; i++) _dugum(i, cx, nodeW, treeH, rowH)]),
             ),
           ),
         ),
       ),
-      Positioned(left: 0, right: 0, bottom: navH + pad.bottom + 8, child: Center(child: Plate('◀ GERİ  BAHÇE', onTap: onBack, pad: const EdgeInsets.symmetric(horizontal: 26, vertical: 10)))),
+      Positioned(
+        left: 0, right: 0, bottom: pad.bottom + 14,
+        child: Center(child: Bas(onTap: onBack, child: Cam(radius: 24, padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), child: Row(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
+          const SizedBox(width: 6),
+          Text('Kartlara dön', style: ts(Colors.white, 14, FontWeight.w700)),
+        ])))),
+      ),
     ]);
   }
 
   Widget _dugum(int i, double Function(int) cx, double nodeW, double treeH, double rowH) {
     final r = i ~/ 2, k = i % 2, c = r % 2 == 0 ? 1 - k : k;
-    final p = pages[i], src = tema.trees[i];
+    final p = pages[i], src = agac(i);
     final st = p.kind == 'ayat' && p.ayat.isNotEmpty ? p.ayat.first.start : null;
     return Positioned(
       left: cx(c) - nodeW / 2, top: r * rowH, width: nodeW,
@@ -729,20 +744,9 @@ class PathForest extends StatelessWidget {
           Column(children: [
             src != null ? img(src, w: nodeW * 0.96, h: treeH) : SizedBox(width: nodeW * 0.7, height: treeH, child: Center(child: Text(treeName(i), style: ts(Colors.white, 14)))),
             const SizedBox(height: 14),
-            Container(
-              width: nodeW - 8, height: 44, alignment: Alignment.center,
-              decoration: BoxDecoration(color: cream, borderRadius: BorderRadius.circular(10), border: Border.all(color: gold, width: 2)),
-              child: st != null ? img(st.path, w: nodeW - 30, h: 36) : Text(treeName(i), maxLines: 1, style: ts(const Color(0xFF3B2A10), 12, FontWeight.w800)),
-            ),
+            st != null ? AyetEtiket(st.path, nodeW - 8, 44) : Text(treeName(i), maxLines: 1, style: ts(Colors.white, 12)),
           ]),
-          Positioned(
-            left: 4, top: 4,
-            child: Container(
-              height: 26, constraints: const BoxConstraints(minWidth: 26), padding: const EdgeInsets.symmetric(horizontal: 5), alignment: Alignment.center,
-              decoration: BoxDecoration(color: ink, borderRadius: BorderRadius.circular(13), border: Border.all(color: gold, width: 1.5)),
-              child: Text('${i + 1}', style: ts(goldText, 13)),
-            ),
-          ),
+          Positioned(left: 4, top: 4, child: _no(i + 1, 26)),
         ]),
       ),
     );

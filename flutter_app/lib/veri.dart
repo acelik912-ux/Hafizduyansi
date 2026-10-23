@@ -6,25 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// ----------------------------------------------------------------- renkler / sabitler
-class C {
-  static const bg = Color(0xFF0B1020), card = Color(0xFF151B2E), card2 = Color(0xFF1F2740), line = Color(0xFF2C3654);
-  static const text = Color(0xFFF4F1E8), sub = Color(0xFF98A2BC), accent = Color(0xFFD4AF37), danger = Color(0xFFFF5C6C);
-}
-
-const gold = Color(0xFFD4AF37);
-const goldText = Color(0xFFF2C94C);
-const ink = Color(0xFF0B0B0B);
-const cream = Color(0xFFFFF6D9);
-
+// ----------------------------------------------------------------- sabitler
 const treeNames = ['Kayısı', 'İncir', 'Medine Hurması', 'Zeytin', 'Elma', 'Üzüm', 'Nar', 'Armut', 'Kiraz', 'Portakal', 'Trabzon Hurması', 'Antep Fıstığı', 'Çam', 'Limon', 'Muz', 'Muşmula', 'Kuşburnu', 'Dut', 'Şeftali', 'Badem'];
 // sıra: siyah, kırmızı, sarı, yeşil, lacivert
 const fruitCol = [Color(0xFF111111), Color(0xFFD32F2F), Color(0xFFF2A900), Color(0xFF2E9E4F), Color(0xFF1F3C88)];
 const fruitSide = ['top', 'right', 'left', 'right', 'left'];
 Color fruitFg(int k) => k == 2 ? const Color(0xFF222222) : Colors.white;
 String treeName(int i) => treeNames[i % treeNames.length];
-
-const navH = 76.0;
 
 // Türkçe arama için sadeleştirme (İ/ı, şapkalı harfler, kesme işaretleri)
 String trn(String t) => t
@@ -88,6 +76,22 @@ class Tema {
   final Map<int, List<String?>> fruits = {}; // ağaç -> 5 meyve görseli
   final Map<String, String> ui = {}; // bgGarden, bgPage, bgAyet, streamH ...
 }
+
+// Cüzün ayetleri tek sırada (sayfa, 5'li grup, gruptaki sıra = meyve rengi)
+class Duz {
+  final int p, s, k;
+  final Ayet a;
+  const Duz(this.p, this.s, this.k, this.a);
+}
+
+List<Duz> duzListe(Cuz cd) => [
+      for (var pi = 0; pi < cd.pages.length; pi++)
+        if (cd.pages[pi].kind == 'ayat')
+          for (var j = 0; j < cd.pages[pi].ayat.length; j++) Duz(pi, j ~/ 5, j % 5, cd.pages[pi].ayat[j])
+    ];
+
+// 1. cüzün 1. sayfası (Kayısı): 5 meyve yerine tek sarı kayısı; dokununca Fâtiha + Bakara mushaf sayfası
+bool ozelSayfa(Cuz cd, int p) => cd.no == 1 && p == 0;
 
 // ----------------------------------------------------------------- gömülü paketler
 class Depo {
@@ -156,6 +160,9 @@ class Depo {
     }
     (meta['ui'] as Map? ?? {}).forEach((k, f) => tema.ui[k] = '${base}bg/$f');
   }
+
+  // ağaç görseli: 1. cüz 1. sayfa için renkli topları örtülmüş kayısı ağacı (tools/kayisi_temizle.py)
+  String? agacOf(Cuz? cd, int i) => cd != null && ozelSayfa(cd, i) ? 'assets/ozel/tree01_temiz.png' : tema.trees[i];
 
   String? sesOf(int sura, int no) => sesYolu[sura.toString().padLeft(3, '0') + no.toString().padLeft(3, '0')];
 }

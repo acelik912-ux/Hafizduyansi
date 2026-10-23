@@ -38,5 +38,7 @@ cd flutter_app
 flutter build web --release          # web: build/web
 flutter build ios --release && flutter install --release   # iPhone (takım M38KBQ83RD, com.hafizdunyasi.gezgin)
 ```
-Kod: `lib/veri.dart` (paketler, tercihler), `ana_ekran.dart`, `bahce.dart` (orman / 4×5 kart / orman yolu, ağaç sayfası), `ayet.dart` (ayet paneli, mushaf sayfası), `ortak.dart`.
+Kod: `lib/main.dart` (tema, 3 sekme: Bugün · Cüzler · Ayarlar), `bugun.dart`, `cuzler.dart`, `ayarlar.dart`, `bahce.dart` (orman / kartlar / orman yolu, ağaç sayfası, sayfayı dinle), `ayet.dart` (ayet ekranı + oynatıcı, mushaf sayfası ve ezber modu), `ortak.dart` (tasarım sistemi: renkler, cam yüzeyler, çipler), `veri.dart` (paketler, tercihler).
+Kayısı ağacının topsuz hali: `tools/kayisi_temizle.py` → `assets/ozel/tree01_temiz.png`.
+Yedek: `git checkout yedek-flutter-v1` (modern arayüzden önceki hal).
 Yeni cüz/tema/ses paketi `bundle/` içine eklenip araç yeniden çalıştırılınca uygulama onu kendiliğinden bulur.

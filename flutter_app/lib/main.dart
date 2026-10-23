@@ -1,13 +1,15 @@
 // ============================================================================
-//  HAFIZ DÜNYASI – Flutter sürümü (React Native App.js'in okuyucu ekranlarının karşılığı)
+//  HAFIZ DÜNYASI – Flutter sürümü
+//  Sekmeler: Bugün · Cüzler · Ayarlar. Cüz okuyucu (bahçe → ağaç → ayet) tam ekran açılır.
 //  Gömülü paketler: assets/paket/<ad>/ (tools/flutter_varlik.py ile bundle/ parçalarından açılır).
-//  Yazar modu yok: uygulama doğrudan kullanıcı olarak açılır.
 // ============================================================================
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'ana_ekran.dart';
+import 'ayarlar.dart';
 import 'bahce.dart';
+import 'bugun.dart';
+import 'cuzler.dart';
 import 'ortak.dart';
 import 'veri.dart';
 
@@ -19,12 +21,38 @@ void main() {
 class HafizDunyasi extends StatelessWidget {
   const HafizDunyasi({super.key});
   @override
-  Widget build(BuildContext context) => MaterialApp(
-        title: 'Hafız Dünyası',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(brightness: Brightness.dark, colorSchemeSeed: C.accent, scaffoldBackgroundColor: C.bg),
-        home: const AnnotatedRegion<SystemUiOverlayStyle>(value: SystemUiOverlayStyle.light, child: Kok()),
-      );
+  Widget build(BuildContext context) {
+    final cs = ColorScheme.fromSeed(seedColor: R.primary, brightness: Brightness.dark).copyWith(
+      primary: R.primary, onPrimary: Colors.white, secondary: R.gold, surface: R.surface, onSurface: R.text, outline: R.outline,
+    );
+    return MaterialApp(
+      title: 'Hafız Dünyası',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: cs,
+        scaffoldBackgroundColor: R.bg,
+        splashFactory: NoSplash.splashFactory,
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: R.surface,
+          indicatorColor: R.primarySoft,
+          height: 68,
+          labelTextStyle: WidgetStateProperty.resolveWith((s) => ts(s.contains(WidgetState.selected) ? R.text : R.sub, 12.5, FontWeight.w600)),
+          iconTheme: WidgetStateProperty.resolveWith((s) => IconThemeData(color: s.contains(WidgetState.selected) ? R.primary : R.sub)),
+        ),
+        segmentedButtonTheme: SegmentedButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? R.primary : R.surface2),
+            foregroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? Colors.white : R.text),
+            side: const WidgetStatePropertyAll(BorderSide(color: R.outline)),
+          ),
+        ),
+        snackBarTheme: SnackBarThemeData(backgroundColor: R.surface2, contentTextStyle: ts(R.text, 14, FontWeight.w500)),
+        sliderTheme: const SliderThemeData(activeTrackColor: R.primary, thumbColor: R.primary, inactiveTrackColor: R.outline),
+      ),
+      home: const AnnotatedRegion<SystemUiOverlayStyle>(value: SystemUiOverlayStyle.light, child: Kok()),
+    );
+  }
 }
 
 class Kok extends StatefulWidget {
@@ -37,8 +65,8 @@ class _KokState extends State<Kok> {
   Depo? depo;
   String? hata;
   String profilAdi = '';
-  int? acikCuz; // null = ana ekran
-  int initAyah = -1, initTree = -1;
+  int sekme = 0;
+  int _rev = 0; // okuyucudan dönünce "kaldığın yer" yenilensin
 
   @override
   void initState() {
@@ -57,51 +85,18 @@ class _KokState extends State<Kok> {
     }
   }
 
-  void _cuzAc(int n, {int ayah = -1, int tree = -1}) => setState(() { acikCuz = n; initAyah = ayah; initTree = tree; });
-  void _ana() => setState(() => acikCuz = null);
-
-  void _profil() {
-    final c = TextEditingController(text: profilAdi);
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: C.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: C.line)),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text('Profilim', style: ts(C.text, 19, FontWeight.w700)),
-            const SizedBox(height: 12),
-            Center(
-              child: Container(
-                width: 96, height: 96, alignment: Alignment.center,
-                decoration: BoxDecoration(color: const Color(0xFF2B2373), borderRadius: BorderRadius.circular(30)),
-                child: const Text('🎓', style: TextStyle(fontSize: 40)),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: c, autofocus: true, style: ts(C.text, 16, FontWeight.w400),
-              decoration: InputDecoration(
-                hintText: 'Adın', hintStyle: ts(C.sub, 16, FontWeight.w400), filled: true, fillColor: C.card2, isDense: true,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: C.line)),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Row(children: [
-              Expanded(child: Btn('Kapat', () => Navigator.pop(ctx))),
-              const SizedBox(width: 10),
-              Expanded(child: Btn('Kaydet', () {
-                final ad = c.text.trim();
-                Kayit.profilYaz(ad);
-                setState(() => profilAdi = ad);
-                Navigator.pop(ctx);
-              }, primary: true)),
-            ]),
-          ]),
-        ),
-      ),
-    );
+  void _cuzAc(int n, {int ayah = -1, int tree = -1, int sheet = 0}) {
+    final d = depo!;
+    final cd = d.cuz[n];
+    if (cd == null) return;
+    Navigator.of(context)
+        .push(PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 260),
+          reverseTransitionDuration: const Duration(milliseconds: 200),
+          pageBuilder: (c, a, b) => CuzOkuyucu(depo: d, cd: cd, initAyah: ayah, initTree: tree, initSheet: sheet, onClose: () => Navigator.of(c).pop()),
+          transitionsBuilder: (c, a, b, child) => FadeTransition(opacity: a, child: child),
+        ))
+        .then((_) => setState(() => _rev++));
   }
 
   @override
@@ -111,18 +106,36 @@ class _KokState extends State<Kok> {
       return Scaffold(
         body: Center(
           child: hata != null
-              ? Padding(padding: const EdgeInsets.all(24), child: Text('Paketler okunamadı:\n$hata', style: ts(C.danger, 14, FontWeight.w600)))
-              : const CircularProgressIndicator(color: C.accent),
+              ? Padding(padding: const EdgeInsets.all(24), child: Text('Paketler okunamadı:\n$hata', style: ts(const Color(0xFFFF6B6B), 14)))
+              : Column(mainAxisSize: MainAxisSize.min, children: [
+                  img('assets/logo.png', w: 140, h: 140),
+                  const SizedBox(height: 20),
+                  const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.5, color: R.primary)),
+                ]),
         ),
       );
     }
-    final nav = [NavItem('home', '🏠', 'Ana Sayfa', _ana), NavItem('profile', '👤', 'Profil', _profil)];
-    final n = acikCuz;
+    void adKaydet(String ad) {
+      Kayit.profilYaz(ad);
+      setState(() => profilAdi = ad);
+    }
+
+    final sayfalar = [
+      Bugun(key: ValueKey('bugun$_rev$profilAdi'), depo: d, profilAdi: profilAdi, onOpen: _cuzAc, onProfil: () => setState(() => sekme = 2)),
+      Cuzler(depo: d, onOpen: _cuzAc),
+      Ayarlar(profilAdi: profilAdi, onAd: adKaydet),
+    ];
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: n != null && d.cuz.containsKey(n)
-          ? CuzOkuyucu(key: ValueKey('cuz$n-$initAyah-$initTree'), depo: d, cd: d.cuz[n]!, initAyah: initAyah, initTree: initTree, nav: nav, onHome: _ana)
-          : AnaEkran(depo: d, profilAdi: profilAdi, nav: nav, onOpenCuz: _cuzAc, onProfile: _profil),
+      body: IndexedStack(index: sekme, children: sayfalar),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: sekme,
+        onDestinationSelected: (i) => setState(() => sekme = i),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.wb_sunny_outlined), selectedIcon: Icon(Icons.wb_sunny_rounded), label: 'Bugün'),
+          NavigationDestination(icon: Icon(Icons.auto_stories_outlined), selectedIcon: Icon(Icons.auto_stories_rounded), label: 'Cüzler'),
+          NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings_rounded), label: 'Ayarlar'),
+        ],
+      ),
     );
   }
 }
