@@ -48,8 +48,8 @@ class _BugunState extends State<Bugun> {
     widget.depo.cuz.forEach((n, cd) {
       var fl = 0;
       for (var pi = 0; pi < cd.pages.length; pi++) {
-        final p = cd.pages[pi], tname = treeName(pi);
-        rows.add(_Satir(true, n, pi, -1, 'Sayfa ${pi + 1} · $tname ağacı', cd.name, '', trn('$tname agac sayfa ${pi + 1}'), p.ayat.isNotEmpty ? p.ayat.first.start.path : null));
+        final p = cd.pages[pi], tname = widget.depo.adOf(cd, pi), tek = widget.depo.temaOf(n).ek;
+        rows.add(_Satir(true, n, pi, -1, 'Sayfa ${pi + 1} · $tname $tek', cd.name, '', trn('$tname agac sayfa ${pi + 1}'), p.ayat.isNotEmpty ? p.ayat.first.start.path : null));
         for (final a in p.ayat) {
           rows.add(_Satir(false, n, pi, fl, '${a.sname} ${a.no}', '${cd.name} · Sayfa ${pi + 1}', a.meal, trn('${a.sname} ${a.no} ${a.sura}:${a.no} ${a.meal}'), a.start.path));
           fl++;
@@ -163,7 +163,7 @@ class _BugunState extends State<Bugun> {
     final ayah = last != null && last.ayah >= 0 && last.ayah < flat.length ? flat[last.ayah] : null;
     final p = ayah?.p ?? (last != null && last.tree >= 0 ? last.tree : 0);
     final devam = last != null && (last.ayah >= 0 || last.tree >= 0);
-    final bg = d.tema.ui['bgPage'] ?? d.tema.ui['bgGarden'];
+    final bg = d.temaOf(cd.no).ui['bgPage'] ?? d.temaOf(cd.no).ui['bgGarden'];
     final tree = d.agacOf(cd, p);
     return Bas(
       onTap: () => devam ? widget.onOpen(cd.no, ayah: ayah != null ? last.ayah : -1, tree: p) : widget.onOpen(cd.no),
@@ -188,9 +188,9 @@ class _BugunState extends State<Bugun> {
                 child: Text(devam ? 'KALDIĞIN YER' : 'BAŞLA', style: ts(R.gold, 11, FontWeight.w800).copyWith(letterSpacing: 1)),
               ),
               const SizedBox(height: 10),
-              Text(devam ? 'Sayfa ${p + 1} · ${treeName(p)}' : cd.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(Colors.white, 20, FontWeight.w800)),
+              Text(devam ? 'Sayfa ${p + 1} · ${d.adOf(cd, p)}' : cd.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(Colors.white, 20, FontWeight.w800)),
               const SizedBox(height: 2),
-              Text(ayah != null ? '${cd.name} · ${ayah.a.sname} ${ayah.a.no}' : devam ? cd.name : '${cd.pages.length} ağaçlı meyve bahçesi', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(const Color(0xCCFFFFFF), 13.5, FontWeight.w500)),
+              Text(ayah != null ? '${cd.name} · ${ayah.a.sname} ${ayah.a.no}' : devam ? cd.name : '${cd.pages.length} ${d.temaOf(cd.no).tanim}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(const Color(0xCCFFFFFF), 13.5, FontWeight.w500)),
               const Spacer(),
               Container(
                 height: 40, padding: const EdgeInsets.symmetric(horizontal: 16),

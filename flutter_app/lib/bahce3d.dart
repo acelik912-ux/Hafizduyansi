@@ -76,13 +76,31 @@ class Bahce3B extends StatefulWidget {
   final int kimlik; // cüz no (konum hatırlamak için)
   final List<Sayfa> pages;
   final String? Function(int) agac;
+  final String Function(int) ad; // ağaç / maden adı
+  final String sahne; // 'bahce' | 'magara'
+  final String birim; // 'ağaç' | 'maden'
   final double W, H;
   final EdgeInsets pad;
   final String? Function(int p, int k) meyve; // ağacın k. meyve görseli (0-4)
   final void Function(int) onOpen;
   final void Function(int p, int j) onAyet; // sayfanın j. ayeti
   final bool Function(int p) ozel; // 1. cüzün Kayısı ağacı: yalnızca Fâtiha ve Bakara'nın ilk ayet başı
-  const Bahce3B({super.key, required this.kimlik, required this.pages, required this.agac, required this.meyve, required this.ozel, required this.W, required this.H, required this.pad, required this.onOpen, required this.onAyet});
+  const Bahce3B({
+    super.key,
+    required this.kimlik,
+    required this.pages,
+    required this.agac,
+    required this.ad,
+    required this.sahne,
+    required this.birim,
+    required this.meyve,
+    required this.ozel,
+    required this.W,
+    required this.H,
+    required this.pad,
+    required this.onOpen,
+    required this.onAyet,
+  });
   @override
   State<Bahce3B> createState() => _Bahce3BState();
 }
@@ -285,7 +303,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
           top: top,
           width: 160,
           child: Center(
-            child: GestureDetector(onTap: () => _sec(i), child: _Levha('${i + 1} · ${treeName(i)}', i == yk)),
+            child: GestureDetector(onTap: () => _sec(i), child: _Levha('${i + 1} · ${widget.ad(i)}', i == yk)),
           ),
         ),
       );
@@ -337,7 +355,15 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
               ),
             ),
           ),
-        if (yk >= 0) Positioned(left: 12, right: 12, bottom: pad.bottom + 14, child: Center(child: SizedBox(width: math.min(W - 24, 420), child: _girisKarti(yk, ayetler.isNotEmpty)))),
+        if (yk >= 0)
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: pad.bottom + 14,
+            child: Center(
+              child: SizedBox(width: math.min(W - 24, 420), child: _girisKarti(yk, ayetler.isNotEmpty)),
+            ),
+          ),
       ],
     );
   }
@@ -350,7 +376,10 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final r = cizim.where((c) => c.s.idx == i).map((c) => c.r).firstOrNull;
     if (r == null) return const [];
     final oz = widget.ozel(i);
-    final secili = [for (var j = 0; j < page.ayat.length; j++) if (!oz || page.ayat[j].no == 1) j];
+    final secili = [
+      for (var j = 0; j < page.ayat.length; j++)
+        if (!oz || page.ayat[j].no == 1) j,
+    ];
     final n = secili.length, satir = 1 + n ~/ 2;
     // yerleşim tamamen ağacın ekrandaki boyutuna oranlı: etiketler ağaca basılmış gibi, bakış dönünce
     // ya da yaklaşıp uzaklaşınca ağaçla birlikte kayar ve büyüyüp küçülür
@@ -367,18 +396,31 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
       final left = yan == 0 ? cx - lw / 2 : (yan > 0 ? cx + r.width * 0.5 - lw : cx - r.width * 0.5);
       final renk = oz ? 2 : j % 5, src = widget.meyve(i, renk); // Kayısı'da sarı kayısı
       final meyve = Container(
-        width: fd, height: fd, alignment: Alignment.center,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0x8C08160E), border: Border.all(color: renk == 0 ? const Color(0xBFEBEBEB) : fruitCol[renk], width: 2)),
+        width: fd,
+        height: fd,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0x8C08160E),
+          border: Border.all(color: renk == 0 ? const Color(0xBFEBEBEB) : fruitCol[renk], width: 2),
+        ),
         child: src != null ? img(src, w: fd * 0.78, h: fd * 0.78) : Text('${j + 1}', style: ts(fruitFg(renk), fd * 0.4, FontWeight.w800)),
       );
       final etiket = Expanded(child: AyetEtiket(page.ayat[j].start.path, double.infinity, lh, border: fruitCol[renk], radius: 12));
-      out.add(Positioned(
-        left: left, top: y, width: lw, height: lh,
-        child: Bas(
-          onTap: () => widget.onAyet(i, j),
-          child: Row(children: yan < 0 ? [etiket, SizedBox(width: ara), meyve] : [meyve, SizedBox(width: ara), etiket]),
+      out.add(
+        Positioned(
+          left: left,
+          top: y,
+          width: lw,
+          height: lh,
+          child: Bas(
+            onTap: () => widget.onAyet(i, j),
+            child: Row(
+              children: yan < 0 ? [etiket, SizedBox(width: ara), meyve] : [meyve, SizedBox(width: ara), etiket],
+            ),
+          ),
         ),
-      ));
+      );
     }
     return out;
   }
@@ -398,9 +440,9 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('${i + 1} · ${treeName(i)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(Colors.white, 14, FontWeight.w700)),
+                  Text('${i + 1} · ${widget.ad(i)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(Colors.white, 14, FontWeight.w700)),
                   if (sade)
-                    Text(widget.ozel(i) ? 'Fâtiha · Bakara · ağaç sayfasını aç' : '${p.ayat.length} ayet · ağaç sayfasını aç', style: ts(R.sub, 12, FontWeight.w500))
+                    Text(widget.ozel(i) ? 'Fâtiha · Bakara · ${widget.birim} sayfasını aç' : '${p.ayat.length} ayet · ${widget.birim} sayfasını aç', style: ts(R.sub, 12, FontWeight.w500))
                   else ...[
                     const SizedBox(height: 4),
                     st != null ? AyetEtiket(st.path, double.infinity, 34, radius: 10) : Text('Fatiha · Bakara', style: ts(R.sub, 12.5)),
@@ -470,35 +512,8 @@ class _Dunya extends CustomPainter {
     final p = Paint();
     Offset ekran(Offset o, [double y = 0]) => Offset(W / 2 + o.dx / o.dy * f, yH + (_goz - y) / o.dy * f);
 
-    // gökyüzü, uzak tepeler ve çitin ötesindeki koru (sonsuz uzakta: yalnızca bakış yönüyle kayar)
-    c.drawRect(Rect.fromLTRB(0, 0, W, yH + 1), Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, yH), const [Color(0xFF5FA6DE), Color(0xFFD9ECF4)]));
-    void ufukCiz(double Function(double t) yuk, Color col) {
-      final path = Path()..moveTo(0, yH + 1);
-      for (double x = 0; x <= W + 3; x += 3) {
-        path.lineTo(x, yH - yuk(k.yaw + math.atan((x - W / 2) / f)) * olc);
-      }
-      path
-        ..lineTo(W, yH + 1)
-        ..close();
-      c.drawPath(path, p..color = col);
-    }
-
-    ufukCiz((t) => 34 + 16 * math.sin(3 * t) + 9 * math.sin(7 * t + 1) + 4 * math.sin(13 * t + 2), const Color(0xFFAFCBC8));
-    ufukCiz((t) => 20 + 10 * math.sin(2 * t + 2) + 6 * math.sin(9 * t), const Color(0xFF8DB596));
-    double koru(double t, int a, int b, double ph) {
-      final u = math.sin(a * t + ph), v = math.sin(b * t + 2 * ph);
-      return 18 + 14 * u * u + 9 * v * v;
-    }
-
-    // çitin ötesi: iki kat sık koru (uzaktaki açık, yakındaki koyu)
-    ufukCiz((t) => koru(t, 37, 61, 0.5) + 14, const Color(0xFF6E9C69));
-    ufukCiz((t) => koru(t, 53, 89, 1.3), const Color(0xFF4A7A45));
-
-    // çitin dışındaki çayır
-    c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset(0, H), const [Color(0xFF8FB46A), Color(0xFF6E9A4C)]));
-
     // yerdeki çokgeni kameranın önünden keserek ekrana düşür
-    Path? zemin(List<Offset> dunya) {
+    Path? zemin(List<Offset> dunya, [double y = 0]) {
       final cs = [for (final q in dunya) s.kamera(q.dx, q.dy)];
       final out = <Offset>[];
       for (var i = 0; i < cs.length; i++) {
@@ -510,111 +525,258 @@ class _Dunya extends CustomPainter {
         }
       }
       if (out.length < 3) return null;
-      return Path()..addPolygon([for (final o in out) ekran(o)], true);
+      return Path()..addPolygon([for (final o in out) ekran(o, y)], true);
     }
 
-    void zeminCiz(List<Offset> dunya, Paint boya) {
-      final z = zemin(dunya);
+    void zeminCiz(List<Offset> dunya, Paint boya, [double y = 0]) {
+      final z = zemin(dunya, y);
       if (z != null) c.drawPath(z, boya);
     }
 
     final z0 = _citZ0, z1 = s.citZ1;
-    // bahçe çimi (biçilmiş): uzakta açık, yakında koyu; yol boyunca açık-koyu şeritler
-    zeminCiz([Offset(-_citX, z0), Offset(_citX, z0), Offset(_citX, z1), Offset(-_citX, z1)], Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset(0, H), const [Color(0xFF8DBE62), Color(0xFF3E7B2E)]));
-    for (var i = 0; i < 5; i++) {
-      final x0 = _yolW + i * 1.15, x1 = x0 + 1.15;
-      final col = i % 2 == 0 ? const Color(0x1AFFFFE0) : const Color(0x14000000);
-      for (final sg in const [-1.0, 1.0]) {
-        zeminCiz([Offset(sg * x0, z0), Offset(sg * x1, z0), Offset(sg * x1, z1), Offset(sg * x0, z1)], p..color = col);
-      }
-    }
-    // çitin dibindeki çiçek tarhları
-    for (final sg in const [-1.0, 1.0]) {
-      zeminCiz([Offset(sg * (_citX - 1.0), z0 + 1), Offset(sg * (_citX - 0.15), z0 + 1), Offset(sg * (_citX - 0.15), z1 - 1), Offset(sg * (_citX - 1.0), z1 - 1)], p..color = const Color(0xFF6B4A33));
-    }
 
-    // taş döşeli yol
-    for (var z = z0; z < z1; z += 1.2) {
-      if ((z - k.z).abs() > _gorus) continue;
-      final koyu = ((z - z0) / 1.2).round() % 2 == 0;
-      zeminCiz([Offset(-_yolW, z), Offset(_yolW, z), Offset(_yolW, z + 1.14), Offset(-_yolW, z + 1.14)], p..color = koyu ? const Color(0xFFD5BE90) : const Color(0xFFDFCAA0));
-    }
+    final magara = s.widget.sahne == 'magara';
+    if (magara) {
+      // ---- maden mağarası: tavan, kaya duvarlar, çakıllı zemin, raylar, ahşap destekler ve fenerler (sabit ışık)
+      const tavan = 5.6, koyu = Color(0xFF0B0806);
+      Color sis(Color col, double d) => Color.lerp(col, koyu, ((d - 4) / 26).clamp(0.0, 0.9))!;
+      c.drawRect(Offset.zero & size, p..color = koyu);
+      final tum = [Offset(-_citX, z0), Offset(_citX, z0), Offset(_citX, z1), Offset(-_citX, z1)];
+      zeminCiz(tum, Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset.zero, const [koyu, Color(0xFF3B2E25)]), tavan);
+      zeminCiz(tum, Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset(0, H), const [koyu, Color(0xFF5A4636)]));
 
-    // çim yaprakları: yakında sık ve uzun, uzaklaştıkça seyrek; ufka doğru kaybolur
-    final ot = _Ucgen();
-    void cimler(double hucre, double r0, double r1, int tohum) {
-      final i0 = ((k.x - r1) / hucre).floor(), i1 = ((k.x + r1) / hucre).ceil(), j0 = ((k.z - r1) / hucre).floor(), j1 = ((k.z + r1) / hucre).ceil();
-      for (var i = i0; i <= i1; i++) {
-        for (var j = j0; j <= j1; j++) {
-          final x = (i + _h(i, j, tohum)) * hucre, z = (j + _h(i, j, tohum + 1)) * hucre;
-          if (x.abs() < _yolW + 0.05 || x.abs() > _citX - 1.05 || z < z0 || z > z1) continue;
-          final o = s.kamera(x, z);
-          if (o.dy < math.max(r0, 0.9) || o.dy > r1) continue;
-          final e = ekran(o);
-          if (e.dx < -20 || e.dx > W + 20 || e.dy > H + 30) continue;
-          final hh = 0.045 + 0.07 * _h(i, j, tohum + 2), ww = 0.016 / o.dy * f; // biçilmiş çim boyu
-          final ux = x + (_h(i, j, tohum + 3) - 0.5) * 0.06, uz = z + (_h(i, j, tohum + 4) - 0.5) * 0.06;
-          final u = ekran(s.kamera(ux, uz), hh);
-          final ton = _h(i, j, tohum + 5), sis = (1 - (o.dy - r0) / (r1 - r0)).clamp(0.0, 1.0);
-          final alt = Color.lerp(const Color(0xFF2D5E22), const Color(0xFF3F7A2C), ton)!.withValues(alpha: 0.9 * sis);
-          final ust = Color.lerp(const Color(0xFF7DB04F), const Color(0xFFB5D27A), ton)!.withValues(alpha: 0.9 * sis);
-          ot.ekle(Offset(e.dx - ww, e.dy), Offset(e.dx + ww, e.dy), u, alt, alt, ust);
-        }
-      }
-    }
-
-    cimler(0.11, 0.9, 5.0, 11);
-    cimler(0.24, 4.5, 12.0, 21);
-    cimler(0.5, 11.0, 22.0, 41);
-    ot.ciz(c);
-
-    // çiçekler (tarhlarda)
-    for (final sg in const [-1.0, 1.0]) {
-      for (var j = (z0 + 1) ~/ 0.3; j < (z1 - 1) / 0.3; j++) {
-        for (var i = 0; i < 3; i++) {
-          final x = sg * (_citX - 0.9 + i * 0.26 + _h(i, j, 31) * 0.12), z = j * 0.3 + _h(i, j, 32) * 0.2;
-          final o = s.kamera(x, z);
-          if (o.dy < 0.9 || o.dy > 30) continue;
-          final e = ekran(o, 0.25 + 0.15 * _h(i, j, 33));
-          if (e.dx < -10 || e.dx > W + 10) continue;
-          final r = math.min(0.07 / o.dy * f, 10.0);
-          c.drawOval(Rect.fromCenter(center: e.translate(0, r * 0.9), width: r * 2.6, height: r * 1.4), p..color = const Color(0xFF2F6B28));
-          c.drawCircle(e, r, p..color = const [Color(0xFFE53935), Color(0xFFFFD54F), Color(0xFFF8F8F8), Color(0xFFEC77AB), Color(0xFF7E57C2)][(_h(i, j, 34) * 5).floor() % 5]);
-        }
-      }
-    }
-
-    // çit: kazıklar, iki kuşak ve sivri uçlu tahtalar (ağaçlar hep çitin içinde: önce çit, sonra ağaçlar)
-    final cit = _Ucgen();
-    void kenar(Offset a, Offset b) {
-      final l = (b - a).distance, yon = (b - a) / l, adim = 0.3, tw = 0.11;
-      final golge = yon.dx.abs() > 0.5 ? 0.0 : 0.08; // yan çitler biraz koyu
-      final tahta = Color.lerp(const Color(0xFFF1EBDD), const Color(0xFF8A8577), golge)!, tahtaUst = Color.lerp(const Color(0xFFFFFCF4), const Color(0xFF8A8577), golge)!;
-      for (var t = 0.0; t < l - 0.01; t += adim) {
-        final m = a + yon * (t + adim / 2), sol = m - yon * (tw / 2), sag = m + yon * (tw / 2);
-        final ks = s.kamera(sol.dx, sol.dy), kg = s.kamera(sag.dx, sag.dy);
-        if (ks.dy < _yakin || kg.dy < _yakin || ks.dy > _gorus) continue;
-        final ex = ekran(ks).dx;
-        if (ex < -50 || ex > W + 50) continue;
-        final kazik = ((t + adim / 2) / adim).round() % 6 == 0;
-        final hh = kazik ? _citH + 0.12 : _citH, km = s.kamera(m.dx, m.dy);
-        cit.dortgen(ekran(ks), ekran(kg), ekran(kg, hh - 0.1), ekran(ks, hh - 0.1), tahta, tahtaUst);
-        cit.ekle(ekran(ks, hh - 0.1), ekran(kg, hh - 0.1), ekran(km, hh), tahtaUst, tahtaUst, tahtaUst);
-        // kuşaklar (tahtaların arasından geçen yatay çıtalar)
-        final ileri = a + yon * (t + adim), ki = s.kamera(ileri.dx, ileri.dy);
-        if (ki.dy >= _yakin) {
-          for (final y in const [0.32, 0.72]) {
-            cit.dortgen(ekran(ks, y), ekran(ki, y), ekran(ki, y + 0.08), ekran(ks, y + 0.08), const Color(0xFFCFC6B2), const Color(0xFFE2DACA));
+      // kaya duvarlar: 1,2 m'lik dilimler, üç kat taş; her taşın tonu farklı, uzakta karanlığa karışır
+      final duvar = _Ucgen();
+      void duvarCiz(Offset a, Offset b, double golge) {
+        final l = (b - a).distance, yon = (b - a) / l;
+        const adim = 1.2, kat = [0.0, 1.5, 3.4, tavan];
+        for (var t = 0.0; t < l - 0.01; t += adim) {
+          final p0 = a + yon * t, p1 = a + yon * math.min(t + adim, l);
+          var q0 = s.kamera(p0.dx, p0.dy), q1 = s.kamera(p1.dx, p1.dy);
+          if (q0.dy < _yakin && q1.dy < _yakin) continue;
+          if (q0.dy < _yakin) q0 = Offset(q0.dx + (q1.dx - q0.dx) * (_yakin - q0.dy) / (q1.dy - q0.dy), _yakin);
+          if (q1.dy < _yakin) q1 = Offset(q1.dx + (q0.dx - q1.dx) * (_yakin - q1.dy) / (q0.dy - q1.dy), _yakin);
+          if (math.min(q0.dy, q1.dy) > _gorus) continue;
+          final e0 = ekran(q0).dx, e1 = ekran(q1).dx;
+          if (math.max(e0, e1) < 0 || math.min(e0, e1) > W) continue;
+          final d = (q0.dy + q1.dy) / 2, ti = ((p0.dx + p0.dy) * 10).round();
+          for (var r = 0; r < 3; r++) {
+            final ton = Color.lerp(const Color(0xFF3A2F27), const Color(0xFF6E5C4B), _h(ti, r, 51))!;
+            duvar.dortgen(
+              ekran(q0, kat[r]),
+              ekran(q1, kat[r]),
+              ekran(q1, kat[r + 1]),
+              ekran(q0, kat[r + 1]),
+              sis(Color.lerp(ton, Colors.black, golge + 0.15)!, d),
+              sis(Color.lerp(ton, Colors.black, golge)!, d),
+            );
           }
         }
       }
-    }
 
-    kenar(Offset(-_citX, z0), Offset(_citX, z0));
-    kenar(Offset(_citX, z0), Offset(_citX, z1));
-    kenar(Offset(_citX, z1), Offset(-_citX, z1));
-    kenar(Offset(-_citX, z1), Offset(-_citX, z0));
-    cit.ciz(c);
+      duvarCiz(Offset(-_citX, z0), Offset(_citX, z0), 0.25);
+      duvarCiz(Offset(_citX, z0), Offset(_citX, z1), 0.1);
+      duvarCiz(Offset(_citX, z1), Offset(-_citX, z1), 0.25);
+      duvarCiz(Offset(-_citX, z1), Offset(-_citX, z0), 0.1);
+      duvar.ciz(c);
+
+      // çakıllar: yerde yatan küçük üçgen taşlar
+      final cakil = _Ucgen();
+      void cakillar(double hucre, double r1, int tohum) {
+        final i0 = ((k.x - r1) / hucre).floor(), i1 = ((k.x + r1) / hucre).ceil(), j0 = ((k.z - r1) / hucre).floor(), j1 = ((k.z + r1) / hucre).ceil();
+        for (var i = i0; i <= i1; i++) {
+          for (var j = j0; j <= j1; j++) {
+            final x = (i + _h(i, j, tohum)) * hucre, z = (j + _h(i, j, tohum + 1)) * hucre;
+            if (x.abs() > _citX - 0.1 || z < z0 || z > z1) continue;
+            final o = s.kamera(x, z);
+            if (o.dy < 0.9 || o.dy > r1) continue;
+            final e = ekran(o);
+            if (e.dx < -20 || e.dx > W + 20 || e.dy > H + 20) continue;
+            final rr = hucre * (0.1 + 0.16 * _h(i, j, tohum + 2)), a0 = _h(i, j, tohum + 3) * 6.28;
+            final ks = [for (var m = 0; m < 3; m++) ekran(s.kamera(x + math.cos(a0 + m * 2.1) * rr, z + math.sin(a0 + m * 2.1) * rr), 0.01)];
+            final ton = sis(Color.lerp(const Color(0xFF3E342B), const Color(0xFF7A6A58), _h(i, j, tohum + 4))!, o.dy);
+            cakil.ekle(ks[0], ks[1], ks[2], ton, ton, Color.lerp(ton, Colors.white, 0.12)!);
+          }
+        }
+      }
+
+      cakillar(0.2, 8, 61);
+      cakillar(0.45, 20, 71);
+      cakil.ciz(c);
+
+      // raylar ve traversler
+      for (var z = z0 + 0.4; z < z1 - 0.4; z += 0.75) {
+        if ((z - k.z).abs() > _gorus) continue;
+        zeminCiz([Offset(-0.85, z), Offset(0.85, z), Offset(0.85, z + 0.22), Offset(-0.85, z + 0.22)], p..color = sis(const Color(0xFF5A3B22), s.kamera(0, z).dy.abs()), 0.05);
+      }
+      for (final x in const [-0.5, 0.5]) {
+        for (var z = z0 + 0.4; z < z1 - 0.4; z += 1.5) {
+          if ((z - k.z).abs() > _gorus) continue;
+          zeminCiz([Offset(x - 0.035, z), Offset(x + 0.035, z), Offset(x + 0.035, z + 1.5), Offset(x - 0.035, z + 1.5)], p..color = sis(const Color(0xFFB9C0C6), s.kamera(x, z).dy.abs()), 0.12);
+        }
+      }
+
+      // ahşap destek çerçeveleri ve fenerler (yanıp sönmez)
+      for (var z = z0 + 3.0; z < z1 - 1; z += 6.0) {
+        final o = s.kamera(0, z);
+        if (o.dy > _gorus) continue;
+        Path? yuz(double xa, double xb, double ya, double yb) {
+          final a = s.kamera(xa, z), b = s.kamera(xb, z);
+          if (a.dy < _yakin || b.dy < _yakin) return null;
+          return Path()..addPolygon([ekran(a, ya), ekran(b, ya), ekran(b, yb), ekran(a, yb)], true);
+        }
+
+        final tahta = sis(const Color(0xFF7A5230), o.dy.abs());
+        for (final sg in const [-1.0, 1.0]) {
+          final dikme = yuz(sg * (_citX - 0.5), sg * (_citX - 0.18), 0, 4.95);
+          if (dikme != null) c.drawPath(dikme, p..color = tahta);
+          final f0 = s.kamera(sg * (_citX - 0.65), z - 0.15);
+          if (f0.dy > _yakin) {
+            final e = ekran(f0, 2.7), r = 1.6 / f0.dy * f;
+            c.drawCircle(e, r, Paint()..shader = ui.Gradient.radial(e, r, [const Color(0x66FFC266), const Color(0x00FFC266)]));
+            final lr = Rect.fromCenter(center: e, width: 0.16 / f0.dy * f, height: 0.24 / f0.dy * f);
+            c.drawRRect(RRect.fromRectAndRadius(lr, Radius.circular(lr.width * 0.2)), p..color = const Color(0xFF2B1D12));
+            c.drawRect(lr.deflate(lr.width * 0.18), p..color = const Color(0xFFFFE7A8));
+          }
+        }
+        final kiris = yuz(-_citX, _citX, 4.85, 5.3);
+        if (kiris != null) c.drawPath(kiris, p..color = Color.lerp(tahta, Colors.black, 0.15)!);
+      }
+    } else {
+      // gökyüzü, uzak tepeler ve çitin ötesindeki koru (sonsuz uzakta: yalnızca bakış yönüyle kayar)
+      c.drawRect(Rect.fromLTRB(0, 0, W, yH + 1), Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, yH), const [Color(0xFF5FA6DE), Color(0xFFD9ECF4)]));
+      void ufukCiz(double Function(double t) yuk, Color col) {
+        final path = Path()..moveTo(0, yH + 1);
+        for (double x = 0; x <= W + 3; x += 3) {
+          path.lineTo(x, yH - yuk(k.yaw + math.atan((x - W / 2) / f)) * olc);
+        }
+        path
+          ..lineTo(W, yH + 1)
+          ..close();
+        c.drawPath(path, p..color = col);
+      }
+
+      ufukCiz((t) => 34 + 16 * math.sin(3 * t) + 9 * math.sin(7 * t + 1) + 4 * math.sin(13 * t + 2), const Color(0xFFAFCBC8));
+      ufukCiz((t) => 20 + 10 * math.sin(2 * t + 2) + 6 * math.sin(9 * t), const Color(0xFF8DB596));
+      double koru(double t, int a, int b, double ph) {
+        final u = math.sin(a * t + ph), v = math.sin(b * t + 2 * ph);
+        return 18 + 14 * u * u + 9 * v * v;
+      }
+
+      // çitin ötesi: iki kat sık koru (uzaktaki açık, yakındaki koyu)
+      ufukCiz((t) => koru(t, 37, 61, 0.5) + 14, const Color(0xFF6E9C69));
+      ufukCiz((t) => koru(t, 53, 89, 1.3), const Color(0xFF4A7A45));
+
+      // çitin dışındaki çayır
+      c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset(0, H), const [Color(0xFF8FB46A), Color(0xFF6E9A4C)]));
+
+      // bahçe çimi (biçilmiş): uzakta açık, yakında koyu; yol boyunca açık-koyu şeritler
+      zeminCiz([
+        Offset(-_citX, z0),
+        Offset(_citX, z0),
+        Offset(_citX, z1),
+        Offset(-_citX, z1),
+      ], Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset(0, H), const [Color(0xFF8DBE62), Color(0xFF3E7B2E)]));
+      for (var i = 0; i < 5; i++) {
+        final x0 = _yolW + i * 1.15, x1 = x0 + 1.15;
+        final col = i % 2 == 0 ? const Color(0x1AFFFFE0) : const Color(0x14000000);
+        for (final sg in const [-1.0, 1.0]) {
+          zeminCiz([Offset(sg * x0, z0), Offset(sg * x1, z0), Offset(sg * x1, z1), Offset(sg * x0, z1)], p..color = col);
+        }
+      }
+      // çitin dibindeki çiçek tarhları
+      for (final sg in const [-1.0, 1.0]) {
+        zeminCiz([
+          Offset(sg * (_citX - 1.0), z0 + 1),
+          Offset(sg * (_citX - 0.15), z0 + 1),
+          Offset(sg * (_citX - 0.15), z1 - 1),
+          Offset(sg * (_citX - 1.0), z1 - 1),
+        ], p..color = const Color(0xFF6B4A33));
+      }
+
+      // taş döşeli yol
+      for (var z = z0; z < z1; z += 1.2) {
+        if ((z - k.z).abs() > _gorus) continue;
+        final koyu = ((z - z0) / 1.2).round() % 2 == 0;
+        zeminCiz([Offset(-_yolW, z), Offset(_yolW, z), Offset(_yolW, z + 1.14), Offset(-_yolW, z + 1.14)], p..color = koyu ? const Color(0xFFD5BE90) : const Color(0xFFDFCAA0));
+      }
+
+      // çim yaprakları: yakında sık ve uzun, uzaklaştıkça seyrek; ufka doğru kaybolur
+      final ot = _Ucgen();
+      void cimler(double hucre, double r0, double r1, int tohum) {
+        final i0 = ((k.x - r1) / hucre).floor(), i1 = ((k.x + r1) / hucre).ceil(), j0 = ((k.z - r1) / hucre).floor(), j1 = ((k.z + r1) / hucre).ceil();
+        for (var i = i0; i <= i1; i++) {
+          for (var j = j0; j <= j1; j++) {
+            final x = (i + _h(i, j, tohum)) * hucre, z = (j + _h(i, j, tohum + 1)) * hucre;
+            if (x.abs() < _yolW + 0.05 || x.abs() > _citX - 1.05 || z < z0 || z > z1) continue;
+            final o = s.kamera(x, z);
+            if (o.dy < math.max(r0, 0.9) || o.dy > r1) continue;
+            final e = ekran(o);
+            if (e.dx < -20 || e.dx > W + 20 || e.dy > H + 30) continue;
+            final hh = 0.045 + 0.07 * _h(i, j, tohum + 2), ww = 0.016 / o.dy * f; // biçilmiş çim boyu
+            final ux = x + (_h(i, j, tohum + 3) - 0.5) * 0.06, uz = z + (_h(i, j, tohum + 4) - 0.5) * 0.06;
+            final u = ekran(s.kamera(ux, uz), hh);
+            final ton = _h(i, j, tohum + 5), sis = (1 - (o.dy - r0) / (r1 - r0)).clamp(0.0, 1.0);
+            final alt = Color.lerp(const Color(0xFF2D5E22), const Color(0xFF3F7A2C), ton)!.withValues(alpha: 0.9 * sis);
+            final ust = Color.lerp(const Color(0xFF7DB04F), const Color(0xFFB5D27A), ton)!.withValues(alpha: 0.9 * sis);
+            ot.ekle(Offset(e.dx - ww, e.dy), Offset(e.dx + ww, e.dy), u, alt, alt, ust);
+          }
+        }
+      }
+
+      cimler(0.11, 0.9, 5.0, 11);
+      cimler(0.24, 4.5, 12.0, 21);
+      cimler(0.5, 11.0, 22.0, 41);
+      ot.ciz(c);
+
+      // çiçekler (tarhlarda)
+      for (final sg in const [-1.0, 1.0]) {
+        for (var j = (z0 + 1) ~/ 0.3; j < (z1 - 1) / 0.3; j++) {
+          for (var i = 0; i < 3; i++) {
+            final x = sg * (_citX - 0.9 + i * 0.26 + _h(i, j, 31) * 0.12), z = j * 0.3 + _h(i, j, 32) * 0.2;
+            final o = s.kamera(x, z);
+            if (o.dy < 0.9 || o.dy > 30) continue;
+            final e = ekran(o, 0.25 + 0.15 * _h(i, j, 33));
+            if (e.dx < -10 || e.dx > W + 10) continue;
+            final r = math.min(0.07 / o.dy * f, 10.0);
+            c.drawOval(Rect.fromCenter(center: e.translate(0, r * 0.9), width: r * 2.6, height: r * 1.4), p..color = const Color(0xFF2F6B28));
+            c.drawCircle(e, r, p..color = const [Color(0xFFE53935), Color(0xFFFFD54F), Color(0xFFF8F8F8), Color(0xFFEC77AB), Color(0xFF7E57C2)][(_h(i, j, 34) * 5).floor() % 5]);
+          }
+        }
+      }
+
+      // çit: kazıklar, iki kuşak ve sivri uçlu tahtalar (ağaçlar hep çitin içinde: önce çit, sonra ağaçlar)
+      final cit = _Ucgen();
+      void kenar(Offset a, Offset b) {
+        final l = (b - a).distance, yon = (b - a) / l, adim = 0.3, tw = 0.11;
+        final golge = yon.dx.abs() > 0.5 ? 0.0 : 0.08; // yan çitler biraz koyu
+        final tahta = Color.lerp(const Color(0xFFF1EBDD), const Color(0xFF8A8577), golge)!, tahtaUst = Color.lerp(const Color(0xFFFFFCF4), const Color(0xFF8A8577), golge)!;
+        for (var t = 0.0; t < l - 0.01; t += adim) {
+          final m = a + yon * (t + adim / 2), sol = m - yon * (tw / 2), sag = m + yon * (tw / 2);
+          final ks = s.kamera(sol.dx, sol.dy), kg = s.kamera(sag.dx, sag.dy);
+          if (ks.dy < _yakin || kg.dy < _yakin || ks.dy > _gorus) continue;
+          final ex = ekran(ks).dx;
+          if (ex < -50 || ex > W + 50) continue;
+          final kazik = ((t + adim / 2) / adim).round() % 6 == 0;
+          final hh = kazik ? _citH + 0.12 : _citH, km = s.kamera(m.dx, m.dy);
+          cit.dortgen(ekran(ks), ekran(kg), ekran(kg, hh - 0.1), ekran(ks, hh - 0.1), tahta, tahtaUst);
+          cit.ekle(ekran(ks, hh - 0.1), ekran(kg, hh - 0.1), ekran(km, hh), tahtaUst, tahtaUst, tahtaUst);
+          // kuşaklar (tahtaların arasından geçen yatay çıtalar)
+          final ileri = a + yon * (t + adim), ki = s.kamera(ileri.dx, ileri.dy);
+          if (ki.dy >= _yakin) {
+            for (final y in const [0.32, 0.72]) {
+              cit.dortgen(ekran(ks, y), ekran(ki, y), ekran(ki, y + 0.08), ekran(ks, y + 0.08), const Color(0xFFCFC6B2), const Color(0xFFE2DACA));
+            }
+          }
+        }
+      }
+
+      kenar(Offset(-_citX, z0), Offset(_citX, z0));
+      kenar(Offset(_citX, z0), Offset(_citX, z1));
+      kenar(Offset(_citX, z1), Offset(-_citX, z1));
+      kenar(Offset(-_citX, z1), Offset(-_citX, z0));
+      cit.ciz(c);
+    }
 
     // gidilen yer işareti (sabit halka)
     if (s.hedef != null && s.hedefIdx < 0 && s.bakHedef == null) {
@@ -637,12 +799,22 @@ class _Dunya extends CustomPainter {
       final r = d.r, taban = Offset(r.center.dx, r.bottom - r.height * 0.01);
       final bw = r.width * 0.6;
       c.drawOval(Rect.fromCenter(center: taban, width: bw, height: bw * 0.18), p..color = const Color(0x40000000));
+      if (magara) {
+        // mağarada madenin dibinde sıcak ışık
+        c.drawOval(
+          Rect.fromCenter(center: taban, width: r.width * 1.1, height: r.width * 0.22),
+          Paint()..shader = ui.Gradient.radial(taban, r.width * 0.55, [const Color(0x40FFC266), const Color(0x00FFC266)]),
+        );
+      }
       if (d.s.idx == yk) {
         c.drawOval(Rect.fromCenter(center: taban, width: r.width * 0.9, height: r.width * 0.16), p..color = const Color(0x59FFE29A));
       }
       final im = d.s.src == null ? null : _resimler[d.s.src];
       if (im != null) {
-        c.drawImageRect(im, Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble()), r, Paint()..filterQuality = FilterQuality.medium);
+        final boya = Paint()..filterQuality = FilterQuality.medium;
+        final karanlik = magara ? ((d.d - 6) / 28).clamp(0.0, 0.85) : 0.0;
+        if (karanlik > 0) boya.colorFilter = ColorFilter.mode(Color.fromRGBO(11, 8, 6, karanlik), BlendMode.srcATop);
+        c.drawImageRect(im, Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble()), r, boya);
       } else {
         c.drawRRect(RRect.fromRectAndRadius(r.deflate(r.width * 0.2), Radius.circular(r.width * 0.1)), p..color = const Color(0x2EFFFFFF));
       }

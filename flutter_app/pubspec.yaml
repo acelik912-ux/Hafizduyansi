@@ -61,12 +61,18 @@ flutter:
     # PAKET-BAŞ
     - assets/paket/cuz1/
     - assets/paket/cuz1/img/
+    - assets/paket/cuz2/
+    - assets/paket/cuz2/img/
     - assets/paket/ses1/
     - assets/paket/ses1/a/
     - assets/paket/theme1/
     - assets/paket/theme1/bg/
     - assets/paket/theme1/fruits/
     - assets/paket/theme1/trees/
+    - assets/paket/theme2/
+    - assets/paket/theme2/bg/
+    - assets/paket/theme2/fruits/
+    - assets/paket/theme2/trees/
     # PAKET-SON
 
   # To add assets to your application, add an assets section, like this:

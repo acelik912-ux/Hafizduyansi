@@ -75,6 +75,10 @@ class Tema {
   final Map<int, String> trees = {}; // ağaç sırası (0'dan) -> görsel
   final Map<int, List<String?>> fruits = {}; // ağaç -> 5 meyve görseli
   final Map<String, String> ui = {}; // bgGarden, bgPage, bgAyet, streamH ...
+  final Map<int, String> adlar = {}; // ağaç / maden adları (yoksa meyve ağacı adları)
+  String ek = 'ağacı'; // başlıklarda: "Elma ağacı", "Altın madeni"
+  String birim = 'ağaç', tanim = 'ağaçlı meyve bahçesi'; // "20 ağaç", "20 ağaçlı meyve bahçesi"
+  String sahne = 'bahce'; // 3B sahne: 'bahce' (çitli bahçe) | 'magara' (maden mağarası)
 }
 
 // Cüzün ayetleri tek sırada (sayfa, 5'li grup, gruptaki sıra = meyve rengi)
@@ -96,7 +100,8 @@ bool ozelSayfa(Cuz cd, int p) => cd.no == 1 && p == 0;
 // ----------------------------------------------------------------- gömülü paketler
 class Depo {
   final Map<int, Cuz> cuz = {};
-  final Tema tema = Tema();
+  final Tema tema = Tema(); // varsayılan tema (cüz belirtilmemiş paket)
+  final Map<int, Tema> cuzTema = {}; // yalnızca bir cüze ait temalar (paketteki 'cuz' alanı)
   final Set<String> sesler = {}; // 'SSSAAA' -> assets/paket/<ad>/a/SSSAAA.mp3
   final Map<String, String> sesYolu = {};
 
@@ -119,6 +124,10 @@ class Depo {
             if (m != null) { d.sesler.add(m[1]!); d.sesYolu[m[1]!] = a; }
           }
       }
+    }
+    // cüz temasında olmayan arka planlar varsayılan temadan gelir
+    for (final t in d.cuzTema.values) {
+      d.tema.ui.forEach((k, v) => t.ui.putIfAbsent(k, () => v));
     }
     return d;
   }
@@ -148,9 +157,17 @@ class Depo {
   }
 
   void _tema(String base, Map meta, List<String> all) {
+    final tema = meta['cuz'] is int ? (cuzTema[meta['cuz'] as int] ??= Tema()) : this.tema;
+    if (meta['sahne'] is String) tema.sahne = meta['sahne'];
+    if (meta['ek'] is String) tema.ek = meta['ek'];
+    if (meta['birim'] is String) tema.birim = meta['birim'];
+    if (meta['tanim'] is String) tema.tanim = meta['tanim'];
     final trees = (meta['trees'] as Map? ?? {});
     final shift = trees.isNotEmpty && !trees.containsKey('0') ? 1 : 0; // paket 1'den başlıyorsa uygulama 0'dan başlar
-    trees.forEach((k, t) => tema.trees[int.parse(k) - shift] = '${base}trees/${t['file']}');
+    trees.forEach((k, t) {
+      tema.trees[int.parse(k) - shift] = '${base}trees/${t['file']}';
+      if (t['name'] is String) tema.adlar[int.parse(k) - shift] = t['name'];
+    });
     final re = RegExp(r'fruits/(\d+)_(\d)\.png$');
     for (final a in all.where((a) => a.startsWith('${base}fruits/'))) {
       final m = re.firstMatch(a);
@@ -162,7 +179,11 @@ class Depo {
   }
 
   // ağaç görseli: 1. cüz 1. sayfa için renkli topları örtülmüş kayısı ağacı (tools/kayisi_temizle.py)
-  String? agacOf(Cuz? cd, int i) => cd != null && ozelSayfa(cd, i) ? 'assets/ozel/tree01_temiz.png' : tema.trees[i];
+  String? agacOf(Cuz? cd, int i) => cd != null && ozelSayfa(cd, i) ? 'assets/ozel/tree01_temiz.png' : temaOf(cd?.no).trees[i];
+
+  Tema temaOf(int? cuz) => cuzTema[cuz] ?? tema;
+  String adOf(Cuz? cd, int i) => temaOf(cd?.no).adlar[i] ?? treeName(i);
+  String agacAdi(Cuz? cd, int i) => '${adOf(cd, i)} ${temaOf(cd?.no).ek}'; // "Elma ağacı", "Altın madeni"
 
   String? sesOf(int sura, int no) => sesYolu[sura.toString().padLeft(3, '0') + no.toString().padLeft(3, '0')];
 }

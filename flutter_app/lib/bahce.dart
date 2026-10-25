@@ -33,7 +33,8 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
   ];
   late final List<Duz> flat = duzListe(widget.cd);
   List<Sayfa> get pages => widget.cd.pages;
-  Tema get tema => widget.depo.tema;
+  Tema get tema => widget.depo.temaOf(widget.cd.no);
+  String _ad(int i) => widget.depo.adOf(widget.cd, i);
   String? _agac(int i) => widget.depo.agacOf(widget.cd, i);
   int cur = -1; // -1 = bahçe
   int open = -1; // açık ayet (flat sırası)
@@ -151,7 +152,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         Positioned.fill(
           child: tercih.bahce == '3d'
               ? Bahce3B(
-                  kimlik: widget.cd.no, pages: pages, agac: _agac, meyve: (p, k) => tema.fruits[p]?[k], ozel: (p) => ozelSayfa(widget.cd, p), W: winW, H: H, pad: pad, onOpen: openTree,
+                  kimlik: widget.cd.no, pages: pages, agac: _agac, ad: _ad, sahne: tema.sahne, birim: tema.birim, meyve: (p, k) => tema.fruits[p]?[k], ozel: (p) => ozelSayfa(widget.cd, p), W: winW, H: H, pad: pad, onOpen: openTree,
                   // bahçedeki ayet başına dokununca ayet paneli; kapanınca bahçede kalınır
                   onAyet: (p, j) {
                     final fi = flat.indexWhere((f) => f.p == p && f.s * 5 + f.k == j);
@@ -159,17 +160,17 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
                   },
                 )
               : tercih.bahce == 'orman'
-              ? ForestPicker(pages: pages, tema: tema, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree)
+              ? ForestPicker(pages: pages, tema: tema, agac: _agac, ad: _ad, W: winW, H: H, pad: pad, onOpen: openTree)
               : gview == 'path'
-                  ? PathForest(pages: pages, tema: tema, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree, onBack: () => setState(() => gview = 'grid'))
-                  : GardenGrid(pages: pages, tema: tema, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree, onNext: () => setState(() => gview = 'path')),
+                  ? PathForest(pages: pages, tema: tema, agac: _agac, ad: _ad, W: winW, H: H, pad: pad, onOpen: openTree, onBack: () => setState(() => gview = 'grid'))
+                  : GardenGrid(pages: pages, tema: tema, agac: _agac, ad: _ad, W: winW, H: H, pad: pad, onOpen: openTree, onNext: () => setState(() => gview = 'path')),
         ),
         Positioned(
           left: 12, right: 12, top: pad.top + 10,
           child: Row(children: [
             CamIkon(Icons.arrow_back_rounded, widget.onClose, ipucu: 'Geri'),
             const SizedBox(width: 10),
-            Expanded(child: Center(child: CamBaslik(widget.cd.name, sub: '${pages.length} ağaç · ${flat.length} ayet'))),
+            Expanded(child: Center(child: CamBaslik(widget.cd.name, sub: '${pages.length} ${tema.birim} · ${flat.length} ayet'))),
             const SizedBox(width: 10),
             CamIkon(N ? Icons.light_mode_rounded : Icons.dark_mode_rounded, () => tercih.degistir((t) => t.night = !t.night), ipucu: 'Gece modu'),
             const SizedBox(width: 8),
@@ -220,7 +221,8 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
               child: AyetPaneli(
                 depo: widget.depo,
                 item: flat[open],
-                title: '${widget.cd.name} · ${treeName(flat[open].p)} ağacı',
+                title: '${widget.cd.name} · ${widget.depo.agacAdi(widget.cd, flat[open].p)}',
+                tema: tema,
                 idx: open, total: flat.length, W: W, winW: winW, H: H,
                 dinle: dinle,
                 sayfaSonu: dinle && open + 1 < flat.length && flat[open + 1].p == flat[open].p ? false : true,
@@ -256,7 +258,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         const SizedBox(width: 10),
         Expanded(
           child: Center(
-            child: CamBaslik('Sayfa ${it.p + 1} · ${treeName(it.p)}', sub: '${widget.cd.name}${it.n > 1 ? '  ·  ${it.s + 1}/${it.n}' : ''}'),
+            child: CamBaslik('Sayfa ${it.p + 1} · ${_ad(it.p)}', sub: '${widget.cd.name}${it.n > 1 ? '  ·  ${it.s + 1}/${it.n}' : ''}'),
           ),
         ),
         const SizedBox(width: 10),
@@ -318,7 +320,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
     if (it.s < it.n - 1) {
       orta = _altKart(null, 'Sayfa devamı', '${it.s + 2}/${it.n}', next);
     } else if (nextPage != null && nextPage.kind == 'ayat' && nextPage.ayat.isNotEmpty) {
-      orta = _altKart(nextPage.ayat.first.start.path, 'Sonraki sayfa', '${it.p + 2} · ${treeName(it.p + 1)}', next);
+      orta = _altKart(nextPage.ayat.first.start.path, 'Sonraki sayfa', '${it.p + 2} · ${_ad(it.p + 1)}', next);
     } else {
       orta = _altKart(null, 'Bahçeye dön', widget.cd.name, toGarden);
     }
@@ -459,10 +461,11 @@ class ForestPicker extends StatefulWidget {
   final List<Sayfa> pages;
   final Tema tema;
   final String? Function(int) agac;
+  final String Function(int) ad;
   final double W, H;
   final EdgeInsets pad;
   final void Function(int) onOpen;
-  const ForestPicker({super.key, required this.pages, required this.tema, required this.agac, required this.W, required this.H, required this.pad, required this.onOpen});
+  const ForestPicker({super.key, required this.pages, required this.tema, required this.agac, required this.ad, required this.W, required this.H, required this.pad, required this.onOpen});
   @override
   State<ForestPicker> createState() => _ForestPickerState();
 }
@@ -534,7 +537,7 @@ class _ForestPickerState extends State<ForestPicker> with SingleTickerProviderSt
                           radius: 18,
                           padding: const EdgeInsets.fromLTRB(6, 5, 6, 6),
                           child: Column(children: [
-                            Text('${idx + 1} · ${treeName(idx)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(Colors.white, 11, FontWeight.w700)),
+                            Text('${idx + 1} · ${widget.ad(idx)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(Colors.white, 11, FontWeight.w700)),
                             const SizedBox(height: 3),
                             Expanded(
                               child: page.kind == 'special'
@@ -604,11 +607,12 @@ class GardenGrid extends StatelessWidget {
   final List<Sayfa> pages;
   final Tema tema;
   final String? Function(int) agac;
+  final String Function(int) ad;
   final double W, H;
   final EdgeInsets pad;
   final void Function(int) onOpen;
   final VoidCallback onNext;
-  const GardenGrid({super.key, required this.pages, required this.tema, required this.agac, required this.W, required this.H, required this.pad, required this.onOpen, required this.onNext});
+  const GardenGrid({super.key, required this.pages, required this.tema, required this.agac, required this.ad, required this.W, required this.H, required this.pad, required this.onOpen, required this.onNext});
   @override
   Widget build(BuildContext context) {
     final gw = math.min(W, 720.0), padX = 10.0, gap = 8.0;
@@ -656,12 +660,12 @@ class GardenGrid extends StatelessWidget {
         if (src != null)
           Positioned(left: 4, top: 5, width: cw - 8, height: ch * 0.64, child: img(src))
         else
-          Positioned(left: 0, right: 0, top: ch * 0.2, child: Text(treeName(i), textAlign: TextAlign.center, style: ts(Colors.white, 14))),
+          Positioned(left: 0, right: 0, top: ch * 0.2, child: Text(ad(i), textAlign: TextAlign.center, style: ts(Colors.white, 14))),
         Positioned(
           left: 4, right: 4, bottom: 4, height: ch * 0.25,
           child: st != null
               ? AyetEtiket(st.path, cw - 8, ch * 0.25)
-              : Center(child: Text(treeName(i), maxLines: 1, style: ts(Colors.white, 11))),
+              : Center(child: Text(ad(i), maxLines: 1, style: ts(Colors.white, 11))),
         ),
         Positioned(right: 5, top: 5, child: _no(i + 1)),
       ]),
@@ -674,11 +678,12 @@ class PathForest extends StatelessWidget {
   final List<Sayfa> pages;
   final Tema tema;
   final String? Function(int) agac;
+  final String Function(int) ad;
   final double W, H;
   final EdgeInsets pad;
   final void Function(int) onOpen;
   final VoidCallback onBack;
-  const PathForest({super.key, required this.pages, required this.tema, required this.agac, required this.W, required this.H, required this.pad, required this.onOpen, required this.onBack});
+  const PathForest({super.key, required this.pages, required this.tema, required this.agac, required this.ad, required this.W, required this.H, required this.pad, required this.onOpen, required this.onBack});
   @override
   Widget build(BuildContext context) {
     final sH = tema.ui['streamH'], sV = tema.ui['streamV'], sC = tema.ui['streamC'];
@@ -754,9 +759,9 @@ class PathForest extends StatelessWidget {
         onTap: () => onOpen(i),
         child: Stack(children: [
           Column(children: [
-            src != null ? img(src, w: nodeW * 0.96, h: treeH) : SizedBox(width: nodeW * 0.7, height: treeH, child: Center(child: Text(treeName(i), style: ts(Colors.white, 14)))),
+            src != null ? img(src, w: nodeW * 0.96, h: treeH) : SizedBox(width: nodeW * 0.7, height: treeH, child: Center(child: Text(ad(i), style: ts(Colors.white, 14)))),
             const SizedBox(height: 14),
-            st != null ? AyetEtiket(st.path, nodeW - 8, 44) : Text(treeName(i), maxLines: 1, style: ts(Colors.white, 12)),
+            st != null ? AyetEtiket(st.path, nodeW - 8, 44) : Text(ad(i), maxLines: 1, style: ts(Colors.white, 12)),
           ]),
           Positioned(left: 4, top: 4, child: _no(i + 1, 26)),
         ]),

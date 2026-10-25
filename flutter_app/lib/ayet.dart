@@ -28,7 +28,8 @@ class AyetPaneli extends StatefulWidget {
   final bool dinle, sayfaSonu;
   final VoidCallback onPrev, onNext, onClose;
   final VoidCallback? onSheet;
-  const AyetPaneli({super.key, required this.depo, required this.item, required this.title, required this.idx, required this.total, required this.W, required this.winW, required this.H, this.dinle = false, this.sayfaSonu = true, required this.onPrev, required this.onNext, required this.onClose, this.onSheet});
+  final Tema? tema; // cüzün teması (meyve görseli, arka plan); yoksa varsayılan
+  const AyetPaneli({super.key, required this.depo, required this.item, required this.title, required this.idx, required this.total, required this.W, required this.winW, required this.H, this.dinle = false, this.sayfaSonu = true, required this.onPrev, required this.onNext, required this.onClose, this.onSheet, this.tema});
   @override
   State<AyetPaneli> createState() => _AyetPaneliState();
 }
@@ -131,8 +132,9 @@ class _AyetPaneliState extends State<AyetPaneli> {
     final item = widget.item, idx = widget.idx, total = widget.total;
     final col = fruitCol[item.k];
     final creamC = N ? const Color(0xFFCFC3A0) : R.cream, creamLine = N ? const Color(0xFF8E7F4E) : R.creamLine;
-    final fruitFile = widget.depo.tema.fruits[item.p]?[item.k];
-    final bg = widget.depo.tema.ui['bgAyet'];
+    final tema = widget.tema ?? widget.depo.tema;
+    final fruitFile = tema.fruits[item.p]?[item.k];
+    final bg = tema.ui['bgAyet'];
 
     // yerleşim: üst çubuk | ayet kartı | meyve ya da meal | oynatıcı
     final top = pad.top + 70, playerH = (W < 460 ? 196.0 : 150.0) + pad.bottom; // dar ekranda çipler iki satır
