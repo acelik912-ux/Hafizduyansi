@@ -48,6 +48,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -105,3 +107,29 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Uygulama ikonu (kökteki logo seti): dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/ikon/icon.png"
+  android: true
+  adaptive_icon_background: "#0B1020"
+  adaptive_icon_foreground: "assets/ikon/adaptive-icon.png"
+  adaptive_icon_foreground_inset: 0 # görselin kendi kenar boşluğu yeterli
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/ikon/icon.png"
+    background_color: "#0B1020"
+    theme_color: "#0B1020"
+
+# Açılış ekranı: dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#0B1020"
+  image: "assets/ikon/splash.png"
+  android_12:
+    color: "#0B1020"
+    image: "assets/ikon/adaptive-icon.png"
+  web: true
+  ios: true
+  android: true

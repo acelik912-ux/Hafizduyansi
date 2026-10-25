@@ -1,11 +1,11 @@
 {
-    "name": "hafiz_dunyasi",
-    "short_name": "hafiz_dunyasi",
+    "name": "Hafız Dünyası",
+    "short_name": "Hafız Dünyası",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0B1020",
+    "theme_color": "#0B1020",
+    "description": "Kuran ezberi için görsel bahçe",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
