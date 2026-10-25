@@ -1,6 +1,7 @@
 // 3B BAHÇE: birinci şahıs gezinti. Çitle çevrili bahçede yalnızca cüzün 20 ağacı var; ağaçlar (tema PNG'leri,
 // tam çözünürlük) kameraya dönük levhalar olarak derinliğe göre çizilir.
-// Yere dokununca oraya yürünür, ağaca dokununca önüne gidilir (yakınsa sayfası açılır), yana kaydırınca dönülür.
+// Yere dokununca oraya yürünür, ağaca dokununca önüne gidilir (yakınsa sayfası açılır), yana kaydırınca dönülür,
+// iki parmakla yakınlaşılır / uzaklaşılır.
 // Kendiliğinden kıpırdayan bir şey yok: sahne yalnızca kullanıcı hareket ettirirken değişir.
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -24,6 +25,7 @@ const _carpR = 1.8; // ağacın dibine girilmez (ekranı kaplamasın)
 
 class _Kam {
   double x, z, yaw; // yaw 0 = +z yönüne (yol boyunca) bakış
+  double zum = 1; // iki parmakla yakınlaştırma (görüş açısını daraltır)
   _Kam(this.x, this.z, this.yaw);
 }
 
@@ -94,12 +96,13 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
   int hedefIdx = -1; // ağaca gidiliyorsa sırası
   double hedefSure = 0, sureSiniri = 0;
   Duration son = Duration.zero;
+  double zumBas = 1;
   List<_Cizim> cizim = [];
 
   int get n => widget.pages.length;
   double get zSon => 3 + ((n + 1) ~/ 2 - 1) * _aralik;
   double get citZ1 => zSon + 4.5;
-  double get F => widget.W * 0.5 / math.tan(28 * math.pi / 180); // ~56° görüş açısı: ağaçlar yakın planda
+  double get F => widget.W * 0.5 / math.tan(28 * math.pi / 180) * k.zum; // ~56° görüş açısı: ağaçlar yakın planda
   double get ufuk => widget.H * 0.58; // ufuk aşağıda: hafifçe yukarı bakar gibi, ağaç tacı ekranın ortasında
   Offset agacPos(int i) => Offset((i % 2 == 0 ? -1 : 1) * _yanX, 3 + (i ~/ 2) * _aralik);
 
@@ -292,11 +295,19 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapUp: (g) => _dokun(g.localPosition),
-            onHorizontalDragStart: (_) {
+            // tek parmak: yana kaydırınca dönülür (dünyayı tutup çevirir gibi); iki parmak: yakınlaş / uzaklaş
+            onScaleStart: (_) {
               hedef = null;
               _ipucuGoruldu = true;
+              zumBas = k.zum;
             },
-            onHorizontalDragUpdate: (g) => setState(() => k.yaw = _aci(k.yaw - g.delta.dx / F)), // dünyayı tutup çevirir gibi
+            onScaleUpdate: (g) => setState(() {
+              if (g.pointerCount >= 2) {
+                k.zum = (zumBas * g.scale).clamp(0.8, 3.0);
+              } else {
+                k.yaw = _aci(k.yaw - g.focalPointDelta.dx / F);
+              }
+            }),
             child: CustomPaint(painter: _Dunya(this)),
           ),
         ),
@@ -320,7 +331,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
                 child: Cam(
                   radius: 18,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  child: Text('Gitmek istediğin yere dokun · bakmak için kaydır', style: ts(Colors.white, 13)),
+                  child: Text('Yere dokun: yürü · kaydır: bak · iki parmak: yakınlaş', style: ts(Colors.white, 13)),
                 ),
               ),
             ),
