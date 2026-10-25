@@ -16,7 +16,7 @@ import 'veri.dart';
 const _goz = 1.55, _agacH = 4.4, _aralik = 4.4, _yanX = 2.5, _yolW = 0.85;
 const _citX = 6.5, _citZ0 = -5.0, _citH = 1.0; // çit: x = ±_citX, z = _citZ0 .. son ağaç + 4.5
 const _uzan = 4.6; // bu mesafeden yakındaki ağaca dokununca sayfası açılır
-const _yanas = 3.4; // uzaktaki ağaca dokununca önünde durulan mesafe
+const _yanas = 3.4; // ağaca dokununca tam karşısında (yolun öbür yanında) durulan mesafe
 const _hiz = 3.2; // yürüme hızı (m/sn)
 const _yakin = 0.3; // kameranın önündeki kesme düzlemi
 const _gorus = 70.0; // en uzak çizim mesafesi
@@ -76,8 +76,10 @@ class Bahce3B extends StatefulWidget {
   final String? Function(int) agac;
   final double W, H;
   final EdgeInsets pad;
+  final String? Function(int p, int k) meyve; // ağacın k. meyve görseli (0-4)
   final void Function(int) onOpen;
-  const Bahce3B({super.key, required this.kimlik, required this.pages, required this.agac, required this.W, required this.H, required this.pad, required this.onOpen});
+  final void Function(int p, int j) onAyet; // sayfanın j. ayeti
+  const Bahce3B({super.key, required this.kimlik, required this.pages, required this.agac, required this.meyve, required this.W, required this.H, required this.pad, required this.onOpen, required this.onAyet});
   @override
   State<Bahce3B> createState() => _Bahce3BState();
 }
@@ -98,7 +100,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
   double get zSon => 3 + ((n + 1) ~/ 2 - 1) * _aralik;
   double get citZ1 => zSon + 4.5;
   double get F => widget.W * 0.5 / math.tan(28 * math.pi / 180); // ~56° görüş açısı: ağaçlar yakın planda
-  double get ufuk => widget.H * 0.45;
+  double get ufuk => widget.H * 0.58; // ufuk aşağıda: hafifçe yukarı bakar gibi, ağaç tacı ekranın ortasında
   Offset agacPos(int i) => Offset((i % 2 == 0 ? -1 : 1) * _yanX, 3 + (i ~/ 2) * _aralik);
 
   @override
@@ -191,14 +193,19 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     if (!devam) _t.stop();
   }
 
-  // dokunulan ağaç: yakınsa sayfasını aç, uzaksa önüne kadar yürü
+  // ağacın tam karşısındaki duruş yeri (yolun öbür yanı): ağaç ekranın ortasında, komşuları görüş dışında
+  Offset onu(int i) {
+    final p = agacPos(i);
+    return Offset(p.dx - p.dx.sign * _yanas, p.dy);
+  }
+
+  // dokunulan ağaç: karşısındaysan sayfasını aç, değilsen karşısına yürü
   void _sec(int i) {
-    final p = agacPos(i), v = Offset(k.x - p.dx, k.z - p.dy), l = v.distance;
-    if (l <= _uzan + 0.3) {
+    if ((onu(i) - Offset(k.x, k.z)).distance < 0.4 && hedef == null) {
       widget.onOpen(i);
       return;
     }
-    _git(p + v / l * _yanas, agac: i);
+    _git(onu(i), agac: i);
   }
 
   void _dokun(Offset e) {
@@ -250,8 +257,9 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final W = widget.W, H = widget.H, pad = widget.pad;
     cizim = _sahne();
     final yk = yakinAgac;
+    final ayetler = yk >= 0 && hedef == null ? _ayetBaslari(yk, W, H, pad) : const <Widget>[];
     final levhalar = <Widget>[];
-    for (var n = 0; n < cizim.length; n++) {
+    for (var n = 0; ayetler.isEmpty && n < cizim.length; n++) {
       final c = cizim[n], i = c.s.idx;
       if (c.d > 14) continue;
       final top = math.max(pad.top + 66, c.r.top - 34);
@@ -286,6 +294,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
           ),
         ),
         ...levhalar,
+        ...ayetler,
         if (!hazir) const Center(child: CircularProgressIndicator(color: Colors.white)),
         Positioned(
           right: 12,
@@ -294,7 +303,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
             child: CustomPaint(size: const Size(44, 120), painter: _Harita(this, yk)),
           ),
         ),
-        if (!_ipucuGoruldu)
+        if (!_ipucuGoruldu && ayetler.isEmpty)
           Positioned(
             left: 0,
             right: 0,
@@ -309,14 +318,49 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
               ),
             ),
           ),
-        if (yk >= 0) Positioned(left: 12, right: 12, bottom: pad.bottom + 18, child: Center(child: SizedBox(width: math.min(W - 24, 420), child: _girisKarti(yk)))),
+        if (yk >= 0) Positioned(left: 12, right: 12, bottom: pad.bottom + 14, child: Center(child: SizedBox(width: math.min(W - 24, 420), child: _girisKarti(yk, ayetler.isNotEmpty)))),
       ],
     );
   }
 
-  Widget _girisKarti(int i) {
+  // ağacın önündeyken sayfanın TÜM ayet başları: ilki tepede, sonrakiler sağ-sol sırayla aşağı (ağaç sayfasındaki gibi).
+  // Satır yüksekliği ayet sayısına göre küçülür; ikinci ağaç ekranı yok.
+  List<Widget> _ayetBaslari(int i, double W, double H, EdgeInsets pad) {
+    final page = widget.pages[i];
+    if (page.kind != 'ayat' || page.ayat.isEmpty) return const [];
+    final r = cizim.where((c) => c.s.idx == i).map((c) => c.r).firstOrNull;
+    if (r == null) return const [];
+    final n = page.ayat.length, satir = 1 + n ~/ 2;
+    final ust = math.max(pad.top + 66, r.top + r.height * 0.02), alt = math.min(H - pad.bottom - 78, r.bottom - r.height * 0.1);
+    if (alt - ust < 140) return const [];
+    final sh = (alt - ust) / satir, lh = math.min(50.0, sh - 6), fd = math.min(lh + 4, 40.0);
+    final lw = math.min((W - 24) * 0.5 - 6, 190.0);
+    final out = <Widget>[];
+    for (var j = 0; j < n; j++) {
+      final s = (j + 1) ~/ 2, y = ust + s * sh + (sh - lh) / 2;
+      final yan = j == 0 ? 0 : (j.isOdd ? 1 : -1); // 0 tepe, 1 sağ, -1 sol
+      final left = yan == 0 ? W / 2 - lw / 2 : (yan > 0 ? W - 12 - lw : 12.0);
+      final renk = j % 5, src = widget.meyve(i, renk);
+      final meyve = Container(
+        width: fd, height: fd, alignment: Alignment.center,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0x8C08160E), border: Border.all(color: renk == 0 ? const Color(0xBFEBEBEB) : fruitCol[renk], width: 2)),
+        child: src != null ? img(src, w: fd * 0.78, h: fd * 0.78) : Text('${j + 1}', style: ts(fruitFg(renk), fd * 0.4, FontWeight.w800)),
+      );
+      final etiket = Expanded(child: AyetEtiket(page.ayat[j].start.path, double.infinity, lh, border: fruitCol[renk], radius: 12));
+      out.add(Positioned(
+        left: left, top: y, width: lw, height: lh,
+        child: Bas(
+          onTap: () => widget.onAyet(i, j),
+          child: Row(children: yan < 0 ? [etiket, const SizedBox(width: 4), meyve] : [meyve, const SizedBox(width: 4), etiket]),
+        ),
+      ));
+    }
+    return out;
+  }
+
+  Widget _girisKarti(int i, bool sade) {
     final p = widget.pages[i];
-    final st = p.kind == 'ayat' && p.ayat.isNotEmpty ? p.ayat.first.start : null;
+    final st = !sade && p.kind == 'ayat' && p.ayat.isNotEmpty ? p.ayat.first.start : null;
     return Bas(
       onTap: () => widget.onOpen(i),
       child: Cam(
@@ -330,8 +374,12 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('${i + 1} · ${treeName(i)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(Colors.white, 14, FontWeight.w700)),
-                  const SizedBox(height: 4),
-                  st != null ? AyetEtiket(st.path, double.infinity, 34, radius: 10) : Text('Fatiha · Bakara', style: ts(R.sub, 12.5)),
+                  if (sade)
+                    Text('${p.ayat.length} ayet · ağaç sayfasını aç', style: ts(R.sub, 12, FontWeight.w500))
+                  else ...[
+                    const SizedBox(height: 4),
+                    st != null ? AyetEtiket(st.path, double.infinity, 34, radius: 10) : Text('Fatiha · Bakara', style: ts(R.sub, 12.5)),
+                  ],
                 ],
               ),
             ),

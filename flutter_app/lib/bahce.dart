@@ -90,7 +90,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
   void closePanel() {
     final f = open >= 0 ? flat[open] : null;
     _set(() { open = -1; dinle = false; });
-    if (f != null && !ozelSayfa(widget.cd, f.p)) { final i = seq.indexWhere((x) => x.p == f.p && x.s == f.s); if (i >= 0 && i != cur) go(i, 1); }
+    if (f != null && cur >= 0 && !ozelSayfa(widget.cd, f.p)) { final i = seq.indexWhere((x) => x.p == f.p && x.s == f.s); if (i >= 0 && i != cur) go(i, 1); }
   }
 
   void _sayfayiDinle() {
@@ -150,7 +150,14 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
       content = Stack(key: const ValueKey('bahce'), children: [
         Positioned.fill(
           child: tercih.bahce == '3d'
-              ? Bahce3B(kimlik: widget.cd.no, pages: pages, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree)
+              ? Bahce3B(
+                  kimlik: widget.cd.no, pages: pages, agac: _agac, meyve: (p, k) => tema.fruits[p]?[k], W: winW, H: H, pad: pad, onOpen: openTree,
+                  // bahçedeki ayet başına dokununca ayet paneli; kapanınca bahçede kalınır
+                  onAyet: (p, j) {
+                    final fi = flat.indexWhere((f) => f.p == p && f.s * 5 + f.k == j);
+                    if (fi >= 0) _set(() { open = fi; dinle = false; });
+                  },
+                )
               : tercih.bahce == 'orman'
               ? ForestPicker(pages: pages, tema: tema, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree)
               : gview == 'path'
