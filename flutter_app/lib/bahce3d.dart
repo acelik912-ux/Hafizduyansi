@@ -334,12 +334,13 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final ust = math.max(pad.top + 66, r.top + r.height * 0.02), alt = math.min(H - pad.bottom - 78, r.bottom - r.height * 0.1);
     if (alt - ust < 140) return const [];
     final sh = (alt - ust) / satir, lh = math.min(50.0, sh - 6), fd = math.min(lh + 4, 40.0);
-    final lw = math.min((W - 24) * 0.5 - 6, 190.0);
+    // sütunlar ağacın kendisine bağlı: bakış dönünce etiketler de ağaçla birlikte kayar
+    final cx = r.center.dx, lw = math.min(r.width * 0.5 - 4, 190.0);
     final out = <Widget>[];
     for (var j = 0; j < n; j++) {
       final s = (j + 1) ~/ 2, y = ust + s * sh + (sh - lh) / 2;
       final yan = j == 0 ? 0 : (j.isOdd ? 1 : -1); // 0 tepe, 1 sağ, -1 sol
-      final left = yan == 0 ? W / 2 - lw / 2 : (yan > 0 ? W - 12 - lw : 12.0);
+      final left = yan == 0 ? cx - lw / 2 : (yan > 0 ? cx + r.width * 0.5 - lw : cx - r.width * 0.5);
       final renk = j % 5, src = widget.meyve(i, renk);
       final meyve = Container(
         width: fd, height: fd, alignment: Alignment.center,
