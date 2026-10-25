@@ -81,7 +81,8 @@ class Bahce3B extends StatefulWidget {
   final String? Function(int p, int k) meyve; // ağacın k. meyve görseli (0-4)
   final void Function(int) onOpen;
   final void Function(int p, int j) onAyet; // sayfanın j. ayeti
-  const Bahce3B({super.key, required this.kimlik, required this.pages, required this.agac, required this.meyve, required this.W, required this.H, required this.pad, required this.onOpen, required this.onAyet});
+  final bool Function(int p) ozel; // 1. cüzün Kayısı ağacı: yalnızca Fâtiha ve Bakara'nın ilk ayet başı
+  const Bahce3B({super.key, required this.kimlik, required this.pages, required this.agac, required this.meyve, required this.ozel, required this.W, required this.H, required this.pad, required this.onOpen, required this.onAyet});
   @override
   State<Bahce3B> createState() => _Bahce3BState();
 }
@@ -348,7 +349,9 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     if (page.kind != 'ayat' || page.ayat.isEmpty) return const [];
     final r = cizim.where((c) => c.s.idx == i).map((c) => c.r).firstOrNull;
     if (r == null) return const [];
-    final n = page.ayat.length, satir = 1 + n ~/ 2;
+    final oz = widget.ozel(i);
+    final secili = [for (var j = 0; j < page.ayat.length; j++) if (!oz || page.ayat[j].no == 1) j];
+    final n = secili.length, satir = 1 + n ~/ 2;
     // yerleşim tamamen ağacın ekrandaki boyutuna oranlı: etiketler ağaca basılmış gibi, bakış dönünce
     // ya da yaklaşıp uzaklaşınca ağaçla birlikte kayar ve büyüyüp küçülür
     if (r.height < 160) return const [];
@@ -356,11 +359,13 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final sh = (alt - ust) / satir, lh = math.min(r.height * 0.1, sh - r.height * 0.012), fd = math.min(lh * 0.9, r.width * 0.11);
     final cx = r.center.dx, lw = r.width * 0.5 - ara;
     final out = <Widget>[];
-    for (var j = 0; j < n; j++) {
-      final s = (j + 1) ~/ 2, y = ust + s * sh + (sh - lh) / 2;
-      final yan = j == 0 ? 0 : (j.isOdd ? 1 : -1); // 0 tepe, 1 sağ, -1 sol
+    for (var m = 0; m < n; m++) {
+      final j = secili[m], s = (m + 1) ~/ 2;
+      // Kayısı: iki etiket tacın ortasında alt alta; diğerleri ilki tepede, sonra sağ-sol sırayla
+      final y = oz ? r.top + r.height * (0.34 + m * 0.15) : ust + s * sh + (sh - lh) / 2;
+      final yan = oz || m == 0 ? 0 : (m.isOdd ? 1 : -1); // 0 orta, 1 sağ, -1 sol
       final left = yan == 0 ? cx - lw / 2 : (yan > 0 ? cx + r.width * 0.5 - lw : cx - r.width * 0.5);
-      final renk = j % 5, src = widget.meyve(i, renk);
+      final renk = oz ? 2 : j % 5, src = widget.meyve(i, renk); // Kayısı'da sarı kayısı
       final meyve = Container(
         width: fd, height: fd, alignment: Alignment.center,
         decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0x8C08160E), border: Border.all(color: renk == 0 ? const Color(0xBFEBEBEB) : fruitCol[renk], width: 2)),
@@ -395,7 +400,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
                 children: [
                   Text('${i + 1} · ${treeName(i)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(Colors.white, 14, FontWeight.w700)),
                   if (sade)
-                    Text('${p.ayat.length} ayet · ağaç sayfasını aç', style: ts(R.sub, 12, FontWeight.w500))
+                    Text(widget.ozel(i) ? 'Fâtiha · Bakara · ağaç sayfasını aç' : '${p.ayat.length} ayet · ağaç sayfasını aç', style: ts(R.sub, 12, FontWeight.w500))
                   else ...[
                     const SizedBox(height: 4),
                     st != null ? AyetEtiket(st.path, double.infinity, 34, radius: 10) : Text('Fatiha · Bakara', style: ts(R.sub, 12.5)),

@@ -151,7 +151,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         Positioned.fill(
           child: tercih.bahce == '3d'
               ? Bahce3B(
-                  kimlik: widget.cd.no, pages: pages, agac: _agac, meyve: (p, k) => tema.fruits[p]?[k], W: winW, H: H, pad: pad, onOpen: openTree,
+                  kimlik: widget.cd.no, pages: pages, agac: _agac, meyve: (p, k) => tema.fruits[p]?[k], ozel: (p) => ozelSayfa(widget.cd, p), W: winW, H: H, pad: pad, onOpen: openTree,
                   // bahçedeki ayet başına dokununca ayet paneli; kapanınca bahçede kalınır
                   onAyet: (p, j) {
                     final fi = flat.indexWhere((f) => f.p == p && f.s * 5 + f.k == j);
