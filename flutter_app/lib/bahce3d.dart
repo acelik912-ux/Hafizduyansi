@@ -21,7 +21,7 @@ const _yanas = 3.4; // ağaca dokununca tam karşısında (yolun öbür yanında
 const _hiz = 3.2; // yürüme hızı (m/sn)
 const _yakin = 0.3; // kameranın önündeki kesme düzlemi
 const _gorus = 70.0; // en uzak çizim mesafesi
-const _carpR = 1.8; // ağacın dibine girilmez (ekranı kaplamasın)
+const _carpR = 1.5; // ağacın dibine girilmez; karşıdaki ağacın duruş yeri (5 - _yanas = 1,6 m) bundan dışarıda kalmalı
 
 class _Kam {
   double x, z, yaw; // yaw 0 = +z yönüne (yol boyunca) bakış
