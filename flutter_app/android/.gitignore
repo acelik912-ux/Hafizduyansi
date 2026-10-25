@@ -12,3 +12,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# hafiz-release.keystore bilerek takip edilir (sabit imza; bkz. CLAUDE.md)
+!flutter_app/android/hafiz-release.keystore

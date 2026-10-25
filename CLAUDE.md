@@ -10,7 +10,7 @@ Asıl uygulama **Flutter** (`flutter_app/`). Kökteki `App.js` (React Native / E
 - Uygulama doğrudan okuyucu olarak açılır; yazar modu yok.
 - Ayet görselleri mushaf PDF'inden kesilir, yeniden çizilmez (gerekirse mevcut kesimden yalnızca kırpılır).
 - Her değişikliği gerçek cihazda test edilmemiş say; ne denendiğini, ne denenmediğini açıkça söyle.
-- GitHub Actions yalnızca **web** derler (kullanıcı APK/iOS derlemesini Actions'ta istemedi). APK istenirse yerelde `flutter build apk --release`.
+- GitHub Actions: **web** otomatik, **APK** elle (`flutter_apk.yml`, 25 Ekim 2026'da kullanıcı istedi). APK sabit anahtarla (`flutter_app/android/hafiz-release.keystore`, ASLA değiştirme/silme) imzalanır ve sürüm numarası artar → telefonda üstüne güncellenir. Yerel `flutter build apk --release` aynı anahtarı kullanır.
 - Büyük işlerden önce yedek etiketi al (ör. `git tag -a yedek-... && git push origin yedek-...`).
 
 ## Mimari (flutter_app/lib)
@@ -46,7 +46,7 @@ Asıl uygulama **Flutter** (`flutter_app/`). Kökteki `App.js` (React Native / E
 - Ağaç sayfası (`_agacSayfasi`) 5'ten fazla ayetli sayfaları hâlâ "Sayfa devamı" ile ikiye bölüyor; kullanıcı 3B'de ikinci ağaç istemedi, ağaç sayfası için öneri yapıldı, yanıt bekleniyor.
 - 2. cüzün sesi yok (`ses2` paketi gerekli; `tools/ses_paketle.py`).
 - `flutter` dalındaki `tools/cuz_kes.py` iki yana yaslı satırlarda kelime boşluğunu bulamıyor; 2. cüzde Bakara 177, 191, 230, 234 başları elle iki kelimeye kırpıldı. Yeni cüz keserken başların genişlik oranını kontrol et (1. cüzde en fazla ~3,4).
-- APK yerelde debug anahtarıyla imzalanıyor: farklı bilgisayarda derlenen APK eskisinin üzerine kurulamaz (önce kaldır). Kalıcı çözüm: release keystore oluşturup `android/app/build.gradle.kts`'e bağlamak (henüz yapılmadı).
+- İmza: sabit release anahtarı bağlandı. Bu anahtardan ÖNCE kurulan (debug imzalı) APK'nın üstüne kurulmaz; telefonda bir kez kaldırılıp yenisi kurulmalı, sonrası güncelleme. Depo herkese açıksa anahtar da görünür: depoyu özel tut.
 
 
 ## GERİ DÖNÜŞ NOKTASI (kullanıcı onayladı – 25 Ekim 2026)

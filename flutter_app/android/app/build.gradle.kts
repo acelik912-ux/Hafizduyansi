@@ -30,11 +30,24 @@ android {
         versionName = flutter.versionName
     }
 
+    // Sabit imza anahtarı: her bilgisayarda ve GitHub Actions'ta aynı anahtarla imzalanır,
+    // böylece yeni APK telefondaki eskisinin ÜSTÜNE kurulur (kayıtlar silinmez).
+    // Anahtarı ASLA değiştirme; değişirse üstüne kurulum bozulur.
+    val anahtar = file("../hafiz-release.keystore")
+    signingConfigs {
+        create("hafiz") {
+            if (anahtar.exists()) {
+                storeFile = anahtar
+                storePassword = "hafizdunyasi2026"
+                keyAlias = "hafiz"
+                keyPassword = "hafizdunyasi2026"
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (anahtar.exists()) signingConfigs.getByName("hafiz") else signingConfigs.getByName("debug")
         }
     }
 }

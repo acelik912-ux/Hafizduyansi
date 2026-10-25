@@ -1,0 +1,28 @@
+name: Flutter APK (telefona kurulur)
+# Elle çalıştır: GitHub > Actions > "Flutter APK" > Run workflow. Bitince "HafizDunyasi-apk" artifact'ini indir.
+# Sabit imza anahtarı ve artan sürüm numarası sayesinde yeni APK eskisinin üstüne kurulur.
+on:
+  workflow_dispatch:
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter_app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: APK derle
+        run: flutter build apk --release --build-number=$((1000 + GITHUB_RUN_NUMBER))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HafizDunyasi-apk
+          path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
