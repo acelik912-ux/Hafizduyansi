@@ -219,6 +219,13 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     }
     final y = yerde(e);
     if (y != null) {
+      // ağacın dibine dokunduysa karşısındaki duruş yerine git (ağaç ekranı kaplamasın, etiketler düzgün dursun)
+      for (final a in agaclar) {
+        if ((y - Offset(a.x, a.z)).distance < 3.0) {
+          _git(onu(a.idx), agac: a.idx);
+          return;
+        }
+      }
       _git(y);
     } else {
       _git(Offset(k.x, k.z), bak: _aci(k.yaw + math.atan((e.dx - widget.W / 2) / F))); // göğe dokununca o yana dön
@@ -331,11 +338,12 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final r = cizim.where((c) => c.s.idx == i).map((c) => c.r).firstOrNull;
     if (r == null) return const [];
     final n = page.ayat.length, satir = 1 + n ~/ 2;
-    final ust = math.max(pad.top + 66, r.top + r.height * 0.02), alt = math.min(H - pad.bottom - 78, r.bottom - r.height * 0.1);
-    if (alt - ust < 140) return const [];
-    final sh = (alt - ust) / satir, lh = math.min(50.0, sh - 6), fd = math.min(lh + 4, 40.0);
-    // sütunlar ağacın kendisine bağlı: bakış dönünce etiketler de ağaçla birlikte kayar
-    final cx = r.center.dx, lw = math.min(r.width * 0.5 - 4, 190.0);
+    // yerleşim tamamen ağacın ekrandaki boyutuna oranlı: etiketler ağaca basılmış gibi, bakış dönünce
+    // ya da yaklaşıp uzaklaşınca ağaçla birlikte kayar ve büyüyüp küçülür
+    if (r.height < 160) return const [];
+    final ust = r.top + r.height * 0.04, alt = r.bottom - r.height * 0.12, ara = r.width * 0.01;
+    final sh = (alt - ust) / satir, lh = math.min(r.height * 0.1, sh - r.height * 0.012), fd = math.min(lh * 0.9, r.width * 0.11);
+    final cx = r.center.dx, lw = r.width * 0.5 - ara;
     final out = <Widget>[];
     for (var j = 0; j < n; j++) {
       final s = (j + 1) ~/ 2, y = ust + s * sh + (sh - lh) / 2;
@@ -352,7 +360,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
         left: left, top: y, width: lw, height: lh,
         child: Bas(
           onTap: () => widget.onAyet(i, j),
-          child: Row(children: yan < 0 ? [etiket, const SizedBox(width: 4), meyve] : [meyve, const SizedBox(width: 4), etiket]),
+          child: Row(children: yan < 0 ? [etiket, SizedBox(width: ara), meyve] : [meyve, SizedBox(width: ara), etiket]),
         ),
       ));
     }
