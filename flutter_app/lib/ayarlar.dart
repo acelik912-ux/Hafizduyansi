@@ -70,14 +70,15 @@ class _AyarlarState extends State<Ayarlar> {
                 const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
-                  child: SegmentedButton<bool>(
+                  child: SegmentedButton<String>(
                     showSelectedIcon: false,
                     segments: const [
-                      ButtonSegment(value: true, label: Text('Derinlikli orman'), icon: Icon(Icons.forest_rounded)),
-                      ButtonSegment(value: false, label: Text('Kartlar'), icon: Icon(Icons.grid_view_rounded)),
+                      ButtonSegment(value: '3d', label: Text('3B bahçe'), icon: Icon(Icons.view_in_ar_rounded)),
+                      ButtonSegment(value: 'orman', label: Text('Orman'), icon: Icon(Icons.forest_rounded)),
+                      ButtonSegment(value: 'kart', label: Text('Kartlar'), icon: Icon(Icons.grid_view_rounded)),
                     ],
-                    selected: {t.forest},
-                    onSelectionChanged: (s) => t.degistir((x) => x.forest = s.first),
+                    selected: {t.bahce},
+                    onSelectionChanged: (s) => t.degistir((x) => x.bahce = s.first),
                   ),
                 ),
               ]),

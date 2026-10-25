@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'ayet.dart';
+import 'bahce3d.dart';
 import 'ortak.dart';
 import 'veri.dart';
 
@@ -109,10 +110,12 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Bahçe görünümü', style: ts(R.text, 18, FontWeight.w700)),
             const SizedBox(height: 14),
-            _secenek(c, Icons.forest_rounded, 'Derinlikli orman', 'Aşağı çekerek ağaçlar arasında ilerle', tercih.forest, () => tercih.degistir((t) => t.forest = true)),
+            _secenek(c, Icons.view_in_ar_rounded, '3B bahçe', 'Ağaçların arasında yürü, istediğin ağaca dokun', tercih.bahce == '3d', () => tercih.degistir((t) => t.bahce = '3d')),
             const SizedBox(height: 10),
-            _secenek(c, Icons.grid_view_rounded, 'Kartlar ve orman yolu', '20 ağaç tek bakışta, dere boyunca patika', !tercih.forest, () {
-              tercih.degistir((t) => t.forest = false);
+            _secenek(c, Icons.forest_rounded, 'Derinlikli orman', 'Aşağı çekerek ağaçlar arasında ilerle', tercih.bahce == 'orman', () => tercih.degistir((t) => t.bahce = 'orman')),
+            const SizedBox(height: 10),
+            _secenek(c, Icons.grid_view_rounded, 'Kartlar ve orman yolu', '20 ağaç tek bakışta, dere boyunca patika', tercih.bahce == 'kart', () {
+              tercih.degistir((t) => t.bahce = 'kart');
               gview = 'grid';
             }),
           ]),
@@ -146,7 +149,9 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
     if (cur < 0) {
       content = Stack(key: const ValueKey('bahce'), children: [
         Positioned.fill(
-          child: tercih.forest
+          child: tercih.bahce == '3d'
+              ? Bahce3B(kimlik: widget.cd.no, pages: pages, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree)
+              : tercih.bahce == 'orman'
               ? ForestPicker(pages: pages, tema: tema, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree)
               : gview == 'path'
                   ? PathForest(pages: pages, tema: tema, agac: _agac, W: winW, H: H, pad: pad, onOpen: openTree, onBack: () => setState(() => gview = 'grid'))
@@ -169,7 +174,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
       content = Center(key: ValueKey('agac$cur'), child: SizedBox(width: W, height: H, child: _agacSayfasi(W, H, pad)));
     }
 
-    final b = cur < 0 ? (!tercih.forest && gview == 'path' && tema.ui['bgForest'] != null ? tema.ui['bgForest'] : tema.ui['bgGarden']) : tema.ui['bgPage'];
+    final b = cur < 0 ? (tercih.bahce == 'kart' && gview == 'path' && tema.ui['bgForest'] != null ? tema.ui['bgForest'] : tema.ui['bgGarden']) : tema.ui['bgPage'];
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (did, _) {

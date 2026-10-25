@@ -171,7 +171,7 @@ class Depo {
 class Tercihler extends ChangeNotifier {
   static const _key = 'hd_prefs_v1';
   bool night = false, auto = false;
-  bool forest = true; // bahçe görünümü: derinlikli orman (true) | 4×5 kart + orman yolu (false)
+  String bahce = '3d'; // bahçe görünümü: '3d' (içinde yürünen 3B bahçe) | 'orman' (derinlikli orman) | 'kart' (4×5 kart + orman yolu)
   double zoom = 1, mealSize = 17, rate = 1;
   int repeat = 1;
   SharedPreferences? _sp;
@@ -184,7 +184,7 @@ class Tercihler extends ChangeNotifier {
         final m = jsonDecode(v) as Map;
         night = m['night'] ?? night;
         auto = m['auto'] ?? auto;
-        forest = m['forest'] ?? forest;
+        bahce = m['bahce'] ?? (m['forest'] == false ? 'kart' : bahce); // eski 'forest' tercihinden geçiş
         zoom = (m['zoom'] as num?)?.toDouble() ?? zoom;
         mealSize = (m['mealSize'] as num?)?.toDouble() ?? mealSize;
         rate = (m['rate'] as num?)?.toDouble() ?? rate;
@@ -196,7 +196,7 @@ class Tercihler extends ChangeNotifier {
   void degistir(void Function(Tercihler t) f) {
     f(this);
     notifyListeners();
-    _sp?.setString(_key, jsonEncode({'night': night, 'auto': auto, 'forest': forest, 'zoom': zoom, 'mealSize': mealSize, 'rate': rate, 'repeat': repeat}));
+    _sp?.setString(_key, jsonEncode({'night': night, 'auto': auto, 'bahce': bahce, 'zoom': zoom, 'mealSize': mealSize, 'rate': rate, 'repeat': repeat}));
   }
 }
 
