@@ -1,8 +1,9 @@
-// 3B BAHÇE: birinci şahıs gezinti. Ağaçlar (tema PNG'leri, tam çözünürlük) kameraya dönük levhalar olarak
-// derinliğe göre çizilir. Sol alttaki kolla yürünür, ekranı yana çekince dönülür, aşağı çekince ilerlenir.
-// Uzaktaki ağaca dokununca ona doğru yürür; yakındaki ağaca dokununca sayfası açılır.
+// 3B BAHÇE: birinci şahıs gezinti. Çitle çevrili bahçede yalnızca cüzün 20 ağacı var; ağaçlar (tema PNG'leri,
+// tam çözünürlük) kameraya dönük levhalar olarak derinliğe göre çizilir.
+// Yere dokununca oraya yürünür, ağaca dokununca önüne gidilir (yakınsa sayfası açılır), yana kaydırınca dönülür.
 // Kendiliğinden kıpırdayan bir şey yok: sahne yalnızca kullanıcı hareket ettirirken değişir.
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -12,11 +13,14 @@ import 'package:flutter/services.dart';
 import 'ortak.dart';
 import 'veri.dart';
 
-const _goz = 1.55, _agacH = 4.4, _aralik = 7.0, _yanX = 3.4, _yolW = 1.15;
-const _uzan = 5.0; // bu mesafeden yakındaki ağaca dokununca sayfası açılır
+const _goz = 1.55, _agacH = 4.4, _aralik = 4.4, _yanX = 2.5, _yolW = 0.85;
+const _citX = 6.5, _citZ0 = -5.0, _citH = 1.0; // çit: x = ±_citX, z = _citZ0 .. son ağaç + 4.5
+const _uzan = 4.6; // bu mesafeden yakındaki ağaca dokununca sayfası açılır
+const _yanas = 3.4; // uzaktaki ağaca dokununca önünde durulan mesafe
+const _hiz = 3.2; // yürüme hızı (m/sn)
 const _yakin = 0.3; // kameranın önündeki kesme düzlemi
-const _gorus = 60.0; // en uzak çizim mesafesi
-const _carpR = 1.2; // ağaç gövdesinin içinden geçilmez
+const _gorus = 70.0; // en uzak çizim mesafesi
+const _carpR = 1.8; // ağacın dibine girilmez (ekranı kaplamasın)
 
 class _Kam {
   double x, z, yaw; // yaw 0 = +z yönüne (yol boyunca) bakış
@@ -36,19 +40,19 @@ Future<void> _resim(String p) async {
 
 class _Agac {
   final String? src;
-  final double x, z, h;
-  final int idx; // sayfa sırası; -1 = bahçeyi çevreleyen süs ağacı (dokunulmaz)
-  const _Agac(this.src, this.x, this.z, this.h, this.idx);
+  final double x, z;
+  final int idx; // sayfa sırası
+  const _Agac(this.src, this.x, this.z, this.idx);
 }
 
 class _Cizim {
   final _Agac s;
   final Rect r; // ekrandaki yeri
-  final double d, a; // derinlik, saydamlık (uzakta sise karışır)
-  const _Cizim(this.s, this.r, this.d, this.a);
+  final double d; // derinlik
+  const _Cizim(this.s, this.r, this.d);
 }
 
-// sahte rastgele (çim lekeleri her karede aynı yerde dursun)
+// sahte rastgele (çimen, çiçek her karede aynı yerde dursun)
 double _h(int i, int j, int n) {
   var v = (i * 73856093) ^ (j * 19349663) ^ (n * 83492791);
   v = (v ^ (v >> 13)) * 1274126177;
@@ -81,46 +85,30 @@ class Bahce3B extends StatefulWidget {
 class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
   late final Ticker _t = createTicker(_tik);
   late final _Kam k = _kameralar[widget.kimlik] ??= _Kam(0, -3, 0);
-  final agaclar = <_Agac>[], susler = <_Agac>[];
+  final agaclar = <_Agac>[];
   bool hazir = false;
-  Offset joy = Offset.zero;
-  bool joyAktif = false;
-  Offset? hedef; // ağaca doğru yürüme
-  int hedefIdx = -1;
-  double hedefSure = 0;
+  Offset? hedef; // yürünen nokta
+  double? bakHedef; // yalnızca dönülecek yön
+  int hedefIdx = -1; // ağaca gidiliyorsa sırası
+  double hedefSure = 0, sureSiniri = 0;
   Duration son = Duration.zero;
   List<_Cizim> cizim = [];
 
   int get n => widget.pages.length;
-  double get zSon => 6 + ((n + 1) ~/ 2 - 1) * _aralik;
-  double get F => widget.W * 0.5 / math.tan(33 * math.pi / 180); // ~66° görüş açısı
-  double get ufuk => widget.H * 0.42;
-  Offset agacPos(int i) => Offset((i % 2 == 0 ? -1 : 1) * _yanX, 6 + (i ~/ 2) * _aralik);
+  double get zSon => 3 + ((n + 1) ~/ 2 - 1) * _aralik;
+  double get citZ1 => zSon + 4.5;
+  double get F => widget.W * 0.5 / math.tan(28 * math.pi / 180); // ~56° görüş açısı: ağaçlar yakın planda
+  double get ufuk => widget.H * 0.45;
+  Offset agacPos(int i) => Offset((i % 2 == 0 ? -1 : 1) * _yanX, 3 + (i ~/ 2) * _aralik);
 
   @override
   void initState() {
     super.initState();
     for (var i = 0; i < n; i++) {
       final p = agacPos(i);
-      agaclar.add(_Agac(widget.agac(i), p.dx, p.dy, _agacH, i));
+      agaclar.add(_Agac(widget.agac(i), p.dx, p.dy, i));
     }
-    final kaynak = [for (var i = 0; i < n; i++) widget.agac(i)].whereType<String>().toList();
-    if (kaynak.isNotEmpty) {
-      final r = math.Random(7);
-      _Agac sus(double x, double z) => _Agac(kaynak[r.nextInt(kaynak.length)], x, z, _agacH * (0.95 + r.nextDouble() * 0.45), -1);
-      for (var z = -14.0; z < zSon + 14; z += 3) {
-        for (final sg in const [-1.0, 1.0]) {
-          susler.add(sus(sg * (10 + r.nextDouble() * 7), z + r.nextDouble() * 2));
-        }
-      }
-      for (var x = -9.0; x <= 9; x += 3) {
-        susler.add(sus(x + r.nextDouble(), -13 - r.nextDouble() * 2));
-        susler.add(sus(x + r.nextDouble(), zSon + 13 + r.nextDouble() * 2));
-      }
-    }
-    final yollar = {
-      for (final a in [...agaclar, ...susler]) ?a.src,
-    };
+    final yollar = {for (final a in agaclar) ?a.src};
     Future.wait(yollar.map(_resim)).whenComplete(() {
       if (mounted) setState(() => hazir = true);
     });
@@ -138,6 +126,13 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     return Offset(dx * c - dz * s, dx * s + dz * c);
   }
 
+  // ekrandaki noktanın yerdeki karşılığı (ufkun üstündeyse null)
+  Offset? yerde(Offset e) {
+    if (e.dy <= ufuk + 2) return null;
+    final d = _goz * F / (e.dy - ufuk), yan = (e.dx - widget.W / 2) * d / F, c = math.cos(k.yaw), s = math.sin(k.yaw);
+    return Offset(k.x + yan * c + d * s, k.z - yan * s + d * c);
+  }
+
   void _carp() {
     for (final a in agaclar) {
       final v = Offset(k.x - a.x, k.z - a.z), l = v.distance;
@@ -146,17 +141,16 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
         k.z = a.z + v.dy / l * _carpR;
       }
     }
-    k.x = k.x.clamp(-8.0, 8.0);
-    k.z = k.z.clamp(-9.0, zSon + 9);
+    k.x = k.x.clamp(-_citX + 0.7, _citX - 0.7);
+    k.z = k.z.clamp(_citZ0 + 0.7, citZ1 - 0.7);
   }
 
-  void _yuru(double m) {
-    k.x += math.sin(k.yaw) * m;
-    k.z += math.cos(k.yaw) * m;
-    _carp();
-  }
-
-  void _calis() {
+  void _git(Offset h, {int agac = -1, double? bak}) {
+    hedef = Offset(h.dx.clamp(-_citX + 0.7, _citX - 0.7), h.dy.clamp(_citZ0 + 0.7, citZ1 - 0.7));
+    hedefIdx = agac;
+    bakHedef = bak;
+    hedefSure = 0;
+    sureSiniri = (hedef! - Offset(k.x, k.z)).distance / _hiz + 3;
     _ipucuGoruldu = true;
     if (!_t.isActive) {
       son = Duration.zero;
@@ -168,22 +162,26 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final dt = ((e - son).inMicroseconds / 1e6).clamp(0.0, 0.05);
     son = e;
     var devam = false;
-    if (joyAktif) {
-      k.yaw = _aci(k.yaw + joy.dx * 1.7 * dt);
-      _yuru(-joy.dy * 4.0 * dt);
-      devam = true;
-    } else if (hedef != null) {
+    if (hedef != null) {
       hedefSure += dt;
-      final p = agacPos(hedefIdx), v = hedef! - Offset(k.x, k.z), l = v.distance;
+      final v = hedef! - Offset(k.x, k.z), l = v.distance;
       if (l > 0.05) {
-        final m = math.min(l, 5.0 * dt);
+        final m = math.min(l, _hiz * dt);
         k.x += v.dx / l * m;
         k.z += v.dy / l * m;
         _carp();
       }
-      final fark = _aci(math.atan2(p.dx - k.x, p.dy - k.z) - k.yaw);
-      k.yaw = _aci(k.yaw + fark.clamp(-2.6 * dt, 2.6 * dt));
-      if ((l <= 0.05 && fark.abs() < 0.01) || hedefSure > 6) {
+      // yön: ağaca gidiyorsa ağaca, dönüyorsa istenen yöne, yürüyorsa gidilen yöne bak
+      double? istek = bakHedef;
+      if (hedefIdx >= 0) {
+        final p = agacPos(hedefIdx);
+        istek = math.atan2(p.dx - k.x, p.dy - k.z);
+      } else if (istek == null && l > 0.3) {
+        istek = math.atan2(v.dx, v.dy);
+      }
+      final fark = istek == null ? 0.0 : _aci(istek - k.yaw);
+      k.yaw = _aci(k.yaw + fark.clamp(-2.4 * dt, 2.4 * dt));
+      if ((l <= 0.05 && fark.abs() < 0.01) || hedefSure > sureSiniri) {
         hedef = null;
       } else {
         devam = true;
@@ -200,33 +198,34 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
       widget.onOpen(i);
       return;
     }
-    hedef = p + v / l * 3.2;
-    hedefIdx = i;
-    hedefSure = 0;
-    _calis();
+    _git(p + v / l * _yanas, agac: i);
   }
 
-  void _dokun(Offset p) {
+  void _dokun(Offset e) {
     for (final c in cizim.reversed) {
       // en yakından başla
-      if (c.s.idx < 0) continue;
       final r = c.r, ic = Rect.fromLTRB(r.left + r.width * 0.12, r.top + r.height * 0.15, r.right - r.width * 0.12, r.bottom);
-      if (ic.contains(p)) {
+      if (ic.contains(e)) {
         _sec(c.s.idx);
         return;
       }
+    }
+    final y = yerde(e);
+    if (y != null) {
+      _git(y);
+    } else {
+      _git(Offset(k.x, k.z), bak: _aci(k.yaw + math.atan((e.dx - widget.W / 2) / F))); // göğe dokununca o yana dön
     }
   }
 
   List<_Cizim> _sahne() {
     final W = widget.W, f = F, yH = ufuk, out = <_Cizim>[];
-    for (final s in [...agaclar, ...susler]) {
+    for (final s in agaclar) {
       final c = kamera(s.x, s.z), d = c.dy;
       if (d < _yakin || d > _gorus) continue;
-      final h = s.h / d * f, w = h * 0.75, x = W / 2 + c.dx / d * f, y = yH + _goz / d * f;
+      final h = _agacH / d * f, w = h * 0.75, x = W / 2 + c.dx / d * f, y = yH + _goz / d * f;
       if (x + w / 2 < 0 || x - w / 2 > W) continue;
-      final a = d < 30 ? 1.0 : math.max(0.0, 1 - (d - 30) / (_gorus - 30));
-      out.add(_Cizim(s, Rect.fromLTWH(x - w / 2, y - h * 0.99, w, h), d, a)); // görselde ağacın dibi alttan %1 yukarıda
+      out.add(_Cizim(s, Rect.fromLTWH(x - w / 2, y - h * 0.99, w, h), d)); // görselde ağacın dibi alttan %1 yukarıda
     }
     out.sort((a, b) => b.d.compareTo(a.d)); // uzaktan yakına
     return out;
@@ -238,7 +237,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     var bd = _uzan;
     for (final a in agaclar) {
       final c = kamera(a.x, a.z), l = Offset(k.x - a.x, k.z - a.z).distance;
-      if (l < bd && c.dy > 0.5 && (c.dx / c.dy).abs() < 0.8) {
+      if (l < bd && c.dy > 0.5 && (c.dx / c.dy).abs() < 0.7) {
         best = a.idx;
         bd = l;
       }
@@ -254,9 +253,9 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final levhalar = <Widget>[];
     for (var n = 0; n < cizim.length; n++) {
       final c = cizim[n], i = c.s.idx;
-      if (i < 0 || c.d > 18) continue;
+      if (c.d > 14) continue;
       final top = math.max(pad.top + 66, c.r.top - 34);
-      if (top > H - pad.bottom - 220) continue;
+      if (top > H - pad.bottom - 200) continue;
       final cx = c.r.center.dx.clamp(88.0, W - 88), nokta = Offset(cx, top + 14);
       // öndeki bir ağacın tacının arkasında kalan levhayı gösterme
       final ortu = cizim.skip(n + 1).any((o) => o.d < c.d - 0.5 && Rect.fromLTRB(o.r.left + o.r.width * 0.15, o.r.top + o.r.height * 0.1, o.r.right - o.r.width * 0.15, o.r.bottom).contains(nokta));
@@ -278,14 +277,11 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapUp: (g) => _dokun(g.localPosition),
-            onPanStart: (_) {
+            onHorizontalDragStart: (_) {
               hedef = null;
               _ipucuGoruldu = true;
             },
-            onPanUpdate: (g) => setState(() {
-              k.yaw = _aci(k.yaw - g.delta.dx / F); // dünyayı tutup çevirir gibi
-              _yuru(g.delta.dy * 0.03); // aşağı çek = ilerle
-            }),
+            onHorizontalDragUpdate: (g) => setState(() => k.yaw = _aci(k.yaw - g.delta.dx / F)), // dünyayı tutup çevirir gibi
             child: CustomPaint(painter: _Dunya(this)),
           ),
         ),
@@ -295,7 +291,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
           right: 12,
           top: pad.top + 66,
           child: IgnorePointer(
-            child: CustomPaint(size: const Size(52, 104), painter: _Harita(this, yk)),
+            child: CustomPaint(size: const Size(44, 120), painter: _Harita(this, yk)),
           ),
         ),
         if (!_ipucuGoruldu)
@@ -308,28 +304,12 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
                 child: Cam(
                   radius: 18,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  child: Text('Soldaki daireyle yürü · ağaca dokun', style: ts(Colors.white, 13.5)),
+                  child: Text('Gitmek istediğin yere dokun · bakmak için kaydır', style: ts(Colors.white, 13)),
                 ),
               ),
             ),
           ),
-        Positioned(
-          left: 16,
-          bottom: pad.bottom + 18,
-          child: _Kol(
-            onDegis: (v) {
-              joy = v;
-              joyAktif = true;
-              hedef = null;
-              _calis();
-            },
-            onBitti: () {
-              joy = Offset.zero;
-              joyAktif = false;
-            },
-          ),
-        ),
-        if (yk >= 0) Positioned(left: 152, right: 12, bottom: pad.bottom + 30, child: _girisKarti(yk)),
+        if (yk >= 0) Positioned(left: 12, right: 12, bottom: pad.bottom + 18, child: Center(child: SizedBox(width: math.min(W - 24, 420), child: _girisKarti(yk)))),
       ],
     );
   }
@@ -386,97 +366,43 @@ class _Levha extends StatelessWidget {
   );
 }
 
-// yürüme kolu: yukarı ileri, aşağı geri, sağa/sola döner
-class _Kol extends StatefulWidget {
-  final void Function(Offset) onDegis;
-  final VoidCallback onBitti;
-  const _Kol({required this.onDegis, required this.onBitti});
-  @override
-  State<_Kol> createState() => _KolState();
-}
-
-class _KolState extends State<_Kol> {
-  static const _d = 120.0, _r = 44.0;
-  Offset o = Offset.zero;
-
-  void _set(Offset p) {
-    var v = p - const Offset(_d / 2, _d / 2);
-    if (v.distance > _r) v = v / v.distance * _r;
-    setState(() => o = v);
-    widget.onDegis(v / _r);
-  }
-
-  void _bitir() {
-    setState(() => o = Offset.zero);
-    widget.onBitti();
-  }
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    behavior: HitTestBehavior.opaque,
-    onPanDown: (g) => _set(g.localPosition),
-    onPanUpdate: (g) => _set(g.localPosition),
-    onPanEnd: (_) => _bitir(),
-    onPanCancel: _bitir,
-    child: SizedBox(
-      width: _d,
-      height: _d,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0x590A0F1C),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0x66FFFFFF), width: 1.5),
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white70, size: 22),
-                  Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 22),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            left: _d / 2 + o.dx - 26,
-            top: _d / 2 + o.dy - 26,
-            width: 52,
-            height: 52,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xE6F2F4F8),
-                shape: BoxShape.circle,
-                boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 8, offset: Offset(0, 3))],
-              ),
-              child: const Icon(Icons.directions_walk_rounded, color: R.bg, size: 24),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
 // ---------------------------------------------------------------- sahne çizimi
+// üçgen yığını: çim yaprakları, çit tahtaları tek çağrıda çizilir
+class _Ucgen {
+  final pos = <double>[];
+  final col = <int>[];
+  void ekle(Offset a, Offset b, Offset c, Color ca, Color cb, Color cc) {
+    pos.addAll([a.dx, a.dy, b.dx, b.dy, c.dx, c.dy]);
+    col.addAll([ca.toARGB32(), cb.toARGB32(), cc.toARGB32()]);
+  }
+
+  void dortgen(Offset a, Offset b, Offset c, Offset d, Color alt, Color ust) {
+    ekle(a, b, c, alt, alt, ust);
+    ekle(a, c, d, alt, ust, ust);
+  }
+
+  void ciz(Canvas cv) {
+    if (pos.isEmpty) return;
+    cv.drawVertices(ui.Vertices.raw(VertexMode.triangles, Float32List.fromList(pos), colors: Int32List.fromList(col)), BlendMode.dst, Paint());
+  }
+}
+
 class _Dunya extends CustomPainter {
   final _Bahce3BState s;
   _Dunya(this.s);
 
   @override
   void paint(Canvas c, Size size) {
-    final W = size.width, H = size.height, yH = s.ufuk, f = s.F, k = s.k;
+    final W = size.width, H = size.height, yH = s.ufuk, f = s.F, k = s.k, olc = H / 800;
     final p = Paint();
+    Offset ekran(Offset o, [double y = 0]) => Offset(W / 2 + o.dx / o.dy * f, yH + (_goz - y) / o.dy * f);
 
-    // gökyüzü ve uzak tepeler (bakış açısına göre kayar, yürüyünce yerinde kalır)
-    c.drawRect(Rect.fromLTRB(0, 0, W, yH + 1), Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, yH), const [Color(0xFF6FB1E3), Color(0xFFDCEEF6)]));
-    void tepe(double amp, double ph, Color col) {
+    // gökyüzü, uzak tepeler ve çitin ötesindeki koru (sonsuz uzakta: yalnızca bakış yönüyle kayar)
+    c.drawRect(Rect.fromLTRB(0, 0, W, yH + 1), Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, yH), const [Color(0xFF5FA6DE), Color(0xFFD9ECF4)]));
+    void ufukCiz(double Function(double t) yuk, Color col) {
       final path = Path()..moveTo(0, yH + 1);
-      for (double x = 0; x <= W + 4; x += 4) {
-        final t = k.yaw + math.atan((x - W / 2) / f);
-        final h = (16 + 9 * math.sin(3 * t + ph) + 6 * math.sin(7 * t + 2 * ph) + 3 * math.sin(12 * t + ph)) * amp * (H / 800);
-        path.lineTo(x, yH - h);
+      for (double x = 0; x <= W + 3; x += 3) {
+        path.lineTo(x, yH - yuk(k.yaw + math.atan((x - W / 2) / f)) * olc);
       }
       path
         ..lineTo(W, yH + 1)
@@ -484,15 +410,22 @@ class _Dunya extends CustomPainter {
       c.drawPath(path, p..color = col);
     }
 
-    tepe(2.0, 0, const Color(0xFFA9C9C0));
-    tepe(1.0, 2, const Color(0xFF7FAE7E));
+    ufukCiz((t) => 34 + 16 * math.sin(3 * t) + 9 * math.sin(7 * t + 1) + 4 * math.sin(13 * t + 2), const Color(0xFFAFCBC8));
+    ufukCiz((t) => 20 + 10 * math.sin(2 * t + 2) + 6 * math.sin(9 * t), const Color(0xFF8DB596));
+    double koru(double t, int a, int b, double ph) {
+      final u = math.sin(a * t + ph), v = math.sin(b * t + 2 * ph);
+      return 18 + 14 * u * u + 9 * v * v;
+    }
 
-    // çimen
-    c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset(0, H), const [Color(0xFF93BC6E), Color(0xFF4F8B40)]));
+    // çitin ötesi: iki kat sık koru (uzaktaki açık, yakındaki koyu)
+    ufukCiz((t) => koru(t, 37, 61, 0.5) + 14, const Color(0xFF6E9C69));
+    ufukCiz((t) => koru(t, 53, 89, 1.3), const Color(0xFF4A7A45));
 
-    Offset ekran(Offset o) => Offset(W / 2 + o.dx / o.dy * f, yH + _goz / o.dy * f);
+    // çitin dışındaki çayır
+    c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset(0, H), const [Color(0xFF8FB46A), Color(0xFF6E9A4C)]));
+
     // yerdeki çokgeni kameranın önünden keserek ekrana düşür
-    void zemin(List<Offset> dunya, Color col) {
+    Path? zemin(List<Offset> dunya) {
       final cs = [for (final q in dunya) s.kamera(q.dx, q.dy)];
       final out = <Offset>[];
       for (var i = 0; i < cs.length; i++) {
@@ -503,58 +436,142 @@ class _Dunya extends CustomPainter {
           out.add(Offset(a.dx + (b.dx - a.dx) * t, _yakin));
         }
       }
-      if (out.length < 3) return;
-      c.drawPath(Path()..addPolygon([for (final o in out) ekran(o)], true), p..color = col);
+      if (out.length < 3) return null;
+      return Path()..addPolygon([for (final o in out) ekran(o)], true);
     }
 
-    // çim lekeleri ve çiçekler
-    const g = 2.2;
-    final i0 = ((k.x - 26) / g).floor(), i1 = ((k.x + 26) / g).ceil(), j0 = ((k.z - 26) / g).floor(), j1 = ((k.z + 26) / g).ceil();
-    for (var i = i0; i <= i1; i++) {
-      for (var j = j0; j <= j1; j++) {
-        final x = (i + _h(i, j, 1)) * g, z = (j + _h(i, j, 2)) * g;
-        if (x.abs() < _yolW + 0.4) continue;
-        final o = s.kamera(x, z);
-        final cic = _h(i, j, 4) < 0.12;
-        if (o.dy < (cic ? 2.5 : 1.2) || o.dy > 26) continue; // ayağının dibindekiler büyük leke olmasın
-        final e = ekran(o);
-        if (e.dx < -60 || e.dx > W + 60) continue;
-        var r = math.min((0.25 + _h(i, j, 3) * 0.45) / o.dy * f, W * 0.16);
-        if (cic) r = math.min(r * 0.3, 9);
-        final ry = r * math.min(1.0, _goz / o.dy);
-        final col = cic ? const [Color(0xFFFFFFFF), Color(0xFFFFD54F), Color(0xFFF48FB1)][(_h(i, j, 5) * 3).floor() % 3] : (_h(i, j, 5) < 0.5 ? const Color(0x33255E1F) : const Color(0x26D8F0A0));
-        c.drawOval(Rect.fromCenter(center: e, width: 2 * r, height: 2 * ry), p..color = col);
+    void zeminCiz(List<Offset> dunya, Paint boya) {
+      final z = zemin(dunya);
+      if (z != null) c.drawPath(z, boya);
+    }
+
+    final z0 = _citZ0, z1 = s.citZ1;
+    // bahçe çimi (biçilmiş): uzakta açık, yakında koyu; yol boyunca açık-koyu şeritler
+    zeminCiz([Offset(-_citX, z0), Offset(_citX, z0), Offset(_citX, z1), Offset(-_citX, z1)], Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset(0, H), const [Color(0xFF8DBE62), Color(0xFF3E7B2E)]));
+    for (var i = 0; i < 5; i++) {
+      final x0 = _yolW + i * 1.15, x1 = x0 + 1.15;
+      final col = i % 2 == 0 ? const Color(0x1AFFFFE0) : const Color(0x14000000);
+      for (final sg in const [-1.0, 1.0]) {
+        zeminCiz([Offset(sg * x0, z0), Offset(sg * x1, z0), Offset(sg * x1, z1), Offset(sg * x0, z1)], p..color = col);
       }
+    }
+    // çitin dibindeki çiçek tarhları
+    for (final sg in const [-1.0, 1.0]) {
+      zeminCiz([Offset(sg * (_citX - 1.0), z0 + 1), Offset(sg * (_citX - 0.15), z0 + 1), Offset(sg * (_citX - 0.15), z1 - 1), Offset(sg * (_citX - 1.0), z1 - 1)], p..color = const Color(0xFF6B4A33));
     }
 
     // taş döşeli yol
-    for (var z = -9.0; z < s.zSon + 9; z += 1.4) {
-      if ((z - k.z).abs() > _gorus + 2) continue;
-      final koyu = ((z + 9) / 1.4).round() % 2 == 0;
-      zemin([Offset(-_yolW, z), Offset(_yolW, z), Offset(_yolW, z + 1.3), Offset(-_yolW, z + 1.3)], koyu ? const Color(0xFFD9C394) : const Color(0xFFE3CFA3));
+    for (var z = z0; z < z1; z += 1.2) {
+      if ((z - k.z).abs() > _gorus) continue;
+      final koyu = ((z - z0) / 1.2).round() % 2 == 0;
+      zeminCiz([Offset(-_yolW, z), Offset(_yolW, z), Offset(_yolW, z + 1.14), Offset(-_yolW, z + 1.14)], p..color = koyu ? const Color(0xFFD5BE90) : const Color(0xFFDFCAA0));
+    }
+
+    // çim yaprakları: yakında sık ve uzun, uzaklaştıkça seyrek; ufka doğru kaybolur
+    final ot = _Ucgen();
+    void cimler(double hucre, double r0, double r1, int tohum) {
+      final i0 = ((k.x - r1) / hucre).floor(), i1 = ((k.x + r1) / hucre).ceil(), j0 = ((k.z - r1) / hucre).floor(), j1 = ((k.z + r1) / hucre).ceil();
+      for (var i = i0; i <= i1; i++) {
+        for (var j = j0; j <= j1; j++) {
+          final x = (i + _h(i, j, tohum)) * hucre, z = (j + _h(i, j, tohum + 1)) * hucre;
+          if (x.abs() < _yolW + 0.05 || x.abs() > _citX - 1.05 || z < z0 || z > z1) continue;
+          final o = s.kamera(x, z);
+          if (o.dy < math.max(r0, 0.9) || o.dy > r1) continue;
+          final e = ekran(o);
+          if (e.dx < -20 || e.dx > W + 20 || e.dy > H + 30) continue;
+          final hh = 0.045 + 0.07 * _h(i, j, tohum + 2), ww = 0.016 / o.dy * f; // biçilmiş çim boyu
+          final ux = x + (_h(i, j, tohum + 3) - 0.5) * 0.06, uz = z + (_h(i, j, tohum + 4) - 0.5) * 0.06;
+          final u = ekran(s.kamera(ux, uz), hh);
+          final ton = _h(i, j, tohum + 5), sis = (1 - (o.dy - r0) / (r1 - r0)).clamp(0.0, 1.0);
+          final alt = Color.lerp(const Color(0xFF2D5E22), const Color(0xFF3F7A2C), ton)!.withValues(alpha: 0.9 * sis);
+          final ust = Color.lerp(const Color(0xFF7DB04F), const Color(0xFFB5D27A), ton)!.withValues(alpha: 0.9 * sis);
+          ot.ekle(Offset(e.dx - ww, e.dy), Offset(e.dx + ww, e.dy), u, alt, alt, ust);
+        }
+      }
+    }
+
+    cimler(0.11, 0.9, 5.0, 11);
+    cimler(0.24, 4.5, 12.0, 21);
+    cimler(0.5, 11.0, 22.0, 41);
+    ot.ciz(c);
+
+    // çiçekler (tarhlarda)
+    for (final sg in const [-1.0, 1.0]) {
+      for (var j = (z0 + 1) ~/ 0.3; j < (z1 - 1) / 0.3; j++) {
+        for (var i = 0; i < 3; i++) {
+          final x = sg * (_citX - 0.9 + i * 0.26 + _h(i, j, 31) * 0.12), z = j * 0.3 + _h(i, j, 32) * 0.2;
+          final o = s.kamera(x, z);
+          if (o.dy < 0.9 || o.dy > 30) continue;
+          final e = ekran(o, 0.25 + 0.15 * _h(i, j, 33));
+          if (e.dx < -10 || e.dx > W + 10) continue;
+          final r = math.min(0.07 / o.dy * f, 10.0);
+          c.drawOval(Rect.fromCenter(center: e.translate(0, r * 0.9), width: r * 2.6, height: r * 1.4), p..color = const Color(0xFF2F6B28));
+          c.drawCircle(e, r, p..color = const [Color(0xFFE53935), Color(0xFFFFD54F), Color(0xFFF8F8F8), Color(0xFFEC77AB), Color(0xFF7E57C2)][(_h(i, j, 34) * 5).floor() % 5]);
+        }
+      }
+    }
+
+    // çit: kazıklar, iki kuşak ve sivri uçlu tahtalar (ağaçlar hep çitin içinde: önce çit, sonra ağaçlar)
+    final cit = _Ucgen();
+    void kenar(Offset a, Offset b) {
+      final l = (b - a).distance, yon = (b - a) / l, adim = 0.3, tw = 0.11;
+      final golge = yon.dx.abs() > 0.5 ? 0.0 : 0.08; // yan çitler biraz koyu
+      final tahta = Color.lerp(const Color(0xFFF1EBDD), const Color(0xFF8A8577), golge)!, tahtaUst = Color.lerp(const Color(0xFFFFFCF4), const Color(0xFF8A8577), golge)!;
+      for (var t = 0.0; t < l - 0.01; t += adim) {
+        final m = a + yon * (t + adim / 2), sol = m - yon * (tw / 2), sag = m + yon * (tw / 2);
+        final ks = s.kamera(sol.dx, sol.dy), kg = s.kamera(sag.dx, sag.dy);
+        if (ks.dy < _yakin || kg.dy < _yakin || ks.dy > _gorus) continue;
+        final ex = ekran(ks).dx;
+        if (ex < -50 || ex > W + 50) continue;
+        final kazik = ((t + adim / 2) / adim).round() % 6 == 0;
+        final hh = kazik ? _citH + 0.12 : _citH, km = s.kamera(m.dx, m.dy);
+        cit.dortgen(ekran(ks), ekran(kg), ekran(kg, hh - 0.1), ekran(ks, hh - 0.1), tahta, tahtaUst);
+        cit.ekle(ekran(ks, hh - 0.1), ekran(kg, hh - 0.1), ekran(km, hh), tahtaUst, tahtaUst, tahtaUst);
+        // kuşaklar (tahtaların arasından geçen yatay çıtalar)
+        final ileri = a + yon * (t + adim), ki = s.kamera(ileri.dx, ileri.dy);
+        if (ki.dy >= _yakin) {
+          for (final y in const [0.32, 0.72]) {
+            cit.dortgen(ekran(ks, y), ekran(ki, y), ekran(ki, y + 0.08), ekran(ks, y + 0.08), const Color(0xFFCFC6B2), const Color(0xFFE2DACA));
+          }
+        }
+      }
+    }
+
+    kenar(Offset(-_citX, z0), Offset(_citX, z0));
+    kenar(Offset(_citX, z0), Offset(_citX, z1));
+    kenar(Offset(_citX, z1), Offset(-_citX, z1));
+    kenar(Offset(-_citX, z1), Offset(-_citX, z0));
+    cit.ciz(c);
+
+    // gidilen yer işareti (sabit halka)
+    if (s.hedef != null && s.hedefIdx < 0 && s.bakHedef == null) {
+      final o = s.kamera(s.hedef!.dx, s.hedef!.dy);
+      if (o.dy > _yakin) {
+        final e = ekran(o), r = 0.35 / o.dy * f;
+        c.drawOval(
+          Rect.fromCenter(center: e, width: 2 * r, height: 2 * r * math.min(1.0, _goz / o.dy)),
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.5
+            ..color = const Color(0xCCFFFFFF),
+        );
+      }
     }
 
     // ağaçlar (uzaktan yakına)
     final yk = s.yakinAgac;
     for (final d in s.cizim) {
-      final r = d.r, a = d.a;
-      final bw = r.width * 0.55;
-      c.drawOval(Rect.fromCenter(center: Offset(r.center.dx, r.bottom - r.height * 0.01), width: bw, height: bw * 0.2), p..color = Color.fromRGBO(0, 0, 0, 0.22 * a));
-      if (d.s.idx >= 0 && d.s.idx == yk) {
-        c.drawOval(Rect.fromCenter(center: Offset(r.center.dx, r.bottom - r.height * 0.01), width: r.width * 0.9, height: r.width * 0.18), p..color = const Color(0x59FFE29A));
+      final r = d.r, taban = Offset(r.center.dx, r.bottom - r.height * 0.01);
+      final bw = r.width * 0.6;
+      c.drawOval(Rect.fromCenter(center: taban, width: bw, height: bw * 0.18), p..color = const Color(0x40000000));
+      if (d.s.idx == yk) {
+        c.drawOval(Rect.fromCenter(center: taban, width: r.width * 0.9, height: r.width * 0.16), p..color = const Color(0x59FFE29A));
       }
       final im = d.s.src == null ? null : _resimler[d.s.src];
       if (im != null) {
-        c.drawImageRect(
-          im,
-          Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble()),
-          r,
-          Paint()
-            ..filterQuality = FilterQuality.medium
-            ..color = Color.fromRGBO(255, 255, 255, a),
-        );
-      } else if (d.s.idx >= 0) {
-        c.drawRRect(RRect.fromRectAndRadius(r.deflate(r.width * 0.2), Radius.circular(r.width * 0.1)), p..color = Color.fromRGBO(255, 255, 255, 0.18 * a));
+        c.drawImageRect(im, Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble()), r, Paint()..filterQuality = FilterQuality.medium);
+      } else {
+        c.drawRRect(RRect.fromRectAndRadius(r.deflate(r.width * 0.2), Radius.circular(r.width * 0.1)), p..color = const Color(0x2EFFFFFF));
       }
     }
   }
@@ -563,7 +580,7 @@ class _Dunya extends CustomPainter {
   bool shouldRepaint(covariant _Dunya old) => true;
 }
 
-// küçük harita: yol, ağaçlar ve senin yerin (sabit; yalnızca yürüdükçe değişir)
+// küçük harita: çit, yol, ağaçlar ve senin yerin (sabit; yalnızca yürüdükçe değişir)
 class _Harita extends CustomPainter {
   final _Bahce3BState s;
   final int yk;
@@ -571,15 +588,16 @@ class _Harita extends CustomPainter {
 
   @override
   void paint(Canvas c, Size size) {
-    final W = size.width, H = size.height, z0 = -9.0, z1 = s.zSon + 9;
-    Offset m(double x, double z) => Offset(W / 2 + x / 9 * (W / 2 - 6), H - 6 - (z - z0) / (z1 - z0) * (H - 12));
+    final W = size.width, H = size.height, z0 = _citZ0, z1 = s.citZ1;
+    Offset m(double x, double z) => Offset(W / 2 + x / _citX * (W / 2 - 6), H - 6 - (z - z0) / (z1 - z0) * (H - 12));
     final p = Paint();
-    c.drawRRect(RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(12)), p..color = const Color(0x990A0F1C));
-    c.drawRRect(
-      RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(12)),
+    final kutu = RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(10));
+    c.drawRRect(kutu, p..color = const Color(0x990A0F1C));
+    c.drawRect(
+      Rect.fromPoints(m(-_citX, z0), m(_citX, z1)),
       Paint()
         ..style = PaintingStyle.stroke
-        ..color = R.glassLine,
+        ..color = const Color(0x99F1EBDD),
     );
     c.drawLine(
       m(0, z0),
@@ -589,7 +607,7 @@ class _Harita extends CustomPainter {
         ..strokeWidth = 3,
     );
     for (final a in s.agaclar) {
-      c.drawCircle(m(a.x, a.z), a.idx == yk ? 3.4 : 2.4, p..color = a.idx == yk ? R.gold : const Color(0xFF7FD08F));
+      c.drawCircle(m(a.x, a.z), a.idx == yk ? 3.2 : 2.3, p..color = a.idx == yk ? R.gold : const Color(0xFF7FD08F));
     }
     final o = m(s.k.x, s.k.z), dir = Offset(math.sin(s.k.yaw), -math.cos(s.k.yaw)), yan = Offset(-dir.dy, dir.dx);
     final ok = Path()
