@@ -47,3 +47,11 @@ Asıl uygulama **Flutter** (`flutter_app/`). Kökteki `App.js` (React Native / E
 - 2. cüzün sesi yok (`ses2` paketi gerekli; `tools/ses_paketle.py`).
 - `flutter` dalındaki `tools/cuz_kes.py` iki yana yaslı satırlarda kelime boşluğunu bulamıyor; 2. cüzde Bakara 177, 191, 230, 234 başları elle iki kelimeye kırpıldı. Yeni cüz keserken başların genişlik oranını kontrol et (1. cüzde en fazla ~3,4).
 - APK yerelde debug anahtarıyla imzalanıyor: farklı bilgisayarda derlenen APK eskisinin üzerine kurulamaz (önce kaldır). Kalıcı çözüm: release keystore oluşturup `android/app/build.gradle.kts`'e bağlamak (henüz yapılmadı).
+
+
+## GERİ DÖNÜŞ NOKTASI (kullanıcı onayladı – 25 Ekim 2026)
+Kullanıcı "şuraya dön / uygulamayı eski onayladığım hâline getir" derse: **`yedek-onay-2026-10-25`** dalına (commit `a15f34b`) dön.
+- Yöntem: `git fetch origin yedek-onay-2026-10-25 && git checkout main && git reset --hard origin/yedek-onay-2026-10-25 && git push --force-with-lease origin main` (force push için önce kullanıcıya sor).
+- O sürümde: 1. cüz meyve ağaçları + 3B bahçe, 2. cüz Değerli Madenler (kodla çizilmiş) + mağara, bilgi kartı YOK, ses2 YOK.
+- Bundan sonra eklenenler: ağaç/maden bilgi kartı (`flutter_app/lib/bilgi.dart`, ağaç sayfasındaki ⓘ), 2. cüzde seçili maden görsellerinin kullanıcının görselleriyle değişmesi, ses2 + meal.
+- Etiket (tag) sunucuya itilemedi (proxy), bu yüzden yedek DAL olarak duruyor.

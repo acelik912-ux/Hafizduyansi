@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'ayet.dart';
 import 'bahce3d.dart';
 import 'ortak.dart';
+import 'bilgi.dart';
 import 'veri.dart';
 
 class _Adim {
@@ -262,6 +263,8 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
           ),
         ),
         const SizedBox(width: 10),
+        CamIkon(Icons.info_outline_rounded, () => bilgiGoster(context, _ad(it.p), tema.birim), ipucu: 'Bilgi'),
+        const SizedBox(width: 8),
         CamIkon(Icons.menu_book_rounded, page.kind == 'ayat' && page.sheets.isNotEmpty ? () => setState(() { sheetFor = Duz(it.p, 0, 0, page.ayat.first); sheetGizle = false; }) : null, ipucu: 'Mushaf sayfası'),
       ]),
     );
