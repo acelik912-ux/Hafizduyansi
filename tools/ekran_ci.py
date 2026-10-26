@@ -8,6 +8,8 @@ URLS = {
     'c_sag': '?c=1&x=0&z=6&y=0.9',
     'd_yakin': '?c=1&x=0.9&z=0.5&y=0',
     'e_magara': '?c=2&x=0&z=-3&y=0',
+    'f_maden1': '?c=2&x=-2.5&z=-0.4&y=0',
+    'g_maden2': '?c=2&x=2.5&z=-0.4&y=0',
 }
 with sync_playwright() as p:
     b = p.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl'])
