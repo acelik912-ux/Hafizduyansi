@@ -263,7 +263,19 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
           ),
         ),
         const SizedBox(width: 10),
-        CamIkon(Icons.info_outline_rounded, () => bilgiGoster(context, _ad(it.p), tema.birim), ipucu: 'Bilgi'),
+        Bas(
+          onTap: () => bilgiGoster(context, _ad(it.p), tema.birim),
+          child: Container(
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(color: R.gold, borderRadius: BorderRadius.circular(22), boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 8, offset: Offset(0, 2))]),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.info_rounded, color: Color(0xFF1A1405), size: 24),
+              const SizedBox(width: 6),
+              Text('Bilgi', style: ts(const Color(0xFF1A1405), 14, FontWeight.w800)),
+            ]),
+          ),
+        ),
         const SizedBox(width: 8),
         CamIkon(Icons.menu_book_rounded, page.kind == 'ayat' && page.sheets.isNotEmpty ? () => setState(() { sheetFor = Duz(it.p, 0, 0, page.ayat.first); sheetGizle = false; }) : null, ipucu: 'Mushaf sayfası'),
       ]),

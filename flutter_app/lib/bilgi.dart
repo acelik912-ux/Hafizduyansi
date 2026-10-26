@@ -47,6 +47,14 @@ const Map<String, List<String>> kBilgi = {
   'bakır': ['İnsanlığın ilk işlediği madenlerden biridir.', 'Elektriği çok iyi iletir; kablolarda kullanılır.', 'Havayla temas edince yeşil bir tabaka (patina) oluşturur.'],
   'mercan': ['Rahmân 55/22 ve 55/58’de inciyle birlikte anılır.', 'Mercan taşı aslında denizdeki küçük canlıların kireçli iskeletleridir.', 'Kırmızı mercan ağaç gibi dallanır.'],
   'turmalin': ['Aynı kristalde farklı renkler (pembe-yeşil gibi) görülebilir.', 'Isıtılınca ya da sıkılınca elektrik yükü oluşturur.', 'Adı eski bir Sinhala kelimesinden gelir.'],
+  // ---- 2. cüz: yeni madenler
+  'inci': ['Taş değil, istiridyenin içinde oluşan organik bir incidir.', 'Rahmân 55/22’de mercanla birlikte anılır.', 'Kumdan değil, istiridyenin salgıladığı sedef tabakalarından oluşur; sert bir dokunuşla çizilir.'],
+  'kaplan gözü': ['Kuvars ailesindendir; içindeki lifli yapı ışığı şeritler hâlinde yansıtır.', 'Altın-kahverengi bantları, kaplan gözünü andırdığı için bu adı almıştır.', 'Genellikle Güney Afrika’da çıkarılır; takı ve tespihte kullanılır.'],
+  'lavlı': ['Volkanik kayaçtır; yanardağdan çıkan erimiş kaya soğuyunca oluşur.', 'Lav yaklaşık 700–1200 °C sıcaklıkta akar.', 'Soğuyan lavdan bazalt, obsidyen ve süngertaşı gibi kayaçlar doğar.'],
+  'obsidyen': ['Volkanik camdır; lav çok hızlı soğuyunca kristal oluşamadan donar.', 'Kırılınca çok keskin kenarlar verir; ilk çağlarda kesici alet olarak kullanılmıştır.', 'Anadolu’da Göllüdağ (Nevşehir) yakınında önemli yatakları vardır.'],
+  'kristal': ['Kaya kristali, saf kuvarstır; renksiz ve saydamdır.', 'Atomları düzenli bir kafes hâlinde dizildiği için yüzleri düz ve açılıdır.', 'Saatlerde ve elektronik devrelerde kuvars kristali zaman ayarı için kullanılır.'],
+  'demir': ['Yer kabuğunda en bol bulunan metallerden biridir; çeliğin ana maddesidir.', 'Hadîd sûresi (57/25) “Demiri de indirdik; onda büyük bir güç ve insanlara faydalar vardır” der.', 'Havayla ve nemle temas edince paslanır; kanımızdaki hemoglobinin de parçasıdır.'],
+  'toprak': ['Kayaların binlerce yılda ufalanması ve bitki-hayvan artıklarıyla oluşur.', 'Tüm madenler ve bitkiler topraktan beslenir; insan da topraktan yaratılmıştır (Hac 22/5).', 'Bir santimetre toprağın oluşması yüzlerce yıl sürebilir.'],
 };
 
 List<String>? bilgiOf(String ad) {
