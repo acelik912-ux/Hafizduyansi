@@ -1,0 +1,133 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 4,
+ "name": "Canlılar (4. Cüz)",
+ "sahne": "cayir",
+ "ek": "",
+ "birim": "canlı",
+ "tanim": "canlılar çayırı",
+ "ui": {},
+ "trees": {
+  "1": {
+   "file": "canli01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kelebek"
+  },
+  "2": {
+   "file": "canli02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Salyangoz"
+  },
+  "3": {
+   "file": "canli03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tarantula"
+  },
+  "4": {
+   "file": "canli04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Karınca"
+  },
+  "5": {
+   "file": "canli05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gergedan Böceği"
+  },
+  "6": {
+   "file": "canli06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yusufçuk"
+  },
+  "7": {
+   "file": "canli07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Uğur Böceği"
+  },
+  "8": {
+   "file": "canli08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Peygamber Devesi"
+  },
+  "9": {
+   "file": "canli09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İpek Güvesi"
+  },
+  "10": {
+   "file": "canli10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tırtıl"
+  },
+  "11": {
+   "file": "canli11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Akrep"
+  },
+  "12": {
+   "file": "canli12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ateş Böceği"
+  },
+  "13": {
+   "file": "canli13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Çekirge"
+  },
+  "14": {
+   "file": "canli14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bal Arısı"
+  },
+  "15": {
+   "file": "canli15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sinek"
+  },
+  "16": {
+   "file": "canli16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Üzüm Salyangozu"
+  },
+  "17": {
+   "file": "canli17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Semender"
+  },
+  "18": {
+   "file": "canli18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kurbağa"
+  },
+  "19": {
+   "file": "canli19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kobra"
+  },
+  "20": {
+   "file": "canli20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kulaksokan"
+  }
+ }
+}

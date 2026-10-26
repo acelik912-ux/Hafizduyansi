@@ -120,7 +120,7 @@ class Bahce3B extends StatefulWidget {
   final List<Sayfa> pages;
   final String? Function(int) agac;
   final String Function(int) ad; // ağaç / maden adı
-  final String sahne; // 'bahce' | 'magara' | 'kus'
+  final String sahne; // 'bahce' | 'magara' | 'kus' | 'cayir'
   final String birim; // 'ağaç' | 'maden'
   final double W, H;
   final EdgeInsets pad;
@@ -585,7 +585,7 @@ class _Dunya extends CustomPainter {
 
     final z0 = _citZ0, z1 = s.citZ1;
 
-    final magara = s.widget.sahne == 'magara', kus = s.widget.sahne == 'kus';
+    final magara = s.widget.sahne == 'magara', kus = s.widget.sahne == 'kus', cayir = s.widget.sahne == 'cayir';
     if (magara) {
       // ---- maden mağarası: tavan, kaya duvarlar, çakıllı zemin, raylar, ahşap destekler ve fenerler (sabit ışık)
       const tavan = 5.6, koyu = Color(0xFF0B0806);
@@ -834,6 +834,36 @@ class _Dunya extends CustomPainter {
       cimler(0.24, 4.5, 12.0, 21);
       cimler(0.5, 11.0, 22.0, 41);
       ot.ciz(c);
+
+      if (cayir) {
+        // 4. cüz: çayır — çimin arasında sabit kır çiçekleri (hiçbiri kıpırdamaz)
+        const renkler = [Color(0xFFFFE15A), Color(0xFFF8F8F4), Color(0xFFF08AB4), Color(0xFFFFB23E), Color(0xFF9C7BE0), Color(0xFFFF6B5E), Color(0xFF7FB5F0)];
+        void kir(double hucre, double r0, double r1, int tohum) {
+          final i0 = ((k.x - r1) / hucre).floor(), i1 = ((k.x + r1) / hucre).ceil(), j0 = ((k.z - r1) / hucre).floor(), j1 = ((k.z + r1) / hucre).ceil();
+          for (var i = i0; i <= i1; i++) {
+            for (var j = j0; j <= j1; j++) {
+              if (_h(i, j, tohum + 6) > 0.62) continue;
+              final x = (i + _h(i, j, tohum)) * hucre, z = (j + _h(i, j, tohum + 1)) * hucre;
+              if (x.abs() < _yolW + 0.12 || x.abs() > _citX - 1.1 || z < z0 + 0.5 || z > z1 - 0.5) continue;
+              final o = s.kamera(x, z);
+              if (o.dy < math.max(r0, 0.9) || o.dy > r1) continue;
+              final e = ekran(o);
+              if (e.dx < -20 || e.dx > W + 20 || e.dy > H + 30) continue;
+              final hh = 0.10 + 0.16 * _h(i, j, tohum + 2), u = ekran(o, hh);
+              final sis = (1 - (o.dy - r0) / (r1 - r0)).clamp(0.0, 1.0);
+              final r = math.min(0.055 / o.dy * f, 9.0);
+              c.drawLine(e, u, Paint()..color = const Color(0xFF3F7A2C).withValues(alpha: 0.9 * sis)..strokeWidth = math.max(1.0, r * 0.35));
+              final renk = renkler[(_h(i, j, tohum + 3) * renkler.length).floor() % renkler.length].withValues(alpha: 0.95 * sis);
+              c.drawCircle(u, r, p..color = renk);
+              c.drawCircle(u, r * 0.38, p..color = const Color(0xFFF2B01E).withValues(alpha: 0.95 * sis));
+            }
+          }
+        }
+
+        kir(0.42, 0.9, 6.0, 51);
+        kir(0.8, 5.0, 14.0, 61);
+        kir(1.4, 12.0, 24.0, 71);
+      }
 
       // çiçekler (tarhlarda)
       for (final sg in const [-1.0, 1.0]) {
