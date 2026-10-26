@@ -56,3 +56,9 @@ Kullanıcı "şuraya dön / uygulamayı eski onayladığım hâline getir" derse
 - O sürümde: 1. cüz meyve ağaçları + 3B bahçe, 2. cüz Değerli Madenler (kodla çizilmiş) + mağara, bilgi kartı YOK, ses2 YOK (sonradan eklendi).
 - Bundan sonra eklenenler: ağaç/maden bilgi kartı (`flutter_app/lib/bilgi.dart`, ağaç sayfasındaki ⓘ), 2. cüzde seçili maden görsellerinin kullanıcının görselleriyle değişmesi, ses2 + meal.
 - Etiket (tag) sunucuya itilemedi (proxy), bu yüzden yedek DAL olarak duruyor.
+
+
+## SON CLAUDE DÜZENLEMESİ (26 Ekim 2026, ChatGPT'nin değerlendirmesinden önce)
+Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi olmazsa **`yedek-claude-2026-10-26`** dalına dön (içinde: 2. cüz 20 maden kullanıcı görselleriyle, belirgin altın "Bilgi" düğmesi, tüm bilgi metinleri, ses2).
+- Yöntem: `git fetch origin yedek-claude-2026-10-26 && git checkout main && git reset --hard origin/yedek-claude-2026-10-26 && git push --force-with-lease origin main` (force push için önce kullanıcıya sor).
+- Oltu Taşı ve Lüle Taşı görselleri geçici çizimdir (kullanıcı kendi görselini verebilir).
