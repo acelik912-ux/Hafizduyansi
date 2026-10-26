@@ -64,3 +64,12 @@ Kullanıcı "şuraya dön / uygulamayı eski onayladığım hâline getir" derse
 Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi olmazsa **`yedek-claude-2026-10-26`** dalına dön (içinde: 2. cüz 20 maden kullanıcı görselleriyle, belirgin altın "Bilgi" düğmesi, tüm bilgi metinleri, ses2).
 - Yöntem: `git fetch origin yedek-claude-2026-10-26 && git checkout main && git reset --hard origin/yedek-claude-2026-10-26 && git push --force-with-lease origin main` (force push için önce kullanıcıya sor).
 - Oltu Taşı ve Lüle Taşı görselleri geçici çizimdir (kullanıcı kendi görselini verebilir).
+
+
+## 3. CÜZ – KUŞLAR (başlandı, 26 Ekim 2026)
+- Yedek: `yedek-cuz3-oncesi` dalı (3. cüz işinden önceki main).
+- Paketler hazır: `cuz3` (2:253–3:91, 20 sayfa, 125 ayet; `flutter` dalındaki cuz_kes.py ile; sure başı besmele bandı ve dar boşluklu ayet başı düzeltmeleri o betikte, main'e alınmadı), `ses3` (Nâsır el-Katâmî). Sayfa 7 = Bakara 282, tek ayetli sayfa (normal ağaç sayfası mantığı 1 ayetle çalışır, `ozelSayfa` gerekmedi).
+- Sahne: `sahne: 'kus'` (bahce3d.dart): bahçe zemini/gölge/bulut aynı; çit yerine alçak taş duvar, iki yanda taş kenarlı sabit dere. Ayet başı halkaları dolgulu (`sahne != 'bahce'`). Ekran görüntüsüyle doğrulandı (geçici görsellerle, `kus-ekran` dalı, ana dala ALINMAZ).
+- Kuş görselleri: kullanıcı üretir → `tools/kus_kaynak/NN_ad.png` (beyaz zeminli, kuş + ahşap yaşam alanı; sıra: Kartal, Şahin, Güvercin, Altın Sülün, Tavus, Keklik, Anka, Yalıçapkını, Peçeli Baykuş, Tukan, Kırmızı Papağan, Pelikan, Ağaçkakan, Leylek, Flamingo, Atmaca, Arı Kuşu, Saka, Bülbül, Kerkenez) → `python3 tools/kus_gorsel.py` → `python3 tools/flutter_varlik.py`. Arka plan görselleri varsayılan temadan gelir.
+- Bilgi kartları (`bilgi.dart`) kuşlar için eklendi; `bilgiOf` en uzun eşleşen anahtarı seçer.
+- Bekleyen: kullanıcının 20 kuş görseli; sonra theme3 kur, APK dispatch.
