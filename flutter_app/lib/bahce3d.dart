@@ -30,6 +30,42 @@ class _Kam {
 }
 
 final _kameralar = <int, _Kam>{}; // cüz -> son konum (ağaçtan dönünce aynı yerde durulur)
+// ---- zemin: gerçek doku + gölgelendirici (assets/doku, shaders/zemin.frag). Yüklenemezse eski çokgen zemin kullanılır.
+class _Zemin {
+  static ui.FragmentProgram? prog;
+  static ui.Image? gI, gK, pI, pK;
+  static bool deniyor = false;
+  static bool get hazir => prog != null && gI != null && gK != null && pI != null && pK != null;
+
+  static Future<ui.Image> _img(String yol) async {
+    final b = await rootBundle.load(yol);
+    final codec = await ui.instantiateImageCodec(b.buffer.asUint8List());
+    return (await codec.getNextFrame()).image;
+  }
+
+  static Future<void> yukle() async {
+    if (hazir || deniyor) return;
+    deniyor = true;
+    try {
+      final r = await Future.wait([
+        ui.FragmentProgram.fromAsset('shaders/zemin.frag'),
+        _img('assets/doku/cim_i.png'),
+        _img('assets/doku/cim_k.png'),
+        _img('assets/doku/yol_i.png'),
+        _img('assets/doku/yol_k.png'),
+      ]);
+      prog = r[0] as ui.FragmentProgram;
+      gI = r[1] as ui.Image;
+      gK = r[2] as ui.Image;
+      pI = r[3] as ui.Image;
+      pK = r[4] as ui.Image;
+    } catch (e) {
+      debugPrint('zemin dokusu yüklenemedi: $e');
+    }
+    deniyor = false;
+  }
+}
+
 final _resimler = <String, ui.Image>{};
 bool _ipucuGoruldu = false;
 
@@ -136,6 +172,11 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     Future.wait(yollar.map(_resim)).whenComplete(() {
       if (mounted) setState(() => hazir = true);
     });
+    if (widget.sahne != 'magara') {
+      _Zemin.yukle().whenComplete(() {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
   @override
@@ -667,6 +708,28 @@ class _Dunya extends CustomPainter {
       ufukCiz((t) => koru(t, 37, 61, 0.5) + 14, const Color(0xFF6E9C69));
       ufukCiz((t) => koru(t, 53, 89, 1.3), const Color(0xFF4A7A45));
 
+      if (_Zemin.hazir) {
+        // gerçek doku: çim + taş yol + toprak tarh, perspektif doğru (gölgelendirici)
+        final sh = _Zemin.prog!.fragmentShader()
+          ..setFloat(0, W)
+          ..setFloat(1, H)
+          ..setFloat(2, yH)
+          ..setFloat(3, f)
+          ..setFloat(4, _goz)
+          ..setFloat(5, math.cos(k.yaw))
+          ..setFloat(6, math.sin(k.yaw))
+          ..setFloat(7, k.x)
+          ..setFloat(8, k.z)
+          ..setFloat(9, _citX)
+          ..setFloat(10, z0)
+          ..setFloat(11, z1)
+          ..setFloat(12, _yolW)
+          ..setImageSampler(0, _Zemin.gI!)
+          ..setImageSampler(1, _Zemin.gK!)
+          ..setImageSampler(2, _Zemin.pI!)
+          ..setImageSampler(3, _Zemin.pK!);
+        c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..shader = sh);
+      } else {
       // çitin dışındaki çayır
       c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset(0, H), const [Color(0xFF8FB46A), Color(0xFF6E9A4C)]));
 
@@ -699,6 +762,7 @@ class _Dunya extends CustomPainter {
         if ((z - k.z).abs() > _gorus) continue;
         final koyu = ((z - z0) / 1.2).round() % 2 == 0;
         zeminCiz([Offset(-_yolW, z), Offset(_yolW, z), Offset(_yolW, z + 1.14), Offset(-_yolW, z + 1.14)], p..color = koyu ? const Color(0xFFD5BE90) : const Color(0xFFDFCAA0));
+      }
       }
 
       // çim yaprakları: yakında sık ve uzun, uzaklaştıkça seyrek; ufka doğru kaybolur
@@ -795,10 +859,49 @@ class _Dunya extends CustomPainter {
 
     // ağaçlar (uzaktan yakına)
     final yk = s.yakinAgac;
+    if (!magara) {
+      // ağaç gölgeleri: güneş solda-önde sabit; ağacın silueti yere yatırılıp sağ-arkaya uzatılır (dünyaya sabit, kamerayla kaymaz)
+      const gx = 0.62, gz = 0.78, uzun = 0.84 * _agacH, yari = 1.5;
+      for (final d in s.cizim) {
+        if (d.d > 45) continue;
+        final im = d.s.src == null ? null : _resimler[d.s.src];
+        if (im == null) continue;
+        final kb = [
+          s.kamera(d.s.x - yari, d.s.z),
+          s.kamera(d.s.x + yari, d.s.z),
+          s.kamera(d.s.x - yari + gx * uzun, d.s.z + gz * uzun),
+        ];
+        if (kb.any((o) => o.dy < 0.5)) continue;
+        final bl = ekran(kb[0]), br = ekran(kb[1]), tl = ekran(kb[2]);
+        final iw = im.width.toDouble(), ih = im.height.toDouble();
+        final a = (br - bl) / iw, b = (bl - tl) / ih;
+        c.save();
+        c.transform(Float64List.fromList([a.dx, a.dy, 0, 0, b.dx, b.dy, 0, 0, 0, 0, 1, 0, tl.dx, tl.dy, 0, 1]));
+        final fade = (1 - (d.d - 18) / 27).clamp(0.0, 1.0);
+        c.drawImage(
+          im,
+          Offset.zero,
+          Paint()
+            ..filterQuality = FilterQuality.low
+            ..colorFilter = ColorFilter.mode(Color.fromRGBO(16, 34, 10, 0.36 * fade), BlendMode.srcIn),
+        );
+        c.restore();
+      }
+    }
     for (final d in s.cizim) {
       final r = d.r, taban = Offset(r.center.dx, r.bottom - r.height * 0.01);
       final bw = r.width * 0.6;
-      c.drawOval(Rect.fromCenter(center: taban, width: bw, height: bw * 0.18), p..color = const Color(0x40000000));
+      if (magara) {
+        c.drawOval(Rect.fromCenter(center: taban, width: bw, height: bw * 0.18), p..color = const Color(0x40000000));
+      } else {
+        // yumuşak çevresel gölge + koyu temas çekirdeği: ağaç yere oturur
+        c.drawOval(
+          Rect.fromCenter(center: taban.translate(0, bw * 0.025), width: bw * 1.16, height: bw * 0.34),
+          Paint()
+            ..shader = ui.Gradient.radial(taban, math.max(bw * 0.62, 1.0), const [Color(0x3A101B0D), Color(0x20101B0D), Color(0x00101B0D)], const [0.0, 0.58, 1.0]),
+        );
+        c.drawOval(Rect.fromCenter(center: taban, width: bw * 0.58, height: bw * 0.105), Paint()..color = const Color(0x3510180D));
+      }
       if (magara) {
         // mağarada madenin dibinde sıcak ışık
         c.drawOval(
@@ -814,6 +917,7 @@ class _Dunya extends CustomPainter {
         final boya = Paint()..filterQuality = FilterQuality.medium;
         final karanlik = magara ? ((d.d - 6) / 28).clamp(0.0, 0.85) : 0.0;
         if (karanlik > 0) boya.colorFilter = ColorFilter.mode(Color.fromRGBO(11, 8, 6, karanlik), BlendMode.srcATop);
+        if (!magara && d.d > 10) boya.colorFilter = ColorFilter.mode(Color.fromRGBO(176, 208, 182, ((d.d - 10) / 45).clamp(0.0, 0.42)), BlendMode.srcATop); // hava perspektifi
         c.drawImageRect(im, Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble()), r, boya);
       } else {
         c.drawRRect(RRect.fromRectAndRadius(r.deflate(r.width * 0.2), Radius.circular(r.width * 0.1)), p..color = const Color(0x2EFFFFFF));

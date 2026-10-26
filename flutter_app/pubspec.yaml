@@ -57,9 +57,12 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true
+  shaders:
+    - shaders/zemin.frag
   assets:
     - assets/logo.png
     - assets/ozel/
+    - assets/doku/
     # PAKET-BAŞ
     - assets/paket/cuz1/
     - assets/paket/cuz1/img/
