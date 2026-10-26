@@ -1,0 +1,32 @@
+name: Flutter ekran görüntüsü (geçici, yalnızca kus-ekran dalı)
+on:
+  push:
+    branches: [kus-ekran]
+permissions:
+  contents: write
+jobs:
+  ekran:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: cd flutter_app && flutter pub get && flutter build web --release
+      - name: Ekran görüntüleri
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+          (cd flutter_app/build/web && python3 -m http.server 8765 >/dev/null 2>&1 &)
+          sleep 3
+          python3 tools/ekran_ci.py shots
+      - name: Dala yaz
+        run: |
+          git config user.name "ekran-bot"; git config user.email "bot@example.com"
+          git checkout --orphan ekran-sonuc
+          git rm -rf . >/dev/null 2>&1 || true
+          cp shots/*.png . 
+          git add *.png
+          git commit -qm "ekran görüntüleri $GITHUB_RUN_NUMBER"
+          git push -f origin ekran-sonuc
