@@ -44,7 +44,7 @@ Asıl uygulama **Flutter** (`flutter_app/`). Kökteki `App.js` (React Native / E
 
 ## Bilinen açık işler
 - Ağaç sayfası (`_agacSayfasi`) 5'ten fazla ayetli sayfaları hâlâ "Sayfa devamı" ile ikiye bölüyor; kullanıcı 3B'de ikinci ağaç istemedi, ağaç sayfası için öneri yapıldı, yanıt bekleniyor.
-- 2. cüzün sesi yok (`ses2` paketi gerekli; `tools/ses_paketle.py`).
+- 2. cüz sesi eklendi (`ses2`, Nâsır el-Katâmî, 2:142–252). Kaynak zip kullanıcının yüklemesindeydi (`Nasser_AlQatami_380MB_32kbps.zip`, 6350 dosya, `SSSAAA.mp3`); sonraki cüzler için aynı kaynak.
 - `flutter` dalındaki `tools/cuz_kes.py` iki yana yaslı satırlarda kelime boşluğunu bulamıyor; 2. cüzde Bakara 177, 191, 230, 234 başları elle iki kelimeye kırpıldı. Yeni cüz keserken başların genişlik oranını kontrol et (1. cüzde en fazla ~3,4).
 - İmza: sabit release anahtarı bağlandı. Bu anahtardan ÖNCE kurulan (debug imzalı) APK'nın üstüne kurulmaz; telefonda bir kez kaldırılıp yenisi kurulmalı, sonrası güncelleme. Depo herkese açıksa anahtar da görünür: depoyu özel tut.
 
@@ -52,6 +52,6 @@ Asıl uygulama **Flutter** (`flutter_app/`). Kökteki `App.js` (React Native / E
 ## GERİ DÖNÜŞ NOKTASI (kullanıcı onayladı – 25 Ekim 2026)
 Kullanıcı "şuraya dön / uygulamayı eski onayladığım hâline getir" derse: **`yedek-onay-2026-10-25`** dalına (commit `a15f34b`) dön.
 - Yöntem: `git fetch origin yedek-onay-2026-10-25 && git checkout main && git reset --hard origin/yedek-onay-2026-10-25 && git push --force-with-lease origin main` (force push için önce kullanıcıya sor).
-- O sürümde: 1. cüz meyve ağaçları + 3B bahçe, 2. cüz Değerli Madenler (kodla çizilmiş) + mağara, bilgi kartı YOK, ses2 YOK.
+- O sürümde: 1. cüz meyve ağaçları + 3B bahçe, 2. cüz Değerli Madenler (kodla çizilmiş) + mağara, bilgi kartı YOK, ses2 YOK (sonradan eklendi).
 - Bundan sonra eklenenler: ağaç/maden bilgi kartı (`flutter_app/lib/bilgi.dart`, ağaç sayfasındaki ⓘ), 2. cüzde seçili maden görsellerinin kullanıcının görselleriyle değişmesi, ses2 + meal.
 - Etiket (tag) sunucuya itilemedi (proxy), bu yüzden yedek DAL olarak duruyor.
