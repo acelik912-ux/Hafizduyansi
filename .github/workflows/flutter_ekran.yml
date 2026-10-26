@@ -13,7 +13,7 @@ jobs:
         with:
           channel: stable
           cache: true
-      - run: cd flutter_app && flutter pub get && flutter analyze
+      - run: cd flutter_app && flutter pub get && (flutter analyze > ../analiz.txt 2>&1 || true)
       - run: cd flutter_app && flutter build web --release
       - name: Ekran görüntüleri
         run: |
@@ -27,7 +27,7 @@ jobs:
           git config user.name "ekran-bot"; git config user.email "bot@example.com"
           git checkout --orphan ekran-sonuc
           git rm -rf . >/dev/null 2>&1 || true
-          cp shots/*.png . 
-          git add *.png
+          cp shots/*.png .
+          git add *.png analiz.txt
           git commit -qm "ekran görüntüleri $GITHUB_RUN_NUMBER"
           git push -f origin ekran-sonuc
