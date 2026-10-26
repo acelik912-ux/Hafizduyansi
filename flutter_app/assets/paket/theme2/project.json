@@ -24,115 +24,115 @@
    "file": "maden02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gümüş"
+   "name": "Yakut"
   },
   "3": {
    "file": "maden03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Elmas"
+   "name": "Zümrüt"
   },
   "4": {
    "file": "maden04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yakut"
+   "name": "Elmas"
   },
   "5": {
    "file": "maden05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Zümrüt"
+   "name": "İnci"
   },
   "6": {
    "file": "maden06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Safir"
+   "name": "Ametist"
   },
   "7": {
    "file": "maden07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ametist"
+   "name": "Bakır"
   },
   "8": {
    "file": "maden08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Topaz"
+   "name": "Gümüş"
   },
   "9": {
    "file": "maden09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Firuze"
+   "name": "Oltu Taşı"
   },
   "10": {
    "file": "maden10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kehribar"
+   "name": "Kaplan Gözü"
   },
   "11": {
    "file": "maden11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Akik"
+   "name": "Kehribar"
   },
   "12": {
    "file": "maden12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Lacivert Taşı"
+   "name": "Opal"
   },
   "13": {
    "file": "maden13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Oniks"
+   "name": "Lüle Taşı"
   },
   "14": {
    "file": "maden14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yeşim"
+   "name": "Obsidyen"
   },
   "15": {
    "file": "maden15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Opal"
+   "name": "Kristal"
   },
   "16": {
    "file": "maden16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Necef"
+   "name": "Akik"
   },
   "17": {
    "file": "maden17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Platin"
+   "name": "Firuze"
   },
   "18": {
    "file": "maden18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Bakır"
+   "name": "Platin"
   },
   "19": {
    "file": "maden19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mercan"
+   "name": "Demir"
   },
   "20": {
    "file": "maden20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Turmalin"
+   "name": "Toprak"
   }
  }
 }
