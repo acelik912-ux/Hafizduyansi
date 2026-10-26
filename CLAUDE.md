@@ -70,6 +70,16 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Yedek: `yedek-cuz3-oncesi` dalı (3. cüz işinden önceki main).
 - Paketler hazır: `cuz3` (2:253–3:91, 20 sayfa, 125 ayet; `flutter` dalındaki cuz_kes.py ile; sure başı besmele bandı ve dar boşluklu ayet başı düzeltmeleri o betikte, main'e alınmadı), `ses3` (Nâsır el-Katâmî). Sayfa 7 = Bakara 282, tek ayetli sayfa (normal ağaç sayfası mantığı 1 ayetle çalışır, `ozelSayfa` gerekmedi).
 - Sahne: `sahne: 'kus'` (bahce3d.dart): bahçe zemini/gölge/bulut aynı; çit yerine alçak taş duvar, iki yanda taş kenarlı sabit dere. Ayet başı halkaları dolgulu (`sahne != 'bahce'`). Ekran görüntüsüyle doğrulandı (geçici görsellerle, `kus-ekran` dalı, ana dala ALINMAZ).
-- Kuş görselleri: kullanıcı üretir → `tools/kus_kaynak/NN_ad.png` (beyaz zeminli, kuş + ahşap yaşam alanı; sıra: Kartal, Şahin, Güvercin, Altın Sülün, Tavus, Keklik, Anka, Yalıçapkını, Peçeli Baykuş, Tukan, Kırmızı Papağan, Pelikan, Ağaçkakan, Leylek, Flamingo, Atmaca, Arı Kuşu, Saka, Bülbül, Kerkenez) → `python3 tools/kus_gorsel.py` → `python3 tools/flutter_varlik.py`. Arka plan görselleri varsayılan temadan gelir.
+- Kuş görselleri (kullanıcının, 20 adet, yerleştirildi) → `tools/kus_kaynak/NN_ad.png`; ilk 5'i ahşap tarhlı, gerisi tek başına kuş. Gerçek sıra: Kartal, Şahin, Güvercin, Altın Sülün, Tavus, Keklik, Anka, Hüthüt, Puhu, Tukan, Kırmızı Papağan, Pelikan, Ağaçkakan, Flamingo, Kolibri, Saka, Bülbül, Kerkenez, Atmaca, Leylek → `python3 tools/kus_gorsel.py` → `python3 tools/flutter_varlik.py`. Arka plan görselleri varsayılan temadan gelir.
 - Bilgi kartları (`bilgi.dart`) kuşlar için eklendi; `bilgiOf` en uzun eşleşen anahtarı seçer.
-- Bekleyen: kullanıcının 20 kuş görseli; sonra theme3 kur, APK dispatch.
+- Bitti: theme3 kuruldu, APK'ya girdi. Cüzler sekmesinde görünüm seçici var (Büyük / 2'li / 4'lü / Liste, `tercih.cuzGor`).
+
+
+## 4. CÜZ – CANLILAR / ÇAYIR (27 Ekim 2026)
+- Yedek: `yedek-cuz4-oncesi` dalı. Paketler: `cuz4` (3:92–4:23, 20 sayfa, 132 ayet; sayfa başına 9,8,7,6,11,8,8,5,4,8,8,7,6,8,6,6,5,3,5,4), `ses4` (3:93–4:23; 3:92'nin sesi `ses3` içinde, ses haritası genel olduğu için çalışır), `theme4`.
+- Sahne: `sahne: 'cayir'` (bahce3d.dart): bahçe zemini/çit/gölge aynı + çimin arasında sabit kır çiçekleri (`kir(...)`, hiçbiri kıpırdamaz). Ayet başı halkaları dolgulu (`sahne != 'bahce'`).
+- Görseller: kullanıcının 20 görseli `tools/bocek_kaynak/NN_ad.png` (1080x1920, beyaz zeminli) → `python3 tools/bocek_gorsel.py [önizleme_klasörü]` → `python3 tools/flutter_varlik.py`. Kipler: beyaz | delik | saydam (kanatları yarı saydam yapar: yusufçuk, arı, sinek) | dal (salyangoz dalının uçları sönümlenir) | kutuk (ateş böceği, kütük parçasının üst/sol kenarı sönümlenir). `md` = en büyük kenar, `yük` = yerden yükseklik (uçanlar).
+- Sıra (sayfa sırası): Kelebek, Salyangoz, Tarantula, Karınca, Gergedan Böceği, Yusufçuk, Uğur Böceği, Peygamber Devesi, İpek Güvesi, Tırtıl, Akrep, Ateş Böceği, Çekirge, Bal Arısı, Sinek, Üzüm Salyangozu, Semender, Kurbağa, Kobra, Kulaksokan. (Kullanıcı önce tarantula/gergedanı çıkarmayı düşünmüştü ama görsellerini yolladı; hepsi girdi. İki salyangoz var: dalda olan "Salyangoz", diğeri "Üzüm Salyangozu".)
+- Bilgi kartları (`bilgi.dart`) eklendi (Kur'an göndermeleri: Neml 27/18 karınca, Nahl 16/68-69 arı, Hac 22/73 sinek, A'râf 7/133 çekirge+kurbağa, Kâria 101/4 kelebek, Ankebût 29/41 örümcek, Tâhâ 20/20 yılan). `bilgiOf` artık büyük İ/I'yı önce çevirir (toLowerCase noktalı i'yi bozabiliyordu).
+- Ekran görüntüsü: `bocek-ekran` dalı (geçici, ana dala ALINMAZ).
+- Gerçek cihazda denenmedi; yalnızca CI'da web derlemesi + ekran görüntüsü.

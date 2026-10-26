@@ -851,7 +851,7 @@ class _Dunya extends CustomPainter {
               if (e.dx < -20 || e.dx > W + 20 || e.dy > H + 30) continue;
               final hh = 0.10 + 0.16 * _h(i, j, tohum + 2), u = ekran(o, hh);
               final sis = (1 - (o.dy - r0) / (r1 - r0)).clamp(0.0, 1.0);
-              final r = math.min(0.055 / o.dy * f, 9.0);
+              final r = math.min(0.04 / o.dy * f, 6.0);
               c.drawLine(e, u, Paint()..color = const Color(0xFF3F7A2C).withValues(alpha: 0.9 * sis)..strokeWidth = math.max(1.0, r * 0.35));
               final renk = renkler[(_h(i, j, tohum + 3) * renkler.length).floor() % renkler.length].withValues(alpha: 0.95 * sis);
               c.drawCircle(u, r, p..color = renk);
