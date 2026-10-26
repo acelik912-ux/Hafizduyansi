@@ -694,11 +694,66 @@ class _Dunya extends CustomPainter {
         ], p..color = const Color(0xFF6B4A33));
       }
 
-      // taş döşeli yol
-      for (var z = z0; z < z1; z += 1.2) {
+      // Doğal taş döşeli yol: taşlar birbirinin aynı dikdörtgenler değildir.
+      // Her taşın kenarları, rengi ve aralığı sabit tohumla belirlenir; yürürken titreşmez.
+      for (var row = 0, z = z0; z < z1; row++, z += 1.2) {
         if ((z - k.z).abs() > _gorus) continue;
-        final koyu = ((z - z0) / 1.2).round() % 2 == 0;
-        zeminCiz([Offset(-_yolW, z), Offset(_yolW, z), Offset(_yolW, z + 1.14), Offset(-_yolW, z + 1.14)], p..color = koyu ? const Color(0xFFD5BE90) : const Color(0xFFDFCAA0));
+        for (var col = 0; col < 3; col++) {
+          final xL = -_yolW + col * (2 * _yolW / 3);
+          final xR = -_yolW + (col + 1) * (2 * _yolW / 3);
+          final seed = row * 17 + col * 31 + 9;
+          final inset = 0.035 + _h(row, col, seed) * 0.045;
+          final x0 = xL + inset;
+          final x1 = xR - inset;
+          final z0s = z + 0.035 + _h(row, col, seed + 1) * 0.07;
+          final z1s = z + 1.11 - _h(row, col, seed + 2) * 0.08;
+          final skewA = (_h(row, col, seed + 3) - 0.5) * 0.12;
+          final skewB = (_h(row, col, seed + 4) - 0.5) * 0.12;
+          final stone = <Offset>[
+            Offset(x0 + skewA, z0s),
+            Offset((x0 + x1) * 0.5 + skewB, z0s + 0.025),
+            Offset(x1, z0s + skewA.abs() * 0.25),
+            Offset(x1 - skewB, (z0s + z1s) * 0.5),
+            Offset(x1 - inset * 0.2, z1s),
+            Offset((x0 + x1) * 0.5 - skewA, z1s - 0.02),
+            Offset(x0, z1s - skewB.abs() * 0.2),
+            Offset(x0 + skewB, (z0s + z1s) * 0.5),
+          ];
+          final base = Color.lerp(const Color(0xFFB9A37F), const Color(0xFFE2D2B0), _h(row, col, seed + 5))!;
+          final edge = Color.lerp(base, const Color(0xFF76664F), 0.28)!;
+          final top = Color.lerp(base, const Color(0xFFFFEAC6), 0.13)!;
+          // İnce koyu derz ve hafif üst yüzey aydınlığı.
+          zeminCiz(stone.map((v) => v.translate(0.025, 0.035)).toList(), p..color = const Color(0x55302418));
+          zeminCiz(stone, p..color = base);
+          zeminCiz([stone[0], stone[1], stone[2], stone[7]], p..color = top);
+          zeminCiz([stone[2], stone[3], stone[4], stone[5]], p..color = edge.withValues(alpha: 0.38));
+        }
+      }
+
+      // Çim yüzeyindeki doğal renk kırılmaları. Konumlar dünya koordinatına bağlıdır;
+      // kamera hareket etse de doku yer değiştirmez. Küçük/yarı saydam lekeler düz rengi kırar.
+      final gx0 = ((k.x - 13.0) / 0.62).floor();
+      final gx1 = ((k.x + 13.0) / 0.62).ceil();
+      final gz0 = ((k.z - 18.0) / 0.62).floor();
+      final gz1 = ((k.z + 30.0) / 0.62).ceil();
+      for (var gi = gx0; gi <= gx1; gi++) {
+        for (var gj = gz0; gj <= gz1; gj++) {
+          final x = (gi + _h(gi, gj, 101)) * 0.62;
+          final z = (gj + _h(gi, gj, 102)) * 0.62;
+          if (x.abs() < _yolW + 0.18 || x.abs() > _citX - 1.05 || z < z0 || z > z1) continue;
+          final o = s.kamera(x, z);
+          if (o.dy < 1.3 || o.dy > 18.0) continue;
+          final e = ekran(o, 0.006);
+          if (e.dx < -14 || e.dx > W + 14 || e.dy < yH || e.dy > H + 14) continue;
+          final radius = (0.05 + _h(gi, gj, 103) * 0.07) / o.dy * f;
+          final shade = _h(gi, gj, 104);
+          final tone = shade < 0.48
+              ? const Color(0x18305A24)
+              : shade < 0.78
+                  ? const Color(0x147FA84C)
+                  : const Color(0x12C2D779);
+          c.drawOval(Rect.fromCenter(center: e, width: radius * 2.7, height: radius * 1.15), p..color = tone);
+        }
       }
 
       // çim yaprakları: yakında sık ve uzun, uzaklaştıkça seyrek; ufka doğru kaybolur
@@ -798,7 +853,19 @@ class _Dunya extends CustomPainter {
     for (final d in s.cizim) {
       final r = d.r, taban = Offset(r.center.dx, r.bottom - r.height * 0.01);
       final bw = r.width * 0.6;
-      c.drawOval(Rect.fromCenter(center: taban, width: bw, height: bw * 0.18), p..color = const Color(0x40000000));
+      // Yumuşak çevresel gölge + daha koyu temas çekirdeği: ağacın zemine oturma hissini artırır.
+      c.drawOval(
+        Rect.fromCenter(center: taban.translate(0, bw * 0.025), width: bw * 1.16, height: bw * 0.34),
+        Paint()..shader = ui.Gradient.radial(
+          taban, math.max(bw * 0.62, 1.0),
+          [const Color(0x3A101B0D), const Color(0x20101B0D), const Color(0x00101B0D)],
+          [0.0, 0.58, 1.0],
+        ),
+      );
+      c.drawOval(
+        Rect.fromCenter(center: taban, width: bw * 0.58, height: bw * 0.105),
+        Paint()..color = const Color(0x3510180D),
+      );
       if (magara) {
         // mağarada madenin dibinde sıcak ışık
         c.drawOval(
