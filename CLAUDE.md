@@ -28,6 +28,8 @@ Asıl uygulama **Flutter** (`flutter_app/`). Kökteki `App.js` (React Native / E
   - Mağara sahnesi (`sahne: 'magara'`, 2. cüz): kaya duvar, çakıl, raylar, ahşap destek + sabit fenerler, uzak madenler karanlığa karışır.
   - Önemli sabitler: `_yanas` 3,4 (duruş mesafesi), `_carpR` 1,5 (çarpışma; karşıdaki ağacın duruş yeri 5−3,4=1,6 m'de, bundan küçük kalmalı — 1,8 yapınca kamera hedefe varamıyordu), `ufuk` = H·0,58 (hafif yukarı bakış), görüş ~56°.
   - Kamera konumu cüz başına bellekte (`_kameralar`), ağaçtan dönünce aynı yer.
+  - **Bahçe zemini (26 Ekim 2026):** `shaders/zemin.frag` (FragmentProgram) ekrandaki her pikseli yer düzlemine çevirip `assets/doku/` dokularını örnekler (çim 3,2 m, taş yol 1,7×3,4 m; ince/küçük/ortalama renk geçişiyle uzakta titreşim yok). Dokular `python3 tools/zemin_doku.py` ile üretilir; ortalama renkler shader'daki sabitlerle aynı olmalı. Doku/shader yüklenemezse eski çokgen zemin devreye girer (`_Zemin.hazir`). Ayrıca: ağaç gölgeleri (siluet yere yatırılır, güneş sabit solda-önde), yumuşak temas gölgesi, uzakta ağaçlara hava perspektifi, gökte sabit bulutlar. Mağara sahnesi bunlardan etkilenmez.
+  - Ekran görüntüsü CI'da alınır: `zemin-ekran` dalı (geçici `?c=&x=&z=&y=` parametreleri + `flutter_ekran.yml`), sonuç `ekran-sonuc` dalına PNG olarak yazılır (artifact indirmesi sandbox'tan engelli). Ana dala ALINMAZ.
 - `ayet.dart` – ayet paneli (ses, tekrar, hız, meal), `MushafSayfasi` (ezber modu). Ses yoksa "Bu ayetin sesi uygulamada yok".
 - `ortak.dart` – tasarım sistemi (renkler `R`, `Cam`, `CamIkon`, `Cip`, `AyetEtiket`, `img`).
 
