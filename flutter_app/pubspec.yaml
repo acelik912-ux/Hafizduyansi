@@ -68,10 +68,14 @@ flutter:
     - assets/paket/cuz1/img/
     - assets/paket/cuz2/
     - assets/paket/cuz2/img/
+    - assets/paket/cuz3/
+    - assets/paket/cuz3/img/
     - assets/paket/ses1/
     - assets/paket/ses1/a/
     - assets/paket/ses2/
     - assets/paket/ses2/a/
+    - assets/paket/ses3/
+    - assets/paket/ses3/a/
     - assets/paket/theme1/
     - assets/paket/theme1/bg/
     - assets/paket/theme1/fruits/

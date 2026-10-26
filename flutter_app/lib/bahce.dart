@@ -325,7 +325,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         final fsrc = tema.fruits[it.p]?[k];
         void ac() => _set(() { open = fi; dinle = false; });
         children.add(Positioned(left: lx, top: ly, width: lw, height: lh, child: Bas(onTap: ac, child: AyetEtiket(ay.start.path, lw, lh, border: fruitCol[k], radius: 12))));
-        children.add(Positioned(left: ax - fd / 2, top: ayy - fd / 2, width: fd, height: fd, child: _Fruit(fd, k, fsrc, ac, dolgu: tema.sahne == 'magara')));
+        children.add(Positioned(left: ax - fd / 2, top: ayy - fd / 2, width: fd, height: fd, child: _Fruit(fd, k, fsrc, ac, dolgu: tema.sahne != 'bahce')));
       }
     }
 

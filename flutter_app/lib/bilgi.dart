@@ -60,10 +60,11 @@ const Map<String, List<String>> kBilgi = {
 
 List<String>? bilgiOf(String ad) {
   final a = ad.toLowerCase().replaceAll('İ', 'i').replaceAll('I', 'ı');
+  MapEntry<String, List<String>>? en; // en uzun eşleşen anahtar ("altın sülün", "altın"dan önce gelir)
   for (final e in kBilgi.entries) {
-    if (a.contains(e.key)) return e.value;
+    if (a.contains(e.key) && (en == null || e.key.length > en.key.length)) en = e;
   }
-  return null;
+  return en?.value;
 }
 
 void bilgiGoster(BuildContext context, String ad, String ek) {

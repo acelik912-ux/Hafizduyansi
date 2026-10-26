@@ -183,7 +183,7 @@ class Depo {
 
   Tema temaOf(int? cuz) => cuzTema[cuz] ?? tema;
   String adOf(Cuz? cd, int i) => temaOf(cd?.no).adlar[i] ?? treeName(i);
-  String agacAdi(Cuz? cd, int i) => '${adOf(cd, i)} ${temaOf(cd?.no).ek}'; // "Elma ağacı", "Altın madeni"
+  String agacAdi(Cuz? cd, int i) => '${adOf(cd, i)} ${temaOf(cd?.no).ek}'.trim(); // "Elma ağacı", "Altın madeni"
 
   String? sesOf(int sura, int no) => sesYolu[sura.toString().padLeft(3, '0') + no.toString().padLeft(3, '0')];
 }

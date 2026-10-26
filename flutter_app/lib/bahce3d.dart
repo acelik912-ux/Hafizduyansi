@@ -120,7 +120,7 @@ class Bahce3B extends StatefulWidget {
   final List<Sayfa> pages;
   final String? Function(int) agac;
   final String Function(int) ad; // ağaç / maden adı
-  final String sahne; // 'bahce' | 'magara'
+  final String sahne; // 'bahce' | 'magara' | 'kus'
   final String birim; // 'ağaç' | 'maden'
   final double W, H;
   final EdgeInsets pad;
@@ -424,7 +424,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final r = cizim.where((c) => c.s.idx == i).map((c) => c.r).firstOrNull;
     if (r == null) return const [];
     final oz = widget.ozel(i);
-    final magara = widget.sahne == 'magara';
+    final magara = widget.sahne != 'bahce'; // halka içi dolgulu düğmeler (2. ve 3. cüz)
     final secili = [
       for (var j = 0; j < page.ayat.length; j++)
         if (!oz || page.ayat[j].no == 1) j,
@@ -585,7 +585,7 @@ class _Dunya extends CustomPainter {
 
     final z0 = _citZ0, z1 = s.citZ1;
 
-    final magara = s.widget.sahne == 'magara';
+    final magara = s.widget.sahne == 'magara', kus = s.widget.sahne == 'kus';
     if (magara) {
       // ---- maden mağarası: tavan, kaya duvarlar, çakıllı zemin, raylar, ahşap destekler ve fenerler (sabit ışık)
       const tavan = 5.6, koyu = Color(0xFF0B0806);
@@ -788,6 +788,24 @@ class _Dunya extends CustomPainter {
       }
       }
 
+      if (kus) {
+        // 3. cüz: duvarın önünde iki yanda sabit dere (taş kenarlı); su hareket etmez
+        for (final sg in const [-1.0, 1.0]) {
+          Offset q(double x, double z) => Offset(sg * x, z);
+          zeminCiz([q(_citX - 2.35, z0), q(_citX - 1.05, z0), q(_citX - 1.05, z1), q(_citX - 2.35, z1)], Paint()..color = const Color(0xFF8C8372), 0.01);
+          zeminCiz([q(_citX - 2.2, z0), q(_citX - 1.2, z0), q(_citX - 1.2, z1), q(_citX - 2.2, z1)], Paint()..shader = ui.Gradient.linear(Offset(0, yH), Offset(0, H), const [Color(0xFFBFE3EE), Color(0xFF2F7FA6)]), 0.02);
+          for (final dx in const [1.9, 1.6, 1.35]) {
+            zeminCiz([q(_citX - dx, z0), q(_citX - dx + 0.04, z0), q(_citX - dx + 0.04, z1), q(_citX - dx, z1)], p..color = const Color(0x33FFFFFF), 0.03);
+          }
+          for (var z = z0 + 0.3; z < z1; z += 0.9) {
+            if ((z - k.z).abs() > _gorus) continue;
+            final j = _h(z.round(), sg.toInt(), 77);
+            zeminCiz([q(_citX - 2.35, z), q(_citX - 2.2, z), q(_citX - 2.2, z + 0.5 + j * 0.3), q(_citX - 2.35, z + 0.5 + j * 0.3)], p..color = Color.lerp(const Color(0xFF9B9282), const Color(0xFFC2B8A4), j)!, 0.04);
+            zeminCiz([q(_citX - 1.2, z + 0.4), q(_citX - 1.05, z + 0.4), q(_citX - 1.05, z + 0.9 + j * 0.2), q(_citX - 1.2, z + 0.9 + j * 0.2)], p..color = Color.lerp(const Color(0xFF9B9282), const Color(0xFFC2B8A4), 1 - j)!, 0.04);
+          }
+        }
+      }
+
       // çim yaprakları: yakında sık ve uzun, uzaklaştıkça seyrek; ufka doğru kaybolur
       final ot = _Ucgen();
       void cimler(double hucre, double r0, double r1, int tohum) {
@@ -796,6 +814,7 @@ class _Dunya extends CustomPainter {
           for (var j = j0; j <= j1; j++) {
             final x = (i + _h(i, j, tohum)) * hucre, z = (j + _h(i, j, tohum + 1)) * hucre;
             if (x.abs() < _yolW + 0.05 || x.abs() > _citX - 1.05 || z < z0 || z > z1) continue;
+            if (kus && x.abs() > _citX - 2.5) continue;
             final o = s.kamera(x, z);
             if (o.dy < math.max(r0, 0.9) || o.dy > r1) continue;
             final e = ekran(o);
@@ -838,6 +857,24 @@ class _Dunya extends CustomPainter {
         final l = (b - a).distance, yon = (b - a) / l, adim = 0.3, tw = 0.11;
         final golge = yon.dx.abs() > 0.5 ? 0.0 : 0.08; // yan çitler biraz koyu
         final tahta = Color.lerp(const Color(0xFFF1EBDD), const Color(0xFF8A8577), golge)!, tahtaUst = Color.lerp(const Color(0xFFFFFCF4), const Color(0xFF8A8577), golge)!;
+        if (kus) {
+          // alçak taş duvar: her taş bloğu biraz farklı tonda
+          const hw = 0.62;
+          for (var t = 0.0; t < l - 0.01; t += 0.55) {
+            final p0 = a + yon * t, p1 = a + yon * math.min(t + 0.55, l);
+            final q0 = s.kamera(p0.dx, p0.dy), q1 = s.kamera(p1.dx, p1.dy);
+            if (q0.dy < _yakin || q1.dy < _yakin || math.min(q0.dy, q1.dy) > _gorus) continue;
+            final ex = ekran(q0).dx;
+            if (ex < -80 || ex > W + 80) continue;
+            final ti = ((p0.dx + p0.dy) * 5).round();
+            for (var r = 0; r < 2; r++) {
+              final ton = Color.lerp(const Color(0xFFA89E8A), const Color(0xFFD2C8B2), _h(ti, r, 91))!;
+              cit.dortgen(ekran(q0, hw * r / 2), ekran(q1, hw * r / 2), ekran(q1, hw * (r + 1) / 2), ekran(q0, hw * (r + 1) / 2), Color.lerp(ton, Colors.black, 0.16 + golge)!, ton);
+            }
+            cit.dortgen(ekran(q0, hw), ekran(q1, hw), ekran(q1, hw + 0.07), ekran(q0, hw + 0.07), const Color(0xFFDCD3BF), const Color(0xFFE8E0CD));
+          }
+          return;
+        }
         for (var t = 0.0; t < l - 0.01; t += adim) {
           final m = a + yon * (t + adim / 2), sol = m - yon * (tw / 2), sag = m + yon * (tw / 2);
           final ks = s.kamera(sol.dx, sol.dy), kg = s.kamera(sag.dx, sag.dy);
