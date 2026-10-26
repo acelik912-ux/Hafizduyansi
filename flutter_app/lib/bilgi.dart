@@ -56,6 +56,27 @@ const Map<String, List<String>> kBilgi = {
   'kristal': ['Kaya kristali, saf kuvarstır; renksiz ve saydamdır.', 'Atomları düzenli bir kafes hâlinde dizildiği için yüzleri düz ve açılıdır.', 'Saatlerde ve elektronik devrelerde kuvars kristali zaman ayarı için kullanılır.'],
   'demir': ['Yer kabuğunda en bol bulunan metallerden biridir; çeliğin ana maddesidir.', 'Hadîd sûresi (57/25) “Demiri de indirdik; onda büyük bir güç ve insanlara faydalar vardır” der.', 'Havayla ve nemle temas edince paslanır; kanımızdaki hemoglobinin de parçasıdır.'],
   'toprak': ['Kayaların binlerce yılda ufalanması ve bitki-hayvan artıklarıyla oluşur.', 'Tüm madenler ve bitkiler topraktan beslenir; insan da topraktan yaratılmıştır (Hac 22/5).', 'Bir santimetre toprağın oluşması yüzlerce yıl sürebilir.'],
+  // ---- 3. cüz: kuşlar
+  'kartal': ['Güçlü pençeli, çok keskin görüşlü bir yırtıcı kuştur; çok yükseklerden avını fark eder.', 'Yuvasını yüksek kayalıklara ve ulu ağaçlara yapar; aynı yuvayı yıllarca kullanabilir.', 'Süzülerek uçar; sıcak hava akımlarına yaslanıp kanat çırpmadan yükselir.'],
+  'şahin': ['Hızlı uçan, avını havada yakalayan yırtıcı bir kuştur.', 'Dalış hızı çok yüksek olabilir; kuşlar arasında en hızlılardan sayılır.', 'Eskiden avcılıkta eğitilirdi; Anadolu’da şahincilik köklü bir gelenektir.'],
+  'güvercin': ['Bakara 260’ta İbrahim’in dört kuşla ilgili olayı anlatılır; kuşların türü ayette söylenmez, tefsirlerde genellikle güvercin, horoz (ya da tavus), karga ve kartal anılır.', 'Yönünü çok iyi bulur; eskiden haberleşmede posta güvercini olarak kullanılmıştır.', 'Çiftler hâlinde yaşar ve yavrusunu “güvercin sütü” denen salgıyla besler.'],
+  'altın sülün': ['Çin dağlarının sık ormanlarında yaşar; erkeğinin altın sarısı ibiği ve kırmızı gövdesi çok gösterişlidir.', 'Zamanının çoğunu yerde geçirir, çok az uçar.', 'Ürkek bir kuştur; sık bitki örtüsünde saklanmakta ustadır.'],
+  'tavus': ['Hindistan kökenlidir; erkeğinin uzun “kuyruğu” aslında sırt tüyleridir ve bir metreyi geçebilir.', 'Gösteri için bu tüyleri yelpaze gibi açar; dişi sade renklidir.', 'Bazı tefsirlerde Bakara 260’taki dört kuştan biri olarak horoz yerine tavus anılır.'],
+  'keklik': ['Anadolu’nun taşlık yamaçlarında ve dağlarında yaşar; sürü hâlinde gezer.', 'Çok uçmaz, koşarak kaçmayı sever; ötüşüyle haberleşir.', 'Sonbaharda yiyecek bulmak için yüksek yerlerden aşağıya iner.'],
+  'anka': ['Gerçek bir tür değildir; Kur’an’da geçmez. Doğu kültürlerinde efsanevi bir kuştur (Simurg), Batı’da “Fenix” denir.', 'Küllerinden yeniden doğduğu anlatılır; bu yüzden yenilenmenin simgesidir.', 'Bu bahçede, tek ayetlik sayfanın özel kuşu olarak yer alır.'],
+  'yalıçapkını': ['Dere ve göl kıyısında yaşar; suya dalıp küçük balıkları yakalar.', 'Parlak mavi ve turuncu renkleriyle tanınır.', 'Yuvasını kıyıdaki toprak yarlara, tünel kazarak yapar.'],
+  'peçeli baykuş': ['Yüzü kalp biçimlidir; bu şekil sesi toplamasına yardım eder.', 'Gece avlanır; kemirgenleri sesinden bulur, bu yüzden tarlalar için yararlıdır.', 'Uçarken neredeyse hiç ses çıkarmaz.'],
+  'tukan': ['Güney Amerika yağmur ormanlarında yaşar; kocaman rengârenk gagasıyla tanınır.', 'Gagası büyük görünür ama içi süngerimsidir, bu yüzden hafiftir.', 'Meyvelerle beslenir; gagasıyla ulaşılması zor dallardaki meyveyi koparır.'],
+  'kırmızı papağan': ['Orta ve Güney Amerika ormanlarında yaşayan iri bir papağandır (ara).', 'Çok zekidir; ses taklidi yapabilir ve uzun yaşar.', 'Parlak tüyleri ormanda sürüsünü bulmasına yardım eder.'],
+  'pelikan': ['Gaganın altındaki esnek kesesiyle balık yakalar; suyu süzüp balığı yutar.', 'Gruplar hâlinde avlanıp balıkları sığ yere sürebilir.', 'Göç yollarında göl ve sazlıklarda görülür.'],
+  'ağaçkakan': ['Gagasıyla ağaç gövdesine vurarak böcek arar ve yuva oyar.', 'Başı ve boynu, tekrarlayan darbeleri hafifleten bir yapıya sahiptir.', 'Ayaklarının ikisi önde ikisi arkadadır; böylece gövdeye sıkıca tutunur.'],
+  'leylek': ['Göçmen bir kuştur; kışı sıcak yerlerde geçirir, baharda geri döner.', 'Yuvasını direklere, çatılara ve yüksek ağaçlara yapar; aynı yuvaya yıllarca döner.', 'Sesi yoktur denecek kadar azdır; gagasını takırdatarak haberleşir.'],
+  'flamingo': ['Pembe rengi, yediği kabuklulardan ve alglerden aldığı pigmentlerden gelir.', 'Sığ, tuzlu göllerde büyük kolonilerle yaşar; Anadolu’da Tuz Gölü çevresinde de görülür.', 'Çoğu zaman tek ayağı üzerinde durur.'],
+  'atmaca': ['Orman ve çalılık kenarlarında yaşayan küçük, çevik bir yırtıcı kuştur.', 'Ağaçların arasından hızlı ve ustaca manevra yaparak küçük kuşları avlar.', 'Dişi, erkekten belirgin biçimde daha büyüktür.'],
+  'arı kuşu': ['Rengârenk tüyleriyle tanınır; adını arıları ve eşek arılarını yemesinden alır.', 'Yakaladığı böceğin iğnesini bir dala sürterek temizler.', 'Yuvasını toprak yarlara kazdığı tünellere yapar; göçmendir.'],
+  'saka': ['Kırmızı yüzü, siyah-beyaz başı ve sarı kanat bandıyla küçük ve renkli bir ispinoz türüdür.', 'Devedikeni gibi dikenli bitkilerin tohumlarıyla beslenir.', 'Güzel ötüşüyle bilinir.'],
+  'bülbül': ['Ötüşüyle ünlüdür; erkek, bahar akşamlarında ve geceleri öter.', 'Tüyleri sadedir, güzelliği sesindedir.', 'Divan edebiyatında “gül ile bülbül” motifi çok işlenmiştir.'],
+  'kerkenez': ['Küçük bir şahindir; avlanırken havada kanat çırpıp yerinde asılı kalabilir.', 'Fare gibi kemirgenleri ve büyük böcekleri avlar.', 'Şehirlerde, eski kule ve duvar oyuklarına yuva yapabilir.'],
 };
 
 List<String>? bilgiOf(String ad) {
