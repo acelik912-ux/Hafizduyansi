@@ -325,7 +325,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         final fsrc = tema.fruits[it.p]?[k];
         void ac() => _set(() { open = fi; dinle = false; });
         children.add(Positioned(left: lx, top: ly, width: lw, height: lh, child: Bas(onTap: ac, child: AyetEtiket(ay.start.path, lw, lh, border: fruitCol[k], radius: 12))));
-        children.add(Positioned(left: ax - fd / 2, top: ayy - fd / 2, width: fd, height: fd, child: _Fruit(fd, k, fsrc, ac)));
+        children.add(Positioned(left: ax - fd / 2, top: ayy - fd / 2, width: fd, height: fd, child: _Fruit(fd, k, fsrc, ac, dolgu: tema.sahne == 'magara')));
       }
     }
 
@@ -422,19 +422,20 @@ class _Fruit extends StatelessWidget {
   final int k;
   final String? src;
   final VoidCallback onTap;
-  const _Fruit(this.d, this.k, this.src, this.onTap);
+  final bool dolgu; // 2. cüz: halkanın içi ayet rengiyle dolu (siyah, kırmızı, sarı, yeşil, lacivert)
+  const _Fruit(this.d, this.k, this.src, this.onTap, {this.dolgu = false});
   @override
   Widget build(BuildContext context) {
     final color = fruitCol[k];
     final rim = k == 0 ? const Color(0xBFEBEBEB) : color; // siyah meyvenin çerçevesi koyu zeminde görünsün
-    final fs = d * 0.8;
+    final fs = dolgu ? d * 0.66 : d * 0.8;
     return Bas(
       onTap: onTap,
       child: Stack(clipBehavior: Clip.none, alignment: Alignment.center, children: [
         Container(
           width: d, height: d,
           decoration: BoxDecoration(
-            shape: BoxShape.circle, color: const Color(0x7308160E), border: Border.all(color: rim, width: 2.2),
+            shape: BoxShape.circle, color: dolgu ? null : const Color(0x7308160E), gradient: dolgu ? RadialGradient(colors: [Color.lerp(color, Colors.white, 0.28)!, color], radius: 0.8) : null, border: Border.all(color: rim, width: 2.2),
             boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 8, offset: Offset(0, 3))],
           ),
         ),

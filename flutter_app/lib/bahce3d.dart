@@ -424,6 +424,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final r = cizim.where((c) => c.s.idx == i).map((c) => c.r).firstOrNull;
     if (r == null) return const [];
     final oz = widget.ozel(i);
+    final magara = widget.sahne == 'magara';
     final secili = [
       for (var j = 0; j < page.ayat.length; j++)
         if (!oz || page.ayat[j].no == 1) j,
@@ -449,10 +450,11 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: const Color(0x8C08160E),
+          color: magara ? null : const Color(0x8C08160E),
+          gradient: magara ? RadialGradient(colors: [Color.lerp(fruitCol[renk], Colors.white, 0.28)!, fruitCol[renk]], radius: 0.8) : null, // 2. cüz: halka içi ayet rengiyle dolu
           border: Border.all(color: renk == 0 ? const Color(0xBFEBEBEB) : fruitCol[renk], width: 2),
         ),
-        child: src != null ? img(src, w: fd * 0.78, h: fd * 0.78) : Text('${j + 1}', style: ts(fruitFg(renk), fd * 0.4, FontWeight.w800)),
+        child: src != null ? img(src, w: fd * (magara ? 0.64 : 0.78), h: fd * (magara ? 0.64 : 0.78)) : Text('${j + 1}', style: ts(fruitFg(renk), fd * 0.4, FontWeight.w800)),
       );
       final etiket = Expanded(child: AyetEtiket(page.ayat[j].start.path, double.infinity, lh, border: fruitCol[renk], radius: 12));
       out.add(
