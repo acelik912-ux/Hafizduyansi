@@ -90,6 +90,13 @@ class _Cizim {
   const _Cizim(this.s, this.r, this.d);
 }
 
+// merkez etrafında dikey sıkıştırılmış (elips) radyal degrade matrisi
+Float64List _elips(Offset m, double oran) => (Matrix4.identity()
+      ..translate(m.dx, m.dy)
+      ..scale(1.0, oran)
+      ..translate(-m.dx, -m.dy))
+    .storage;
+
 // sahte rastgele (çimen, çiçek her karede aynı yerde dursun)
 double _h(int i, int j, int n) {
   var v = (i * 73856093) ^ (j * 19349663) ^ (n * 83492791);
@@ -686,6 +693,20 @@ class _Dunya extends CustomPainter {
     } else {
       // gökyüzü, uzak tepeler ve çitin ötesindeki koru (sonsuz uzakta: yalnızca bakış yönüyle kayar)
       c.drawRect(Rect.fromLTRB(0, 0, W, yH + 1), Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, yH), const [Color(0xFF5FA6DE), Color(0xFFD9ECF4)]));
+      // yumuşak bulutlar: gökte sabit yönlerde; yalnızca bakış yönüyle kayar (kendi başına hareket etmez)
+      void bulut(double az, double el, double gen, double al) {
+        final da = _aci(az - k.yaw);
+        if (da.abs() > 1.35) return;
+        final cx = W / 2 + f * math.tan(da), cy = yH - f * math.tan(el), w = gen * olc * k.zum;
+        for (final o in const [Offset(0, 0), Offset(0.34, 0.05), Offset(-0.36, 0.06), Offset(0.12, -0.1), Offset(-0.14, -0.07)]) {
+          final r = Rect.fromCenter(center: Offset(cx + o.dx * w, cy + o.dy * w * 0.5), width: w * (0.9 - o.dy), height: w * 0.34);
+          c.drawOval(r, Paint()..shader = ui.Gradient.radial(r.center, r.width / 2, [Color.fromRGBO(255, 255, 255, al), const Color(0x00FFFFFF)], const [0.0, 1.0], TileMode.clamp, _elips(r.center, r.height / r.width), null));
+        }
+      }
+
+      for (final b in const [(0.35, 0.34, 230.0, 0.62), (-0.7, 0.45, 280.0, 0.55), (1.0, 0.27, 190.0, 0.5), (-1.15, 0.31, 210.0, 0.5), (0.0, 0.52, 250.0, 0.42), (2.4, 0.3, 240.0, 0.5), (-2.3, 0.4, 260.0, 0.5), (3.0, 0.25, 200.0, 0.45)]) {
+        bulut(b.$1, b.$2, b.$3, b.$4);
+      }
       void ufukCiz(double Function(double t) yuk, Color col) {
         final path = Path()..moveTo(0, yH + 1);
         for (double x = 0; x <= W + 3; x += 3) {
@@ -910,7 +931,8 @@ class _Dunya extends CustomPainter {
         );
       }
       if (d.s.idx == yk) {
-        c.drawOval(Rect.fromCenter(center: taban, width: r.width * 0.9, height: r.width * 0.16), p..color = const Color(0x59FFE29A));
+        final vr = Rect.fromCenter(center: taban, width: r.width * 1.0, height: r.width * 0.2);
+        c.drawOval(vr, Paint()..shader = ui.Gradient.radial(vr.center, vr.width / 2, const [Color(0x66FFE29A), Color(0x00FFE29A)], const [0.0, 1.0], TileMode.clamp, _elips(vr.center, vr.height / vr.width), null));
       }
       final im = d.s.src == null ? null : _resimler[d.s.src];
       if (im != null) {
