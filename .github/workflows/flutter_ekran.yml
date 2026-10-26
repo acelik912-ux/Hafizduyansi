@@ -1,6 +1,7 @@
 name: Flutter ekran görüntüsü (geçici, yalnızca zemin-ekran dalı)
 on:
-  workflow_dispatch:
+  push:
+    branches: [zemin-ekran]
 permissions:
   contents: write
 jobs:
