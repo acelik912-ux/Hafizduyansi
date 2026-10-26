@@ -68,6 +68,16 @@ def yerlestir(im):
     return tuval
 
 
+def ikon(im, n=384):
+    """madenin kendi küçük görseli: şeffaf kenarlar kırpılır, kare tuvale ortalanır"""
+    im = im.crop(im.getchannel('A').point(lambda v: 255 if v > 8 else 0).getbbox())
+    s = (n * 0.9) / max(im.size)
+    im = im.resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.LANCZOS)
+    t = Image.new('RGBA', (n, n), (0, 0, 0, 0))
+    t.alpha_composite(im, ((n - im.width) // 2, (n - im.height) // 2))
+    return t
+
+
 def main():
     import maden_ekstra
     resimler = []
@@ -85,7 +95,7 @@ def main():
     tampon = io.BytesIO()
     with zipfile.ZipFile(tampon, 'w', zipfile.ZIP_STORED) as z:
         for ad in eski.namelist():
-            if ad.startswith('trees/') or ad == 'project.json':
+            if ad.startswith('trees/') or ad.startswith('fruits/') or ad == 'project.json':
                 continue
             z.writestr(ad, eski.read(ad))
         for i, im in enumerate(resimler):
@@ -93,6 +103,10 @@ def main():
             b = io.BytesIO(); im.save(b, 'PNG', optimize=False)
             z.writestr('trees/' + d, b.getvalue())
             proje['trees'][str(i + 1)] = {'file': d, 'w': CW, 'h': CH, 'name': ADLAR[i]}
+        for i, im in enumerate(resimler):  # ayet başı düğmeleri: her madenin kendi küçük görseli (5 renk halkası uygulamada çizilir)
+            b = io.BytesIO(); ikon(im).save(b, 'PNG')
+            for k in range(5):
+                z.writestr('fruits/%02d_%d.png' % (i + 1, k), b.getvalue())
         z.writestr('project.json', json.dumps(proje, ensure_ascii=False, indent=1))
     veri = tampon.getvalue()
     for f in parcalar:
