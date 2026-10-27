@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 9,
+ "name": "Dağlar (9. Cüz)",
+ "sahne": "dag",
+ "ek": "",
+ "birim": "dağ",
+ "tanim": "dağlar",
+ "ui": {
+  "bgGarden": "dag_sayfa.jpg",
+  "bgForest": "dag_sayfa.jpg",
+  "bgPage": "dag_sayfa.jpg",
+  "bgAyet": "dag_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c09_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tûr Dağı"
+  },
+  "2": {
+   "file": "c09_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Cûdî Dağı"
+  },
+  "3": {
+   "file": "c09_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Safâ Tepesi"
+  },
+  "4": {
+   "file": "c09_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Merve Tepesi"
+  },
+  "5": {
+   "file": "c09_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Karlı Zirve"
+  },
+  "6": {
+   "file": "c09_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Volkan"
+  },
+  "7": {
+   "file": "c09_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Granit Dağ"
+  },
+  "8": {
+   "file": "c09_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yeşil Yamaç"
+  },
+  "9": {
+   "file": "c09_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hira Mağarası"
+  },
+  "10": {
+   "file": "c09_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Çöl Dağı"
+  },
+  "11": {
+   "file": "c09_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sıradağlar"
+  },
+  "12": {
+   "file": "c09_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bulutlu Zirve"
+  },
+  "13": {
+   "file": "c09_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kaya Pınarı"
+  },
+  "14": {
+   "file": "c09_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kayalık"
+  },
+  "15": {
+   "file": "c09_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dikili Kaya"
+  },
+  "16": {
+   "file": "c09_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yayla"
+  },
+  "17": {
+   "file": "c09_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gün Doğumu Dağı"
+  },
+  "18": {
+   "file": "c09_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kar Tepesi"
+  },
+  "19": {
+   "file": "c09_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kızıl Kayalar"
+  },
+  "20": {
+   "file": "c09_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dağ Patikası"
+  }
+ }
+}

@@ -128,6 +128,30 @@ flutter:
     - assets/paket/theme1/bg/
     - assets/paket/theme1/fruits/
     - assets/paket/theme1/trees/
+    - assets/paket/theme10/
+    - assets/paket/theme10/bg/
+    - assets/paket/theme10/fruits/
+    - assets/paket/theme10/trees/
+    - assets/paket/theme11/
+    - assets/paket/theme11/bg/
+    - assets/paket/theme11/fruits/
+    - assets/paket/theme11/trees/
+    - assets/paket/theme12/
+    - assets/paket/theme12/bg/
+    - assets/paket/theme12/fruits/
+    - assets/paket/theme12/trees/
+    - assets/paket/theme13/
+    - assets/paket/theme13/bg/
+    - assets/paket/theme13/fruits/
+    - assets/paket/theme13/trees/
+    - assets/paket/theme14/
+    - assets/paket/theme14/bg/
+    - assets/paket/theme14/fruits/
+    - assets/paket/theme14/trees/
+    - assets/paket/theme15/
+    - assets/paket/theme15/bg/
+    - assets/paket/theme15/fruits/
+    - assets/paket/theme15/trees/
     - assets/paket/theme2/
     - assets/paket/theme2/bg/
     - assets/paket/theme2/fruits/
@@ -138,6 +162,26 @@ flutter:
     - assets/paket/theme4/
     - assets/paket/theme4/fruits/
     - assets/paket/theme4/trees/
+    - assets/paket/theme5/
+    - assets/paket/theme5/bg/
+    - assets/paket/theme5/fruits/
+    - assets/paket/theme5/trees/
+    - assets/paket/theme6/
+    - assets/paket/theme6/bg/
+    - assets/paket/theme6/fruits/
+    - assets/paket/theme6/trees/
+    - assets/paket/theme7/
+    - assets/paket/theme7/bg/
+    - assets/paket/theme7/fruits/
+    - assets/paket/theme7/trees/
+    - assets/paket/theme8/
+    - assets/paket/theme8/bg/
+    - assets/paket/theme8/fruits/
+    - assets/paket/theme8/trees/
+    - assets/paket/theme9/
+    - assets/paket/theme9/bg/
+    - assets/paket/theme9/fruits/
+    - assets/paket/theme9/trees/
     # PAKET-SON
 
   # To add assets to your application, add an assets section, like this:

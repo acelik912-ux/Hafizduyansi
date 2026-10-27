@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 12,
+ "name": "Yûsuf Kıssası (12. Cüz)",
+ "sahne": "col",
+ "ek": "",
+ "birim": "nişan",
+ "tanim": "Yûsuf kıssası",
+ "ui": {
+  "bgGarden": "col_sayfa.jpg",
+  "bgForest": "col_sayfa.jpg",
+  "bgPage": "col_sayfa.jpg",
+  "bgAyet": "col_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c12_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "On Bir Yıldız"
+  },
+  "2": {
+   "file": "c12_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Güneş ve Ay"
+  },
+  "3": {
+   "file": "c12_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kuyu"
+  },
+  "4": {
+   "file": "c12_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gömlek"
+  },
+  "5": {
+   "file": "c12_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kurt"
+  },
+  "6": {
+   "file": "c12_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kervan"
+  },
+  "7": {
+   "file": "c12_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yedi Başak"
+  },
+  "8": {
+   "file": "c12_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yedi Sığır"
+  },
+  "9": {
+   "file": "c12_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ekmek Sepeti"
+  },
+  "10": {
+   "file": "c12_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Buğday Ambarı"
+  },
+  "11": {
+   "file": "c12_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Para Kesesi"
+  },
+  "12": {
+   "file": "c12_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mühür"
+  },
+  "13": {
+   "file": "c12_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Zindan"
+  },
+  "14": {
+   "file": "c12_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ölçek"
+  },
+  "15": {
+   "file": "c12_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Çuval"
+  },
+  "16": {
+   "file": "c12_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kral Kâsesi"
+  },
+  "17": {
+   "file": "c12_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Anahtar"
+  },
+  "18": {
+   "file": "c12_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nûh'un Gemisi"
+  },
+  "19": {
+   "file": "c12_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hurma Salkımı"
+  },
+  "20": {
+   "file": "c12_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Taht"
+  }
+ }
+}

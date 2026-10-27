@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 13,
+ "name": "Hava Olayları (13. Cüz)",
+ "sahne": "ova",
+ "ek": "",
+ "birim": "olay",
+ "tanim": "hava olayları",
+ "ui": {
+  "bgGarden": "ova_sayfa.jpg",
+  "bgForest": "ova_sayfa.jpg",
+  "bgPage": "ova_sayfa.jpg",
+  "bgAyet": "ova_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c13_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Şimşek"
+  },
+  "2": {
+   "file": "c13_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yıldırım"
+  },
+  "3": {
+   "file": "c13_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gök Gürültüsü"
+  },
+  "4": {
+   "file": "c13_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ağır Bulut"
+  },
+  "5": {
+   "file": "c13_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kara Bulut"
+  },
+  "6": {
+   "file": "c13_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Rüzgâr"
+  },
+  "7": {
+   "file": "c13_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kasırga"
+  },
+  "8": {
+   "file": "c13_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Fırtına"
+  },
+  "9": {
+   "file": "c13_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Toz Fırtınası"
+  },
+  "10": {
+   "file": "c13_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Duman"
+  },
+  "11": {
+   "file": "c13_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Köpük"
+  },
+  "12": {
+   "file": "c13_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Savrulan Kül"
+  },
+  "13": {
+   "file": "c13_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gölge"
+  },
+  "14": {
+   "file": "c13_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sis"
+  },
+  "15": {
+   "file": "c13_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Güneş Işığı"
+  },
+  "16": {
+   "file": "c13_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Esinti"
+  },
+  "17": {
+   "file": "c13_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kıvılcım"
+  },
+  "18": {
+   "file": "c13_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Cevher Potası"
+  },
+  "19": {
+   "file": "c13_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Rahmet Bulutu"
+  },
+  "20": {
+   "file": "c13_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sağanak"
+  }
+ }
+}

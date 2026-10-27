@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 8,
+ "name": "Çiftlik Hayvanları (8. Cüz)",
+ "sahne": "otlak",
+ "ek": "",
+ "birim": "hayvan",
+ "tanim": "çiftlik hayvanları",
+ "ui": {
+  "bgGarden": "otlak_sayfa.jpg",
+  "bgForest": "otlak_sayfa.jpg",
+  "bgPage": "otlak_sayfa.jpg",
+  "bgAyet": "otlak_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c08_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Deve"
+  },
+  "2": {
+   "file": "c08_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sığır"
+  },
+  "3": {
+   "file": "c08_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Koyun"
+  },
+  "4": {
+   "file": "c08_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Keçi"
+  },
+  "5": {
+   "file": "c08_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "At"
+  },
+  "6": {
+   "file": "c08_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Katır"
+  },
+  "7": {
+   "file": "c08_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Eşek"
+  },
+  "8": {
+   "file": "c08_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Koç"
+  },
+  "9": {
+   "file": "c08_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Buzağı"
+  },
+  "10": {
+   "file": "c08_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kuzu"
+  },
+  "11": {
+   "file": "c08_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Oğlak"
+  },
+  "12": {
+   "file": "c08_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tay"
+  },
+  "13": {
+   "file": "c08_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Deve Yavrusu"
+  },
+  "14": {
+   "file": "c08_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Boğa"
+  },
+  "15": {
+   "file": "c08_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Salih'in Devesi"
+  },
+  "16": {
+   "file": "c08_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Süt Güğümü"
+  },
+  "17": {
+   "file": "c08_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yün Yumağı"
+  },
+  "18": {
+   "file": "c08_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ot Balyası"
+  },
+  "19": {
+   "file": "c08_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Su Yalağı"
+  },
+  "20": {
+   "file": "c08_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Çan"
+  }
+ }
+}

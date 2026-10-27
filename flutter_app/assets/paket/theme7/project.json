@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 7,
+ "name": "Gök Cisimleri (7. Cüz)",
+ "sahne": "gok",
+ "ek": "",
+ "birim": "yıldız",
+ "tanim": "gök cisimleri",
+ "ui": {
+  "bgGarden": "gok_sayfa.jpg",
+  "bgForest": "gok_sayfa.jpg",
+  "bgPage": "gok_sayfa.jpg",
+  "bgAyet": "gok_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c07_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Güneş"
+  },
+  "2": {
+   "file": "c07_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hilal"
+  },
+  "3": {
+   "file": "c07_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dolunay"
+  },
+  "4": {
+   "file": "c07_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yıldız"
+  },
+  "5": {
+   "file": "c07_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Şi'râ Yıldızı"
+  },
+  "6": {
+   "file": "c07_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Târık Yıldızı"
+  },
+  "7": {
+   "file": "c07_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Şihâb"
+  },
+  "8": {
+   "file": "c07_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dünya"
+  },
+  "9": {
+   "file": "c07_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Satürn"
+  },
+  "10": {
+   "file": "c07_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Jüpiter"
+  },
+  "11": {
+   "file": "c07_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mars"
+  },
+  "12": {
+   "file": "c07_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Venüs"
+  },
+  "13": {
+   "file": "c07_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Samanyolu"
+  },
+  "14": {
+   "file": "c07_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ay Tutulması"
+  },
+  "15": {
+   "file": "c07_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Güneş Tutulması"
+  },
+  "16": {
+   "file": "c07_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Burçlar"
+  },
+  "17": {
+   "file": "c07_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yedi Kat Gök"
+  },
+  "18": {
+   "file": "c07_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Şafak"
+  },
+  "19": {
+   "file": "c07_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gece"
+  },
+  "20": {
+   "file": "c07_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kevkeb-i Dürrî"
+  }
+ }
+}
