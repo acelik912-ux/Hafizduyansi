@@ -66,20 +66,64 @@ flutter:
     # PAKET-BAŞ
     - assets/paket/cuz1/
     - assets/paket/cuz1/img/
+    - assets/paket/cuz10/
+    - assets/paket/cuz10/img/
+    - assets/paket/cuz11/
+    - assets/paket/cuz11/img/
+    - assets/paket/cuz12/
+    - assets/paket/cuz12/img/
+    - assets/paket/cuz13/
+    - assets/paket/cuz13/img/
+    - assets/paket/cuz14/
+    - assets/paket/cuz14/img/
+    - assets/paket/cuz15/
+    - assets/paket/cuz15/img/
     - assets/paket/cuz2/
     - assets/paket/cuz2/img/
     - assets/paket/cuz3/
     - assets/paket/cuz3/img/
     - assets/paket/cuz4/
     - assets/paket/cuz4/img/
+    - assets/paket/cuz5/
+    - assets/paket/cuz5/img/
+    - assets/paket/cuz6/
+    - assets/paket/cuz6/img/
+    - assets/paket/cuz7/
+    - assets/paket/cuz7/img/
+    - assets/paket/cuz8/
+    - assets/paket/cuz8/img/
+    - assets/paket/cuz9/
+    - assets/paket/cuz9/img/
     - assets/paket/ses1/
     - assets/paket/ses1/a/
+    - assets/paket/ses10/
+    - assets/paket/ses10/a/
+    - assets/paket/ses11/
+    - assets/paket/ses11/a/
+    - assets/paket/ses12/
+    - assets/paket/ses12/a/
+    - assets/paket/ses13/
+    - assets/paket/ses13/a/
+    - assets/paket/ses14/
+    - assets/paket/ses14/a/
+    - assets/paket/ses15/
+    - assets/paket/ses15/a/
     - assets/paket/ses2/
     - assets/paket/ses2/a/
     - assets/paket/ses3/
     - assets/paket/ses3/a/
     - assets/paket/ses4/
     - assets/paket/ses4/a/
+    - assets/paket/ses5/
+    - assets/paket/ses5/a/
+    - assets/paket/ses6/
+    - assets/paket/ses6/a/
+    - assets/paket/ses7/
+    - assets/paket/ses7/a/
+    - assets/paket/ses8/
+    - assets/paket/ses8/a/
+    - assets/paket/ses9/
+    - assets/paket/ses9/a/
     - assets/paket/theme1/
     - assets/paket/theme1/bg/
     - assets/paket/theme1/fruits/
