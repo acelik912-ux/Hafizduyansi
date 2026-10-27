@@ -150,7 +150,7 @@ class Bahce3B extends StatefulWidget {
 
 class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
   late final Ticker _t = createTicker(_tik);
-  late final _Kam k = _kameralar[widget.kimlik] ??= _Kam(0, -3, 0);
+  late final _Kam k = _kameralar[widget.kimlik] ??= _Kam(double.tryParse(Uri.base.queryParameters['x'] ?? '') ?? 0, double.tryParse(Uri.base.queryParameters['z'] ?? '') ?? -3, double.tryParse(Uri.base.queryParameters['y'] ?? '') ?? 0);
   final agaclar = <_Agac>[];
   bool hazir = false;
   Offset? hedef; // yürünen nokta

@@ -80,6 +80,8 @@ class _KokState extends State<Kok> {
       profilAdi = await Kayit.profilAdi();
       final d = await Depo.yukle();
       setState(() => depo = d);
+      final qc = Uri.base.queryParameters['c'];
+      if (qc != null) WidgetsBinding.instance.addPostFrameCallback((_) => _cuzAc(int.parse(qc)));
     } catch (e) {
       setState(() => hata = '$e');
     }
