@@ -120,7 +120,7 @@ class Bahce3B extends StatefulWidget {
   final List<Sayfa> pages;
   final String? Function(int) agac;
   final String Function(int) ad; // ağaç / maden adı
-  final String sahne; // 'bahce' | 'magara' | 'kus' | 'cayir'
+  final String sahne; // 'bahce' | 'magara' | 'kus' | 'cayir' | 'orman' | 'gok' | 'otlak' | 'col' | 'ova' | 'sahil' | 'vadi' | 'nahl' | 'dag' (bkz. _ayarlar)
   final String birim; // 'ağaç' | 'maden'
   final double W, H;
   final EdgeInsets pad;
@@ -531,6 +531,60 @@ class _Levha extends StatelessWidget {
   );
 }
 
+// ---------------------------------------------------------------- sahne ayarları (konsepte göre gökyüzü, ufuk, zemin tonu, sınır, süsler)
+class _Ayar {
+  final Color gokUst, gokAlt, uzak, orta, koruA, koruB, sis, zeminTon, cimTon;
+  final double bulut, cimOran, golge;
+  final bool yildiz, deniz, tarh, kir, dere, cim;
+  final String cit; // 'cit' (beyaz çit) | 'ahsap' (kırsal ahşap çit) | 'tas' (alçak taş duvar) | 'yok'
+  const _Ayar({
+    this.gokUst = const Color(0xFF5FA6DE),
+    this.gokAlt = const Color(0xFFD9ECF4),
+    this.uzak = const Color(0xFFAFCBC8),
+    this.orta = const Color(0xFF8DB596),
+    this.koruA = const Color(0xFF6E9C69),
+    this.koruB = const Color(0xFF4A7A45),
+    this.sis = const Color(0xFFB0D0B6),
+    this.zeminTon = const Color(0x00000000),
+    this.cimTon = const Color(0xFF3F7A2C),
+    this.cimOran = 0,
+    this.bulut = 1,
+    this.golge = 1,
+    this.yildiz = false,
+    this.deniz = false,
+    this.tarh = true,
+    this.kir = false,
+    this.dere = false,
+    this.cim = true,
+    this.cit = 'cit',
+  });
+}
+
+const _ayarlar = <String, _Ayar>{
+  'kus': _Ayar(cit: 'tas', dere: true),
+  'cayir': _Ayar(kir: true),
+  // 6. cüz: kıssalardaki hayvanlar — gür orman
+  'orman': _Ayar(gokUst: Color(0xFF7FB3A6), gokAlt: Color(0xFFDCEBD0), uzak: Color(0xFF9DBBA0), orta: Color(0xFF6E9873), koruA: Color(0xFF4F7F55), koruB: Color(0xFF2F5E3C), sis: Color(0xFF96BEA0), zeminTon: Color(0xFFB4D6A6), bulut: 0.6, cit: 'ahsap', tarh: false),
+  // 7. cüz: gök cisimleri — gece göğü, sabit yıldızlar ve hilal
+  'gok': _Ayar(gokUst: Color(0xFF080C2E), gokAlt: Color(0xFF4A4682), uzak: Color(0xFF2A2E5C), orta: Color(0xFF1F2448), koruA: Color(0xFF161B38), koruB: Color(0xFF0E1228), sis: Color(0xFF28306A), zeminTon: Color(0xFF5C6AA6), cimTon: Color(0xFF1A2448), cimOran: 0.75, bulut: 0, golge: 0.3, yildiz: true, tarh: false, cit: 'tas'),
+  // 8. cüz: sürü hayvanları — sabah otlağı
+  'otlak': _Ayar(gokUst: Color(0xFF6FB1E6), gokAlt: Color(0xFFFCE9C0), uzak: Color(0xFFC9C79F), orta: Color(0xFFA9B97C), koruA: Color(0xFF86A55C), koruB: Color(0xFF5F8A42), sis: Color(0xFFD6D6AA), zeminTon: Color(0xFFFFF0C8), kir: true, tarh: false, cit: 'ahsap'),
+  // 9. ve 12. cüz: mekânlar, Yûsuf — çöl ve kayalık vadi
+  'col': _Ayar(gokUst: Color(0xFF7AB6E6), gokAlt: Color(0xFFF6E2BE), uzak: Color(0xFFD8B98F), orta: Color(0xFFC49A6B), koruA: Color(0xFFB07E52), koruB: Color(0xFF93663F), sis: Color(0xFFE8C896), zeminTon: Color(0xFFE8C99A), cimTon: Color(0xFFC9A56A), cimOran: 0.75, bulut: 0.5, tarh: false, cit: 'tas'),
+  // 10. cüz: atlar — altın başaklı ova
+  'ova': _Ayar(gokUst: Color(0xFF5FA3E0), gokAlt: Color(0xFFE8F1F2), uzak: Color(0xFFB8C9A6), orta: Color(0xFFC8BB7C), koruA: Color(0xFFB9A25E), koruB: Color(0xFF92823E), sis: Color(0xFFDCD2A0), zeminTon: Color(0xFFF2E3A0), cimTon: Color(0xFFD9C46E), cimOran: 0.55, bulut: 0.8, tarh: false, cit: 'ahsap'),
+  // 11. cüz: deniz canlıları — kumsal ve açık deniz
+  'sahil': _Ayar(gokUst: Color(0xFF4FA8E8), gokAlt: Color(0xFFDFF1F7), uzak: Color(0xFF5AB0D0), orta: Color(0xFF2F8FB8), sis: Color(0xFFBEE1EB), zeminTon: Color(0xFFF3E6C0), cimTon: Color(0xFFE9D6A4), cimOran: 0.9, deniz: true, tarh: false, cit: 'ahsap'),
+  // 13. cüz: su ve hava olayları — bulutlu vadi, dereler
+  'vadi': _Ayar(gokUst: Color(0xFF5E7389), gokAlt: Color(0xFFB8C6CF), uzak: Color(0xFF8FA3AD), orta: Color(0xFF6F8A8F), koruA: Color(0xFF4E6F6A), koruB: Color(0xFF365A55), sis: Color(0xFFA0B4B9), zeminTon: Color(0xFFB9CCB0), bulut: 1.5, dere: true, tarh: false, cit: 'tas'),
+  // 14. cüz: Nahl'in nimetleri — bal rengi sabah çayırı
+  'nahl': _Ayar(gokUst: Color(0xFF69B0E4), gokAlt: Color(0xFFFFEFC8), uzak: Color(0xFFC6CFA6), orta: Color(0xFFA6BF7E), koruA: Color(0xFF86A85E), koruB: Color(0xFF5F8A42), sis: Color(0xFFD8DDB0), zeminTon: Color(0xFFFFF3CC), kir: true),
+  // 15. cüz: Kehf ve İsrâ — dağ eteği, şafak
+  'dag': _Ayar(gokUst: Color(0xFF7C9DC8), gokAlt: Color(0xFFF3D8C4), uzak: Color(0xFFA9A3B5), orta: Color(0xFF8A8590), koruA: Color(0xFF6D6F6A), koruB: Color(0xFF55584F), sis: Color(0xFFBEB9C8), zeminTon: Color(0xFFCFC9B4), cimTon: Color(0xFF9A9A7A), cimOran: 0.5, tarh: false, cit: 'tas'),
+};
+
+_Ayar _ayarOf(String sahne) => _ayarlar[sahne] ?? const _Ayar();
+
 // ---------------------------------------------------------------- sahne çizimi
 // üçgen yığını: çim yaprakları, çit tahtaları tek çağrıda çizilir
 class _Ucgen {
@@ -585,7 +639,7 @@ class _Dunya extends CustomPainter {
 
     final z0 = _citZ0, z1 = s.citZ1;
 
-    final magara = s.widget.sahne == 'magara', kus = s.widget.sahne == 'kus', cayir = s.widget.sahne == 'cayir';
+    final magara = s.widget.sahne == 'magara', ay = _ayarOf(s.widget.sahne);
     if (magara) {
       // ---- maden mağarası: tavan, kaya duvarlar, çakıllı zemin, raylar, ahşap destekler ve fenerler (sabit ışık)
       const tavan = 5.6, koyu = Color(0xFF0B0806);
@@ -694,7 +748,7 @@ class _Dunya extends CustomPainter {
       }
     } else {
       // gökyüzü, uzak tepeler ve çitin ötesindeki koru (sonsuz uzakta: yalnızca bakış yönüyle kayar)
-      c.drawRect(Rect.fromLTRB(0, 0, W, yH + 1), Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, yH), const [Color(0xFF5FA6DE), Color(0xFFD9ECF4)]));
+      c.drawRect(Rect.fromLTRB(0, 0, W, yH + 1), Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, yH), [ay.gokUst, ay.gokAlt]));
       // yumuşak bulutlar: gökte sabit yönlerde; yalnızca bakış yönüyle kayar (kendi başına hareket etmez)
       void bulut(double az, double el, double gen, double al) {
         final da = _aci(az - k.yaw);
@@ -702,12 +756,31 @@ class _Dunya extends CustomPainter {
         final cx = W / 2 + f * math.tan(da), cy = yH - f * math.tan(el), w = gen * olc * k.zum;
         for (final o in const [Offset(0, 0), Offset(0.34, 0.05), Offset(-0.36, 0.06), Offset(0.12, -0.1), Offset(-0.14, -0.07)]) {
           final r = Rect.fromCenter(center: Offset(cx + o.dx * w, cy + o.dy * w * 0.5), width: w * (0.9 - o.dy), height: w * 0.34);
-          c.drawOval(r, Paint()..shader = ui.Gradient.radial(r.center, r.width / 2, [Color.fromRGBO(255, 255, 255, al), const Color(0x00FFFFFF)], const [0.0, 1.0], TileMode.clamp, _elips(r.center, r.height / r.width), null));
+          c.drawOval(r, Paint()..shader = ui.Gradient.radial(r.center, r.width / 2, [Color.fromRGBO(255, 255, 255, math.min(1.0, al * ay.bulut)), const Color(0x00FFFFFF)], const [0.0, 1.0], TileMode.clamp, _elips(r.center, r.height / r.width), null));
         }
       }
 
-      for (final b in const [(0.35, 0.34, 230.0, 0.62), (-0.7, 0.45, 280.0, 0.55), (1.0, 0.27, 190.0, 0.5), (-1.15, 0.31, 210.0, 0.5), (0.0, 0.52, 250.0, 0.42), (2.4, 0.3, 240.0, 0.5), (-2.3, 0.4, 260.0, 0.5), (3.0, 0.25, 200.0, 0.45)]) {
+      if (ay.bulut > 0) for (final b in const [(0.35, 0.34, 230.0, 0.62), (-0.7, 0.45, 280.0, 0.55), (1.0, 0.27, 190.0, 0.5), (-1.15, 0.31, 210.0, 0.5), (0.0, 0.52, 250.0, 0.42), (2.4, 0.3, 240.0, 0.5), (-2.3, 0.4, 260.0, 0.5), (3.0, 0.25, 200.0, 0.45)]) {
         bulut(b.$1, b.$2, b.$3, b.$4);
+      }
+      if (ay.yildiz) {
+        // sabit yıldızlar ve hilal: gökte sabit yönlerde, yalnızca bakış yönüyle kayar (kıpırdamaz, parlayıp sönmez)
+        for (var i = 0; i < 190; i++) {
+          final az = (_h(i, 1, 301) * 2 - 1) * math.pi, el = 0.02 + _h(i, 2, 302) * 1.15, da = _aci(az - k.yaw);
+          if (da.abs() > 1.35) continue;
+          final cx = W / 2 + f * math.tan(da), cy = yH - f * math.tan(el);
+          if (cy < 0 || cy > yH) continue;
+          final r = (0.5 + 1.4 * _h(i, 3, 303)) * olc;
+          c.drawCircle(Offset(cx, cy), r, Paint()..color = Color.fromRGBO(255, 252, 240, 0.4 + 0.55 * _h(i, 4, 304)));
+        }
+        final dm = _aci(0.55 - k.yaw);
+        if (dm.abs() < 1.35) {
+          final mc = Offset(W / 2 + f * math.tan(dm), yH - f * math.tan(0.62)), mr = 30 * olc * k.zum;
+          c.drawCircle(mc, mr * 3.2, Paint()..shader = ui.Gradient.radial(mc, mr * 3.2, const [Color(0x40FFF6D0), Color(0x00FFF6D0)]));
+          c.drawCircle(mc, mr, Paint()..color = const Color(0xFFF8F2D6));
+          final sk = Color.lerp(ay.gokUst, ay.gokAlt, (mc.dy / yH).clamp(0.0, 1.0))!;
+          c.drawCircle(mc.translate(mr * 0.42, -mr * 0.12), mr * 0.94, Paint()..color = sk);
+        }
       }
       void ufukCiz(double Function(double t) yuk, Color col) {
         final path = Path()..moveTo(0, yH + 1);
@@ -720,16 +793,23 @@ class _Dunya extends CustomPainter {
         c.drawPath(path, p..color = col);
       }
 
-      ufukCiz((t) => 34 + 16 * math.sin(3 * t) + 9 * math.sin(7 * t + 1) + 4 * math.sin(13 * t + 2), const Color(0xFFAFCBC8));
-      ufukCiz((t) => 20 + 10 * math.sin(2 * t + 2) + 6 * math.sin(9 * t), const Color(0xFF8DB596));
+      if (ay.deniz) {
+        ufukCiz((t) => 9, ay.uzak);
+        ufukCiz((t) => 3.5, ay.orta);
+      } else {
+        ufukCiz((t) => 34 + 16 * math.sin(3 * t) + 9 * math.sin(7 * t + 1) + 4 * math.sin(13 * t + 2), ay.uzak);
+        ufukCiz((t) => 20 + 10 * math.sin(2 * t + 2) + 6 * math.sin(9 * t), ay.orta);
+      }
       double koru(double t, int a, int b, double ph) {
         final u = math.sin(a * t + ph), v = math.sin(b * t + 2 * ph);
         return 18 + 14 * u * u + 9 * v * v;
       }
 
       // çitin ötesi: iki kat sık koru (uzaktaki açık, yakındaki koyu)
-      ufukCiz((t) => koru(t, 37, 61, 0.5) + 14, const Color(0xFF6E9C69));
-      ufukCiz((t) => koru(t, 53, 89, 1.3), const Color(0xFF4A7A45));
+      if (!ay.deniz) {
+        ufukCiz((t) => koru(t, 37, 61, 0.5) + 14, ay.koruA);
+        ufukCiz((t) => koru(t, 53, 89, 1.3), ay.koruB);
+      }
 
       if (_Zemin.hazir) {
         // gerçek doku: çim + taş yol + toprak tarh, perspektif doğru (gölgelendirici)
@@ -788,7 +868,9 @@ class _Dunya extends CustomPainter {
       }
       }
 
-      if (kus) {
+      if (ay.zeminTon.a > 0) c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = ay.zeminTon..blendMode = BlendMode.multiply); // konsepte göre zemin rengi
+
+      if (ay.dere) {
         // 3. cüz: duvarın önünde iki yanda sabit dere (taş kenarlı); su hareket etmez
         for (final sg in const [-1.0, 1.0]) {
           Offset q(double x, double z) => Offset(sg * x, z);
@@ -814,7 +896,7 @@ class _Dunya extends CustomPainter {
           for (var j = j0; j <= j1; j++) {
             final x = (i + _h(i, j, tohum)) * hucre, z = (j + _h(i, j, tohum + 1)) * hucre;
             if (x.abs() < _yolW + 0.05 || x.abs() > _citX - 1.05 || z < z0 || z > z1) continue;
-            if (kus && x.abs() > _citX - 2.5) continue;
+            if (ay.dere && x.abs() > _citX - 2.5) continue;
             final o = s.kamera(x, z);
             if (o.dy < math.max(r0, 0.9) || o.dy > r1) continue;
             final e = ekran(o);
@@ -823,19 +905,21 @@ class _Dunya extends CustomPainter {
             final ux = x + (_h(i, j, tohum + 3) - 0.5) * 0.06, uz = z + (_h(i, j, tohum + 4) - 0.5) * 0.06;
             final u = ekran(s.kamera(ux, uz), hh);
             final ton = _h(i, j, tohum + 5), sis = (1 - (o.dy - r0) / (r1 - r0)).clamp(0.0, 1.0);
-            final alt = Color.lerp(const Color(0xFF2D5E22), const Color(0xFF3F7A2C), ton)!.withValues(alpha: 0.9 * sis);
-            final ust = Color.lerp(const Color(0xFF7DB04F), const Color(0xFFB5D27A), ton)!.withValues(alpha: 0.9 * sis);
+            final alt = Color.lerp(Color.lerp(const Color(0xFF2D5E22), const Color(0xFF3F7A2C), ton)!, ay.cimTon, ay.cimOran)!.withValues(alpha: 0.9 * sis);
+            final ust = Color.lerp(Color.lerp(const Color(0xFF7DB04F), const Color(0xFFB5D27A), ton)!, ay.cimTon, ay.cimOran)!.withValues(alpha: 0.9 * sis);
             ot.ekle(Offset(e.dx - ww, e.dy), Offset(e.dx + ww, e.dy), u, alt, alt, ust);
           }
         }
       }
 
-      cimler(0.11, 0.9, 5.0, 11);
-      cimler(0.24, 4.5, 12.0, 21);
-      cimler(0.5, 11.0, 22.0, 41);
+      if (ay.cim) {
+        cimler(0.11, 0.9, 5.0, 11);
+        cimler(0.24, 4.5, 12.0, 21);
+        cimler(0.5, 11.0, 22.0, 41);
+      }
       ot.ciz(c);
 
-      if (cayir) {
+      if (ay.kir) {
         // 4. cüz: çayır — çimin arasında sabit kır çiçekleri (hiçbiri kıpırdamaz)
         const renkler = [Color(0xFFFFE15A), Color(0xFFF8F8F4), Color(0xFFF08AB4), Color(0xFFFFB23E), Color(0xFF9C7BE0), Color(0xFFFF6B5E), Color(0xFF7FB5F0)];
         void kir(double hucre, double r0, double r1, int tohum) {
@@ -866,7 +950,7 @@ class _Dunya extends CustomPainter {
       }
 
       // çiçekler (tarhlarda)
-      for (final sg in const [-1.0, 1.0]) {
+      if (ay.tarh) for (final sg in const [-1.0, 1.0]) {
         for (var j = (z0 + 1) ~/ 0.3; j < (z1 - 1) / 0.3; j++) {
           for (var i = 0; i < 3; i++) {
             final x = sg * (_citX - 0.9 + i * 0.26 + _h(i, j, 31) * 0.12), z = j * 0.3 + _h(i, j, 32) * 0.2;
@@ -886,8 +970,9 @@ class _Dunya extends CustomPainter {
       void kenar(Offset a, Offset b) {
         final l = (b - a).distance, yon = (b - a) / l, adim = 0.3, tw = 0.11;
         final golge = yon.dx.abs() > 0.5 ? 0.0 : 0.08; // yan çitler biraz koyu
-        final tahta = Color.lerp(const Color(0xFFF1EBDD), const Color(0xFF8A8577), golge)!, tahtaUst = Color.lerp(const Color(0xFFFFFCF4), const Color(0xFF8A8577), golge)!;
-        if (kus) {
+        final ahsap = ay.cit == 'ahsap';
+        final tahta = Color.lerp(ahsap ? const Color(0xFF8B6B47) : const Color(0xFFF1EBDD), const Color(0xFF8A8577), golge)!, tahtaUst = Color.lerp(ahsap ? const Color(0xFFA9835A) : const Color(0xFFFFFCF4), const Color(0xFF8A8577), golge)!;
+        if (ay.cit == 'tas') {
           // alçak taş duvar: her taş bloğu biraz farklı tonda
           const hw = 0.62;
           for (var t = 0.0; t < l - 0.01; t += 0.55) {
@@ -919,17 +1004,19 @@ class _Dunya extends CustomPainter {
           final ileri = a + yon * (t + adim), ki = s.kamera(ileri.dx, ileri.dy);
           if (ki.dy >= _yakin) {
             for (final y in const [0.32, 0.72]) {
-              cit.dortgen(ekran(ks, y), ekran(ki, y), ekran(ki, y + 0.08), ekran(ks, y + 0.08), const Color(0xFFCFC6B2), const Color(0xFFE2DACA));
+              cit.dortgen(ekran(ks, y), ekran(ki, y), ekran(ki, y + 0.08), ekran(ks, y + 0.08), ahsap ? const Color(0xFF7A5C3C) : const Color(0xFFCFC6B2), ahsap ? const Color(0xFF94734C) : const Color(0xFFE2DACA));
             }
           }
         }
       }
 
-      kenar(Offset(-_citX, z0), Offset(_citX, z0));
-      kenar(Offset(_citX, z0), Offset(_citX, z1));
-      kenar(Offset(_citX, z1), Offset(-_citX, z1));
-      kenar(Offset(-_citX, z1), Offset(-_citX, z0));
-      cit.ciz(c);
+      if (ay.cit != 'yok') {
+        kenar(Offset(-_citX, z0), Offset(_citX, z0));
+        kenar(Offset(_citX, z0), Offset(_citX, z1));
+        kenar(Offset(_citX, z1), Offset(-_citX, z1));
+        kenar(Offset(-_citX, z1), Offset(-_citX, z0));
+        cit.ciz(c);
+      }
     }
 
     // gidilen yer işareti (sabit halka)
@@ -973,7 +1060,7 @@ class _Dunya extends CustomPainter {
           Offset.zero,
           Paint()
             ..filterQuality = FilterQuality.low
-            ..colorFilter = ColorFilter.mode(Color.fromRGBO(16, 34, 10, 0.36 * fade), BlendMode.srcIn),
+            ..colorFilter = ColorFilter.mode(Color.fromRGBO(16, 34, 10, 0.36 * ay.golge * fade), BlendMode.srcIn),
         );
         c.restore();
       }
@@ -1008,7 +1095,7 @@ class _Dunya extends CustomPainter {
         final boya = Paint()..filterQuality = FilterQuality.medium;
         final karanlik = magara ? ((d.d - 6) / 28).clamp(0.0, 0.85) : 0.0;
         if (karanlik > 0) boya.colorFilter = ColorFilter.mode(Color.fromRGBO(11, 8, 6, karanlik), BlendMode.srcATop);
-        if (!magara && d.d > 10) boya.colorFilter = ColorFilter.mode(Color.fromRGBO(176, 208, 182, ((d.d - 10) / 45).clamp(0.0, 0.42)), BlendMode.srcATop); // hava perspektifi
+        if (!magara && d.d > 10) boya.colorFilter = ColorFilter.mode(ay.sis.withValues(alpha: ((d.d - 10) / 45).clamp(0.0, 0.42)), BlendMode.srcATop); // hava perspektifi
         c.drawImageRect(im, Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble()), r, boya);
       } else {
         c.drawRRect(RRect.fromRectAndRadius(r.deflate(r.width * 0.2), Radius.circular(r.width * 0.1)), p..color = const Color(0x2EFFFFFF));
