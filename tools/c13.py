@@ -13,7 +13,7 @@ EK = ''
 
 
 def yer(sv, rng, w=420, a=0.3):
-    golge(sv, w, 40, a)
+    golge(sv, 360, w, a=a)
 
 
 def simsek_yolu(rng, x, y0, y1, dal=3, sap=34):
@@ -211,7 +211,7 @@ def kul(sv, rng):
 
 def golge_(sv, rng):
     # ağaç ve yere uzanan gölge (Ra'd 15: gölgeleri sabah akşam secde eder)
-    golge(sv, 400, 40, 0.2)
+    golge(sv, 360, 400, a=0.2)
     ps = bez3((250, 946), (260, 820), (240, 720), (250, 640), 14)
     govde(sv, ps, 44, 28, (28, 0.3, 0.3))
     for (x, y, r) in [(250, 560, 120), (170, 600, 90), (330, 610, 90), (250, 480, 90)]:
@@ -285,7 +285,7 @@ def kivilcim(sv, rng):
 
 
 def pota(sv, rng):
-    golge(sv, 420, 40, 0.3)
+    golge(sv, 360, 420, a=0.3)
     # potada eriyen maden: Ra'd 17 (süs eşyası için ateşte erittikleri)
     g = sv.lin([(0, '#5a5e68', 1), (0.5, '#2e323a', 1), (1, '#14161a', 1)], 220, 0, 500, 0, units=1)
     sv.add('<path d="M190 600 L530 600 L480 830 Q360 870 240 830Z" fill="%s" stroke="#0a0b0e" stroke-width="3.5"/>' % g)
