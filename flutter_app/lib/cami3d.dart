@@ -35,7 +35,7 @@ class _Plan {
   final double pr; // ayak yarıçapı / yarı kenarı
   final Color wallC, dadoC, pierC, arcA, arcB, ceilA, ceilB, domeA, domeB, carpA, carpB, floorC, mihrapC, minberC;
   final bool kubbe; // gözlerde küçük kubbe mi, düz tavan mı
-  final bool halı;
+  final bool hali;
   final int cb, cbi, cbj; // ortadaki büyük kubbe: kaç göz, hangi göz
   final double hiExtra, dh, mainH; // büyük kubbe: ek yükseklik, kasnak, kubbe yüksekliği
   final int segs; // kubbe dilim sayısı (8 = sekizgen)
@@ -67,7 +67,7 @@ class _Plan {
     this.mihrapC = const Color(0xFFE8DCC0),
     this.minberC = const Color(0xFFE5D8BC),
     this.kubbe = true,
-    this.halı = true,
+    this.hali = true,
     this.cb = 0,
     this.cbi = 1,
     this.cbj = 1,
@@ -86,7 +86,7 @@ class _Plan {
 // sıra: 18. cüzün sayfa sırası (tools/c18.py ADLAR)
 const _planlar = <_Plan>[
   // 0 Mescid-i Harâm: beyaz mermer sütunlu geniş revaklı salon, düz altın kasetli tavan
-  _Plan('Mescid-i Harâm', nx: 7, nz: 5, bw: 6.5, bd: 6.0, roofY: 9.0, spring: 5.8, wallC: Color(0xFFF1E9D6), dadoC: Color(0xFFD9CDB0), pierC: Color(0xFFF4EEE0), arcA: Color(0xFFF4EEE0), arcB: Color(0xFFC9B27A), ceilA: Color(0xFFEBD9A8), ceilB: Color(0xFFC9A24A), kubbe: false, halı: true, carpA: Color(0xFF9B2B2B), carpB: Color(0xFF7E2124), kandil: 18),
+  _Plan('Mescid-i Harâm', nx: 7, nz: 5, bw: 6.5, bd: 6.0, roofY: 9.0, spring: 5.8, wallC: Color(0xFFF1E9D6), dadoC: Color(0xFFD9CDB0), pierC: Color(0xFFF4EEE0), arcA: Color(0xFFF4EEE0), arcB: Color(0xFFC9B27A), ceilA: Color(0xFFEBD9A8), ceilB: Color(0xFFC9A24A), kubbe: false, hali: true, carpA: Color(0xFF9B2B2B), carpB: Color(0xFF7E2124), kandil: 18),
   // 1 Mescid-i Nebevî: beyaz sütunlar, süslü kasetli tavan, kırmızı halı, çok sayıda kandil
   _Plan('Mescid-i Nebevî', nx: 7, nz: 5, bw: 6.0, bd: 6.0, roofY: 8.2, spring: 5.2, wallC: Color(0xFFF3ECDC), dadoC: Color(0xFFE2D6B6), pierC: Color(0xFFF7F2E6), arcA: Color(0xFFF7F2E6), arcB: Color(0xFFD8B25C), ceilA: Color(0xFF2F5C54), ceilB: Color(0xFFD8B25C), kubbe: false, carpA: Color(0xFFC0392B), carpB: Color(0xFFA32A22), mihrapC: Color(0xFFE6D5A3), kandil: 20),
   // 2 Mescid-i Aksâ: taş ayaklar ve kemerler, büyük kubbe kıble önünde
@@ -110,7 +110,7 @@ const _planlar = <_Plan>[
   // 11 Ezher: taş revaklar, kırmızı-yeşil halı
   _Plan('Ezher', nx: 6, nz: 4, bw: 5.5, bd: 5.5, roofY: 8.0, spring: 5.2, wallC: Color(0xFFEDE3C6), dadoC: Color(0xFFC9B88E), pierC: Color(0xFFF1E9D2), arcA: Color(0xFFF1E9D2), arcB: Color(0xFFC9B27A), ceilA: Color(0xFFE6D9B4), ceilB: Color(0xFFC9B27A), kubbe: false, carpA: Color(0xFF9B2B2B), carpB: Color(0xFF3F7D5A), kandil: 12),
   // 12 Kurtuba: kırmızı-beyaz çift katlı kemer ormanı, ahşap tavan, taş zemin
-  _Plan('Kurtuba', nx: 9, nz: 7, bw: 3.2, bd: 3.2, roofY: 8.4, spring: 3.4, yuvarlak: true, pr: 0.26, wallC: Color(0xFFE6D6B2), dadoC: Color(0xFFC9B27A), pierC: Color(0xFFE9DEC0), arcA: Color(0xFFF2E8D0), arcB: Color(0xFFA83A2E), ceilA: Color(0xFF8A5E34), ceilB: Color(0xFF6E4A28), kubbe: false, halı: false, floorC: Color(0xFFD9CCAA), ikiKat: true, mihrapC: Color(0xFFE0B84C), vitray: [Color(0xFFE0A81C), Color(0xFFC0392B)], kandil: 12),
+  _Plan('Kurtuba', nx: 9, nz: 7, bw: 3.2, bd: 3.2, roofY: 8.4, spring: 3.4, yuvarlak: true, pr: 0.26, wallC: Color(0xFFE6D6B2), dadoC: Color(0xFFC9B27A), pierC: Color(0xFFE9DEC0), arcA: Color(0xFFF2E8D0), arcB: Color(0xFFA83A2E), ceilA: Color(0xFF8A5E34), ceilB: Color(0xFF6E4A28), kubbe: false, hali: false, floorC: Color(0xFFD9CCAA), ikiKat: true, mihrapC: Color(0xFFE0B84C), vitray: [Color(0xFFE0A81C), Color(0xFFC0392B)], kandil: 12),
   // 13 Kayrevan: beyaz duvar, sütun sıraları, ahşap minber
   _Plan('Kayrevan', nx: 8, nz: 5, bw: 3.6, bd: 4.0, roofY: 7.0, spring: 4.6, wallC: Color(0xFFF4EFE2), dadoC: Color(0xFFD9CFB4), pierC: Color(0xFFE9E1CC), arcA: Color(0xFFF4EFE2), arcB: Color(0xFFCDBE96), ceilA: Color(0xFF8A6238), ceilB: Color(0xFF6A482A), kubbe: false, carpA: Color(0xFFA32A26), carpB: Color(0xFF7A1F1E), minberC: Color(0xFF7A5232), mihrapC: Color(0xFFE6DCC0), kandil: 10),
   // 14 II. Hasan: mermer, oymalı sedir tavan, geniş salon
@@ -288,14 +288,13 @@ class _Salon {
   }
 
   void _kur() {
-    final cr = p.carpA;
     // ---- zemin
     for (var i = 0; i < p.nx * 3; i++) {
       for (var j = 0; j < (D / 2).ceil(); j++) {
         final x0 = -hw + i * (2 * hw / (p.nx * 3)), x1 = -hw + (i + 1) * (2 * hw / (p.nx * 3)), z0 = j * 2.0, z1 = math.min(D, (j + 1) * 2.0);
         Color c;
-        if (p.halı) {
-          // iki sıra desenli halı: 1 m'lik secde sıraları; kenarda geniş şerit
+        if (p.hali) {
+          // iki sıra desenli hali: 1 m'lik secde sıraları; kenarda geniş şerit
           final kenar = (x0 < -hw + 1.2 || x1 > hw - 1.2 || z0 < 1.2 || z1 > D - 1.2);
           c = kenar ? _ton(p.carpB, 0.9) : (((i + j) % 2 == 0) ? p.carpA : p.carpB);
         } else {
@@ -304,9 +303,9 @@ class _Salon {
         _q([_V(x0, 0, z0), _V(x1, 0, z0), _V(x1, 0, z1), _V(x0, 0, z1)], c, bias: 2);
       }
     }
-    if (p.halı) {
+    if (p.hali) {
       // secde sıra çizgileri (z yönünde ince aralıklı çizgiler)
-      for (var j = 2; j < D - 1.5; j += 1.0) {
+      for (double j = 2; j < D - 1.5; j += 1.0) {
         _q([_V(-hw + 1.2, 0.01, j - 0.03), _V(hw - 1.2, 0.01, j - 0.03), _V(hw - 1.2, 0.01, j + 0.03), _V(-hw + 1.2, 0.01, j + 0.03)], _ton(p.carpB, 0.72), bias: 1.5);
       }
     }
@@ -595,7 +594,7 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    kz = 2.5;
+    kz = salon.D * 0.35;
   }
 
   @override
@@ -724,8 +723,8 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
       final q = j < nok.length ? p : _V(p.x, p.y + 1.1 * (j ~/ nok.length), p.z);
       final c = _kam(q);
       if (c.z < 0.8 || c.z > 60) continue;
-      final o = _ekran(c, size), olc = (9.0 / c.z).clamp(0.55, 1.35);
-      final w = 132.0 * olc, h = 34.0 * olc;
+      final o = _ekran(c, size), olc = (14.0 / c.z).clamp(0.8, 1.5);
+      final w = 150.0 * olc, h = 38.0 * olc;
       final r = Rect.fromCenter(center: o, width: w + h, height: h);
       if (r.right < 0 || r.left > size.width || r.bottom < 0 || r.top > size.height) continue;
       if (cizilen.any((e) => e.overlaps(r.deflate(4)))) continue; // üst üste binenleri atla
@@ -807,7 +806,7 @@ class _CamiBoya extends CustomPainter {
       for (final q in out) {
         d += q.z;
       }
-      d = d / out.length - y.bias;
+      d = d / out.length + y.bias;
       ciz.add(_Cizilecek(pts, y.c, d, y.kenar));
     }
     ciz.sort((a, b) => b.d.compareTo(a.d));
