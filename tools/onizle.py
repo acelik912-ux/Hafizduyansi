@@ -13,7 +13,7 @@ sd = os.path.join(çıkış, 'svg'); pd = os.path.join(çıkış, 'png')
 os.makedirs(sd, exist_ok=True)
 import shutil; shutil.rmtree(pd, ignore_errors=True)
 for f in os.listdir(sd): os.remove(os.path.join(sd, f))
-for i in range(20):
+for i in range(len(m.ADLAR)):
     if seç and (i + 1) not in seç: continue
     sv = m.ciz(i, random.Random(1000 + i))
     open(os.path.join(sd, '%02d.svg' % (i + 1)), 'w', encoding='utf-8').write(str(sv))
