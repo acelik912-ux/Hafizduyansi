@@ -50,6 +50,19 @@ def frame_box(ink):
     cols = ink[int(H * 0.2):int(H * 0.8), :].mean(0)
     hr = np.where(rows > 0.85)[0]
     vc = np.where(cols > 0.85)[0]
+
+    def ince(idx, en=10):
+        # yalnızca ince çizgiler (süslü sûre başlığının dolgusu da koyu satırlar verir; onlar kalın kümelerdir)
+        out, i = [], 0
+        while i < len(idx):
+            j = i
+            while j + 1 < len(idx) and idx[j + 1] - idx[j] <= 1:
+                j += 1
+            if j - i + 1 <= en:
+                out.extend(idx[i:j + 1])
+            i = j + 1
+        return np.array(out, dtype=idx.dtype)
+    hr = ince(hr)
     if len(hr) < 2 or len(vc) < 2:
         raise RuntimeError('Sayfa çerçevesi bulunamadı')
     # en içteki çizgiler: üstte en alttaki, altta en üstteki (çift çerçeve)
@@ -60,20 +73,32 @@ def frame_box(ink):
     return left_lines.max(), top_lines.max(), right_lines.min(), bot_lines.min()
 
 
-def line_bands(ink, box):
+def line_bands(ink, box, excl=()):
+    """15 satır bandı. Satır aralığı ve dikey kayma, satırlar arası boşluklardaki mürekkep toplamı en az olacak
+    biçimde seçilir (sûre başlığı bantları excl ile hesaba katılmaz)."""
     x0, y0, x1, y1 = box
     pad = 8
-    sub = ink[y0 + pad:y1 - pad, x0 + pad:x1 - pad]
-    prof = sub.sum(1).astype(float)
-    # metin bloğunun dikey sınırları
-    nz = np.where(prof > 3)[0]
-    t, b = nz[0], nz[-1]
-    step = (b - t) / NLINES
-    bands = []
-    for i in range(NLINES):
-        a = t + i * step
-        bands.append((int(y0 + pad + a), int(y0 + pad + a + step)))
-    return bands
+    prof = ink[:, x0 + pad:x1 - pad].sum(1).astype(float)
+    for (a, b) in excl:
+        prof[max(0, a):b + 1] = 0
+    step0 = (y1 - y0 - 2 * pad) / NLINES
+    best = None
+    for pk in np.arange(0.95, 1.0501, 0.0025):
+        step = step0 * pk
+        for off in range(-int(step0 * 0.5), int(step0 * 0.5) + 1, 2):
+            cost = 0.0
+            for i in range(1, NLINES):
+                yy = int(y0 + pad + off + i * step)
+                if not (3 <= yy < len(prof) - 4):
+                    cost += 1e6
+                    continue
+                cost += prof[yy - 3:yy + 4].sum()
+            cost += abs(off) * 2 + abs(pk - 1) * 4000
+            if best is None or cost < best[0]:
+                best = (cost, off, step)
+    _, off, step = best
+    # son bant çerçevenin alt çizgisini ve sayfa numarasını içermesin
+    return [(int(y0 + pad + off + i * step), min(int(y0 + pad + off + (i + 1) * step), int(y1) - 16)) for i in range(NLINES)]
 
 
 def find_markers(marker, bands):
@@ -118,7 +143,7 @@ def to_alpha(rgb, bg):
     return np.dstack([col, a * 255]).astype(np.uint8)
 
 
-def first_word(ink, x0, x1, y0, y1, min_w=110, gap=12):
+def first_word(ink, x0, x1, y0, y1, min_w=90, gap=12):
     """Satır parçasının sağından başlayarak ilk kelimeyi (en az min_w genişlik) bulur."""
     cols = ink[y0:y1, x0:x1].any(0)[::-1]  # sağdan sola
     run = 0
@@ -135,6 +160,63 @@ def first_word(ink, x0, x1, y0, y1, min_w=110, gap=12):
     return x0, x1
 
 
+def satir_sahibi(ink, bands):
+    """Her mürekkep pikseline satır numarası verir (-1: bant dışı). Bir harf/nokta kümesi ait olduğu satırın
+    sütununa bütünüyle verilir (ağırlık merkezine göre); iki satıra yayılan çok yüksek kümeler satır sınırından bölünür.
+    Böylece komşu satırın alt/üst taşan parçaları bu satırın kesitine girmez."""
+    H, W = ink.shape
+    rowband = np.full(H, -1, np.int16)
+    for i, (a, b) in enumerate(bands):
+        rowband[max(0, a):min(H, b)] = i
+    step = bands[0][1] - bands[0][0]
+    lab, n = ndimage.label(ink, structure=np.ones((3, 3)))
+    own = np.full((H, W), -1, np.int16)
+    for i, sl in enumerate(ndimage.find_objects(lab), 1):
+        m = lab[sl] == i
+        ys, xs = np.nonzero(m)
+        y0 = sl[0].start
+        h = sl[0].stop - sl[0].start
+        if h <= 1.7 * step:
+            cy = int(round(ys.mean())) + y0
+            li = rowband[min(H - 1, max(0, cy))]
+            own[sl][m] = li
+        else:
+            own[sl][m] = rowband[y0 + ys]
+    return own
+
+
+def temizle(rgb, ink, own, li, bg, box):
+    """Kesit içinde başka satırlara ait mürekkebi zemin rengine boyar."""
+    x0, y0, x1, y1 = box
+    sub_ink = ink[y0:y1, x0:x1]
+    yab = sub_ink & (own[y0:y1, x0:x1] != li)
+    if not yab.any():
+        return rgb[y0:y1, x0:x1]
+    yab = ndimage.binary_dilation(yab, iterations=3)
+    out = rgb[y0:y1, x0:x1].copy()
+    out[yab] = bg
+    return out
+
+
+def banner_araliklari(rgb, box):
+    """Sûre başlığı süslerinin (mavi/turkuaz çerçeveli bant) dikey aralıkları."""
+    x0, y0, x1, y1 = box
+    sub = rgb[y0:y1, x0:x1].astype(np.int32)
+    R, G, B = sub[..., 0], sub[..., 1], sub[..., 2]
+    mavi = (B > 110) & (B > R + 35)
+    rows = np.where(mavi.sum(1) > 60)[0]
+    out = []
+    if len(rows):
+        a = prev = rows[0]
+        for y in rows[1:]:
+            if y - prev > 150:
+                out.append((y0 + int(a), y0 + int(prev)))
+                a = y
+            prev = y
+        out.append((y0 + int(a), y0 + int(prev)))
+    return [(a - 12, b + 12) for a, b in out if b - a > 60]
+
+
 def page_bg(rgb, box):
     x0, y0, x1, y1 = box
     sub = rgb[y0 + 20:y1 - 20, x0 + 20:x1 - 20].reshape(-1, 3)
@@ -142,50 +224,95 @@ def page_bg(rgb, box):
 
 
 # ---------------------------------------------------------------- sayfa işleme
-def process_page(img, first, files, debug=None, pno=0):
+def process_page(img, first, files, debug=None, pno=0, carry=None):
+    carry = {} if carry is None else carry
+    besm_in = carry.get('besmele', False)  # önceki sayfa sûre başlığıyla bitti: bu sayfanın ilk satırı besmele
+    besm_out = False
     rgb = np.array(img.convert('RGB'))
     H, W = rgb.shape[:2]
     ink, marker = masks(rgb)
     box = frame_box(ink)
-    bands = line_bands(ink, box)
+    banners = banner_araliklari(rgb, box)
+    bands = line_bands(ink, box, banners)
     # yalnızca çerçeve içindeki işaretler (kenar boşluğundaki cüz/hizb süsleri ayet sonu değildir)
     mk = [m for m in find_markers(marker, bands) if m['x0'] > box[0] and m['x1'] < box[2]]
     bg = page_bg(rgb, box)
+    own = satir_sahibi(ink, bands)
+    step_ = bands[0][1] - bands[0][0]
+    atla = set()  # sûre başlığı ve besmele satırları ayetin parçası değildir
+    besmele_sat = []
+    for (ba, bb_) in banners:
+        son = None
+        for li, (a_, b_) in enumerate(bands):
+            ort = (min(b_, bb_) - max(a_, ba)) / float(b_ - a_)  # bandın ne kadarı başlıkla örtüşüyor
+            if ort > 0.5:
+                atla.add(li)
+                son = li
+        if son is not None and son + 1 < len(bands):
+            besmele_sat.append(son + 1)
+        elif son is not None:
+            besm_out = True
     tx0, tx1 = box[0] + 10, box[2] - 10
     # okuma sırası: satır satır, sağdan sola
     mk.sort(key=lambda m: (m['line'], -m['x1']))
     by_line = {}
     for m in mk:
         by_line.setdefault(m['line'], []).append(m)
+    _il = {}
+
+    def ink_l(li):
+        if li not in _il:
+            _il[li] = ink & (own == li)
+        return _il[li]
+
     ayat = []  # [(sura,no), [segments(x0,y0,x1,y1)]]
     cur = first
     segs = []
     for li, (by0, by1) in enumerate(bands):
         right = tx1
+        if li in atla:
+            continue
+        if besm_in and cur[1] == 1 and cur[0] not in (1, 9) and ink_l(li)[:, tx0:tx1].sum() > 200:
+            besm_in = False
+            continue  # önceki sayfadaki sûre başlığının besmelesi
+        if li in besmele_sat:
+            # besmele satırı: Tevbe'de yoktur (yerine ayet başlar), Fâtiha'da ayetin kendisidir
+            if cur[1] == 1 and cur[0] not in (1, 9):
+                continue
         for m in by_line.get(li, []):
-            bb = ink_bbox(ink, m['x0'] - 4, right, by0, by1)
+            bb = ink_bbox(ink_l(li), m['x0'] - 4, right, by0, by1)
             if bb:
-                segs.append(bb)
+                segs.append(bb + (li,))
             ayat.append((cur, segs))
             cur, segs = next_ayah(*cur), []
             right = m['x0'] - 2
-        bb = ink_bbox(ink, tx0, right, by0, by1)
-        if bb and bb[2] - bb[0] > 25:
-            segs.append(bb)
-    if segs:
+        bb = ink_bbox(ink_l(li), tx0, right, by0, by1)
+        if bb and bb[2] - bb[0] > 25 and bb[3] - bb[1] > 0.3 * step_:  # çok ince artıklar (komşu satırın taşan ucu) ayet parçası sayılmaz
+            segs.append(bb + (li,))
+    eksik = bool(segs and cur[0] <= 114)
+    eksik_key = cur
+    if eksik:
         ayat.append((cur, segs))  # sayfa sonunda bitmeyen ayet (bir sonraki sayfada devam eder)
         print(f'  ! sayfa {pno}: son ayet ({cur[0]}:{cur[1]}) bu sayfada bitmiyor', file=sys.stderr)
+    last_crops_ref = [None]
     out_ayat, rects = [], []
+    onceki = dict(carry)
+    carry.clear()
+    if besm_out:
+        carry['besmele'] = True
     for (s, a), sg in ayat:
-        if a == 1 and s not in (1, 9) and len(sg) > 1:
-            sg = sg[1:]  # sure başındaki besmele bandı ayetin parçası değil
         if not sg:
             continue
-        for (x0, y0, x1, y1) in sg:
+        for (x0, y0, x1, y1, _li) in sg:
             rects.append({'sura': s, 'no': a, 'x': round(x0 / W, 4), 'y': round(y0 / H, 4), 'w': round((x1 - x0) / W, 4), 'h': round((y1 - y0) / H, 4)})
         # tam ayet: satırlar alt alta, sağa yaslı, şeffaf zemin
         pad = 6
-        crops = [to_alpha(rgb[max(0, y0 - pad):y1 + pad, max(0, x0 - pad):x1 + pad], bg) for (x0, y0, x1, y1) in sg]
+        crops = [to_alpha(temizle(rgb, ink, own, li_, bg, (max(0, x0 - pad), max(0, y0 - pad), x1 + pad, y1 + pad)), bg) for (x0, y0, x1, y1, li_) in sg]
+        devam = onceki.get('key') == (s, a)  # önceki sayfadan devam eden ayet: başı ilk sayfada kesildi
+        son_crops = crops
+        last_crops_ref[0] = crops
+        if devam:
+            crops = onceki['crops'] + crops
         fw = max(c.shape[1] for c in crops)
         fh = sum(c.shape[0] for c in crops)
         full = np.zeros((fh, fw, 4), np.uint8)
@@ -193,26 +320,35 @@ def process_page(img, first, files, debug=None, pno=0):
         for c in crops:
             full[yy:yy + c.shape[0], fw - c.shape[1]:] = c
             yy += c.shape[0]
-        # ayet başı: ilk parçanın ilk kelimesi
-        x0, y0, x1, y1 = sg[0]
-        sx0, sx1 = first_word(ink, x0, x1, y0, y1)
-        for g in (8, 6, 4, 3, 2):  # sıkışık satırlarda daha dar boşlukla tekrar dene
-            if (sx1 - sx0) <= 3.4 * (y1 - y0 + 2 * pad) * 0.8:
-                break
-            sx0, sx1 = first_word(ink, x0, x1, y0, y1, gap=g)
-        sbb = ink_bbox(ink, sx0, sx1, y0, y1) or (sx0, y0, sx1, y1)
-        start = to_alpha(rgb[max(0, sbb[1] - pad):sbb[3] + pad, max(0, sbb[0] - pad):sbb[2] + pad], bg)
         key = f'{s:03d}{a:03d}'
+        if devam:
+            files[f'img/f_{key}.png'] = full
+            continue
+        # ayet başı: ilk parçanın ilk kelimesi
+        x0, y0, x1, y1, sli = sg[0]
+        sx0, sx1 = first_word(ink_l(sli), x0, x1, y0, y1)
+        lim = 2.9 * (bands[0][1] - bands[0][0])  # ayet başı en fazla bu genişlikte
+        for g in (9, 7):  # sıkışık satırlarda biraz daha dar boşlukla tekrar dene (kelime ortasından kesmemek için 7'nin altına inme)
+            if (sx1 - sx0) <= lim:
+                break
+            sx0, sx1 = first_word(ink_l(sli), x0, x1, y0, y1, gap=g)
+        sbb = ink_bbox(ink_l(sli), sx0, sx1, y0, y1) or (sx0, y0, sx1, y1)
+        start = to_alpha(temizle(rgb, ink, own, sli, bg, (max(0, sbb[0] - pad), max(0, sbb[1] - pad), sbb[2] + pad, sbb[3] + pad)), bg)
         files[f'img/f_{key}.png'] = full
         files[f'img/s_{key}.png'] = start
         out_ayat.append({'sura': s, 'no': a, 'full': {'file': f'img/f_{key}.png', 'w': fw, 'h': fh},
                          'start': {'file': f'img/s_{key}.png', 'w': start.shape[1], 'h': start.shape[0]}})
+    if eksik and ayat and ayat[-1][0] == eksik_key:
+        # sayfa sonunda yarım kalan ayet: sonraki sayfada devam edecek (tam görseli birleştirilir)
+        last = [x for x in ayat if x[1]][-1]
+        carry['key'] = eksik_key
+        carry['crops'] = last_crops_ref[0]
     if debug:
         dimg = img.convert('RGB').copy()
         d = ImageDraw.Draw(dimg)
         cols = ['red', 'blue', 'green', 'orange', 'purple', 'brown']
         for i, ((s, a), sg) in enumerate(ayat):
-            for (x0, y0, x1, y1) in sg:
+            for (x0, y0, x1, y1, _l) in sg:
                 d.rectangle([x0, y0, x1, y1], outline=cols[i % 6], width=5)
             if sg:
                 d.text((sg[0][2] + 8, sg[0][1]), f'{a}', fill=cols[i % 6])
@@ -254,11 +390,12 @@ def main():
     s, n = (int(x) for x in o.bas.split(':'))
     cur = (s, n)
     files, pages = {}, []
+    carry = {}
     for i, (pth, pno) in enumerate(zip(paths, pnos)):
         img = Image.open(pth)
         if img.size != (W0, H0):
             img = img.convert('RGB').resize((W0, round(img.size[1] * W0 / img.size[0])), Image.LANCZOS)
-        ayat, rects, cur = process_page(img, cur, files, o.hata_ayikla, pno)
+        ayat, rects, cur = process_page(img, cur, files, o.hata_ayikla, pno, carry)
         for x in ayat:
             x['sname'] = SURA_TR.get(x['sura'], str(x['sura']))
             x['meal'] = meal.get(str(x['sura']), {}).get(str(x['no']), '')
