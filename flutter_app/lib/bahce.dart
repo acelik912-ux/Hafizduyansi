@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import 'ayet.dart';
 import 'bahce3d.dart';
+import 'cami3d.dart';
 import 'ortak.dart';
 import 'bilgi.dart';
 import 'veri.dart';
@@ -38,6 +39,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
   String _ad(int i) => widget.depo.adOf(widget.cd, i);
   String? _agac(int i) => widget.depo.agacOf(widget.cd, i);
   int cur = -1; // -1 = bahçe
+  int camiIc = -1; // 18. cüz: içinde bulunulan caminin sayfa sırası
   int open = -1; // açık ayet (flat sırası)
   bool dinle = false; // "Sayfayı dinle": açılan ayetten sayfa sonuna kadar sırayla okunur
   Duz? sheetFor; // mushaf sayfası
@@ -154,6 +156,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
           child: tercih.bahce == '3d'
               ? Bahce3B(
                   kimlik: widget.cd.no, pages: pages, agac: _agac, ad: _ad, sahne: tema.sahne, birim: tema.birim, meyve: (p, k) => tema.fruits[p]?[k], ozel: (p) => ozelSayfa(widget.cd, p), W: winW, H: H, pad: pad, onOpen: openTree,
+                  onIc: widget.cd.no == 18 ? (p) => setState(() => camiIc = p) : null,
                   // bahçedeki ayet başına dokununca ayet paneli; kapanınca bahçede kalınır
                   onAyet: (p, j) {
                     final fi = flat.indexWhere((f) => f.p == p && f.s * 5 + f.k == j);
@@ -183,6 +186,19 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
       content = Center(key: ValueKey('agac$cur'), child: SizedBox(width: W, height: H, child: _agacSayfasi(W, H, pad)));
     }
 
+    if (camiIc >= 0 && cur < 0) {
+      final cp = pages[camiIc];
+      content = CamiIci(
+        key: ValueKey('cami$camiIc'), index: camiIc, ad: _ad(camiIc), page: cp, W: winW, H: H, pad: pad,
+        meyve: (k) => tema.fruits[camiIc]?[k],
+        onClose: () => setState(() => camiIc = -1),
+        onAyet: (j) {
+          final fi = flat.indexWhere((f) => f.p == camiIc && f.s * 5 + f.k == j);
+          if (fi >= 0) _set(() { open = fi; dinle = false; });
+        },
+      );
+    }
+
     final b = cur < 0 ? (tercih.bahce == 'kart' && gview == 'path' && tema.ui['bgForest'] != null ? tema.ui['bgForest'] : tema.ui['bgGarden']) : tema.ui['bgPage'];
     return PopScope(
       canPop: false,
@@ -192,6 +208,8 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
           setState(() => sheetFor = null);
         } else if (open >= 0) {
           closePanel();
+        } else if (camiIc >= 0) {
+          setState(() => camiIc = -1);
         } else if (cur >= 0) {
           toGarden();
         } else {
