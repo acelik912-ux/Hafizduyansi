@@ -78,10 +78,40 @@ flutter:
     - assets/paket/cuz14/img/
     - assets/paket/cuz15/
     - assets/paket/cuz15/img/
+    - assets/paket/cuz16/
+    - assets/paket/cuz16/img/
+    - assets/paket/cuz17/
+    - assets/paket/cuz17/img/
+    - assets/paket/cuz18/
+    - assets/paket/cuz18/img/
+    - assets/paket/cuz19/
+    - assets/paket/cuz19/img/
     - assets/paket/cuz2/
     - assets/paket/cuz2/img/
+    - assets/paket/cuz20/
+    - assets/paket/cuz20/img/
+    - assets/paket/cuz21/
+    - assets/paket/cuz21/img/
+    - assets/paket/cuz22/
+    - assets/paket/cuz22/img/
+    - assets/paket/cuz23/
+    - assets/paket/cuz23/img/
+    - assets/paket/cuz24/
+    - assets/paket/cuz24/img/
+    - assets/paket/cuz25/
+    - assets/paket/cuz25/img/
+    - assets/paket/cuz26/
+    - assets/paket/cuz26/img/
+    - assets/paket/cuz27/
+    - assets/paket/cuz27/img/
+    - assets/paket/cuz28/
+    - assets/paket/cuz28/img/
+    - assets/paket/cuz29/
+    - assets/paket/cuz29/img/
     - assets/paket/cuz3/
     - assets/paket/cuz3/img/
+    - assets/paket/cuz30/
+    - assets/paket/cuz30/img/
     - assets/paket/cuz4/
     - assets/paket/cuz4/img/
     - assets/paket/cuz5/
@@ -108,10 +138,40 @@ flutter:
     - assets/paket/ses14/a/
     - assets/paket/ses15/
     - assets/paket/ses15/a/
+    - assets/paket/ses16/
+    - assets/paket/ses16/a/
+    - assets/paket/ses17/
+    - assets/paket/ses17/a/
+    - assets/paket/ses18/
+    - assets/paket/ses18/a/
+    - assets/paket/ses19/
+    - assets/paket/ses19/a/
     - assets/paket/ses2/
     - assets/paket/ses2/a/
+    - assets/paket/ses20/
+    - assets/paket/ses20/a/
+    - assets/paket/ses21/
+    - assets/paket/ses21/a/
+    - assets/paket/ses22/
+    - assets/paket/ses22/a/
+    - assets/paket/ses23/
+    - assets/paket/ses23/a/
+    - assets/paket/ses24/
+    - assets/paket/ses24/a/
+    - assets/paket/ses25/
+    - assets/paket/ses25/a/
+    - assets/paket/ses26/
+    - assets/paket/ses26/a/
+    - assets/paket/ses27/
+    - assets/paket/ses27/a/
+    - assets/paket/ses28/
+    - assets/paket/ses28/a/
+    - assets/paket/ses29/
+    - assets/paket/ses29/a/
     - assets/paket/ses3/
     - assets/paket/ses3/a/
+    - assets/paket/ses30/
+    - assets/paket/ses30/a/
     - assets/paket/ses4/
     - assets/paket/ses4/a/
     - assets/paket/ses5/
@@ -152,13 +212,73 @@ flutter:
     - assets/paket/theme15/bg/
     - assets/paket/theme15/fruits/
     - assets/paket/theme15/trees/
+    - assets/paket/theme16/
+    - assets/paket/theme16/bg/
+    - assets/paket/theme16/fruits/
+    - assets/paket/theme16/trees/
+    - assets/paket/theme17/
+    - assets/paket/theme17/bg/
+    - assets/paket/theme17/fruits/
+    - assets/paket/theme17/trees/
+    - assets/paket/theme18/
+    - assets/paket/theme18/bg/
+    - assets/paket/theme18/fruits/
+    - assets/paket/theme18/trees/
+    - assets/paket/theme19/
+    - assets/paket/theme19/bg/
+    - assets/paket/theme19/fruits/
+    - assets/paket/theme19/trees/
     - assets/paket/theme2/
     - assets/paket/theme2/bg/
     - assets/paket/theme2/fruits/
     - assets/paket/theme2/trees/
+    - assets/paket/theme20/
+    - assets/paket/theme20/bg/
+    - assets/paket/theme20/fruits/
+    - assets/paket/theme20/trees/
+    - assets/paket/theme21/
+    - assets/paket/theme21/bg/
+    - assets/paket/theme21/fruits/
+    - assets/paket/theme21/trees/
+    - assets/paket/theme22/
+    - assets/paket/theme22/bg/
+    - assets/paket/theme22/fruits/
+    - assets/paket/theme22/trees/
+    - assets/paket/theme23/
+    - assets/paket/theme23/bg/
+    - assets/paket/theme23/fruits/
+    - assets/paket/theme23/trees/
+    - assets/paket/theme24/
+    - assets/paket/theme24/bg/
+    - assets/paket/theme24/fruits/
+    - assets/paket/theme24/trees/
+    - assets/paket/theme25/
+    - assets/paket/theme25/bg/
+    - assets/paket/theme25/fruits/
+    - assets/paket/theme25/trees/
+    - assets/paket/theme26/
+    - assets/paket/theme26/bg/
+    - assets/paket/theme26/fruits/
+    - assets/paket/theme26/trees/
+    - assets/paket/theme27/
+    - assets/paket/theme27/bg/
+    - assets/paket/theme27/fruits/
+    - assets/paket/theme27/trees/
+    - assets/paket/theme28/
+    - assets/paket/theme28/bg/
+    - assets/paket/theme28/fruits/
+    - assets/paket/theme28/trees/
+    - assets/paket/theme29/
+    - assets/paket/theme29/bg/
+    - assets/paket/theme29/fruits/
+    - assets/paket/theme29/trees/
     - assets/paket/theme3/
     - assets/paket/theme3/fruits/
     - assets/paket/theme3/trees/
+    - assets/paket/theme30/
+    - assets/paket/theme30/bg/
+    - assets/paket/theme30/fruits/
+    - assets/paket/theme30/trees/
     - assets/paket/theme4/
     - assets/paket/theme4/fruits/
     - assets/paket/theme4/trees/

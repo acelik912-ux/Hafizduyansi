@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 25,
+ "name": "Mekke ve Hac (25. Cüz)",
+ "sahne": "col",
+ "ek": "",
+ "birim": "durak",
+ "tanim": "Mekke ve hac",
+ "ui": {
+  "bgGarden": "col_sayfa.jpg",
+  "bgForest": "col_sayfa.jpg",
+  "bgPage": "col_sayfa.jpg",
+  "bgAyet": "col_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c25_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kâbe"
+  },
+  "2": {
+   "file": "c25_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hacerülesved"
+  },
+  "3": {
+   "file": "c25_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Makam-ı İbrâhîm"
+  },
+  "4": {
+   "file": "c25_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Zemzem Kabı"
+  },
+  "5": {
+   "file": "c25_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Safâ ve Merve"
+  },
+  "6": {
+   "file": "c25_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mîzâb"
+  },
+  "7": {
+   "file": "c25_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Haram Revakı"
+  },
+  "8": {
+   "file": "c25_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Arafat"
+  },
+  "9": {
+   "file": "c25_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Müzdelife"
+  },
+  "10": {
+   "file": "c25_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mina Cemreleri"
+  },
+  "11": {
+   "file": "c25_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İhram"
+  },
+  "12": {
+   "file": "c25_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kurban Yuları"
+  },
+  "13": {
+   "file": "c25_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kisve"
+  },
+  "14": {
+   "file": "c25_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hicr-i İsmâil"
+  },
+  "15": {
+   "file": "c25_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nûr Dağı"
+  },
+  "16": {
+   "file": "c25_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tavaf Zemini"
+  },
+  "17": {
+   "file": "c25_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kâbe Kapısı"
+  },
+  "18": {
+   "file": "c25_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mina Çadırları"
+  },
+  "19": {
+   "file": "c25_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Haram Minaresi"
+  },
+  "20": {
+   "file": "c25_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mikat Kapısı"
+  }
+ }
+}

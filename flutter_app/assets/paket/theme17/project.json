@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 17,
+ "name": "Peygamberler (17. Cüz)",
+ "sahne": "nahl",
+ "ek": "",
+ "birim": "iz",
+ "tanim": "peygamberlerin izleri",
+ "ui": {
+  "bgGarden": "nahl_sayfa.jpg",
+  "bgForest": "nahl_sayfa.jpg",
+  "bgPage": "nahl_sayfa.jpg",
+  "bgAyet": "nahl_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c17_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nûh’un Gemisi"
+  },
+  "2": {
+   "file": "c17_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İbrâhîm’in Ateşi"
+  },
+  "3": {
+   "file": "c17_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Eyyûb’un Pınarı"
+  },
+  "4": {
+   "file": "c17_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Balığın Karnı"
+  },
+  "5": {
+   "file": "c17_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dâvûd’un Zırhı"
+  },
+  "6": {
+   "file": "c17_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Zekeriyyâ’nın Mihrabı"
+  },
+  "7": {
+   "file": "c17_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Meryem’in Hurması"
+  },
+  "8": {
+   "file": "c17_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kurbanlık Odun ve Bıçak"
+  },
+  "9": {
+   "file": "c17_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Üzüm Bağı"
+  },
+  "10": {
+   "file": "c17_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yahyâ’nın Kitabı"
+  },
+  "11": {
+   "file": "c17_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Çamurdan Kuş"
+  },
+  "12": {
+   "file": "c17_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İbrâhîm’in Baltası"
+  },
+  "13": {
+   "file": "c17_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dirilen Toprak"
+  },
+  "14": {
+   "file": "c17_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yumuşayan Demir"
+  },
+  "15": {
+   "file": "c17_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İdrîs’in Yüksek Makamı"
+  },
+  "16": {
+   "file": "c17_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tennûr’dan Fışkıran Su"
+  },
+  "17": {
+   "file": "c17_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dağların Kökleri"
+  },
+  "18": {
+   "file": "c17_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sudan Yaratılan Canlılar"
+  },
+  "19": {
+   "file": "c17_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dürülen Gök Tomarı"
+  },
+  "20": {
+   "file": "c17_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İhram"
+  }
+ }
+}

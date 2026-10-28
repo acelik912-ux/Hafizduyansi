@@ -18,3 +18,4 @@
   'zümrütyaprak': ['Cennet tasvirleri yeşil renkle ve canlı bitkilerle anlatılır.', 'Zümrüt, parlak yeşil bir mücevherdir.', 'Damlalar, tazelik ve berekete işaret eder.'],
   'firdevs': ['Kehf 18/107 ve Mü’minûn 23/11’de Firdevs cennetlerinden söz edilir.', 'Firdevs, cennetin en yüksek mertebesi olarak bilinir.', 'Terasları, bahçe ve çeşmelerle çizilmiştir.'],
   'inciçadır': ['Rahmân 55/72’de cennette çadırlarda korunmuş eşlerden söz edilir.', 'Çadır, huzurlu ve korunaklı bir mekândır.', 'İnci, parlak ve değerli bir mücevherdir.'],
+  'gümüşibrik': ['İnsan 76/15-16’da cennetlikler için gümüş kaplar ve billûr kadehlerden söz edilir.', 'İbrik, su ve şerbet dökmeye yarayan kaptır.', 'Kadehler, ikram ve paylaşmanın simgesidir.'],

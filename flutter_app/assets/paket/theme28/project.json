@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 28,
+ "name": "Hayır Eserleri (28. Cüz)",
+ "sahne": "avlu",
+ "ek": "",
+ "birim": "eser",
+ "tanim": "hayır eserleri",
+ "ui": {
+  "bgGarden": "avlu_sayfa.jpg",
+  "bgForest": "avlu_sayfa.jpg",
+  "bgPage": "avlu_sayfa.jpg",
+  "bgAyet": "avlu_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c28_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Çeşme"
+  },
+  "2": {
+   "file": "c28_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sebil"
+  },
+  "3": {
+   "file": "c28_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kervansaray Kapısı"
+  },
+  "4": {
+   "file": "c28_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Taş Köprü"
+  },
+  "5": {
+   "file": "c28_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İmaret"
+  },
+  "6": {
+   "file": "c28_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Darüşşifa"
+  },
+  "7": {
+   "file": "c28_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Medrese Avlusu"
+  },
+  "8": {
+   "file": "c28_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kütüphane"
+  },
+  "9": {
+   "file": "c28_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hamam"
+  },
+  "10": {
+   "file": "c28_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bedesten Kapısı"
+  },
+  "11": {
+   "file": "c28_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Saat Kulesi"
+  },
+  "12": {
+   "file": "c28_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Su Kemeri"
+  },
+  "13": {
+   "file": "c28_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sarnıç"
+  },
+  "14": {
+   "file": "c28_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dergâh"
+  },
+  "15": {
+   "file": "c28_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Vakıf Kapısı"
+  },
+  "16": {
+   "file": "c28_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Han"
+  },
+  "17": {
+   "file": "c28_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Menzil Taşı"
+  },
+  "18": {
+   "file": "c28_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Deniz Feneri"
+  },
+  "19": {
+   "file": "c28_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Arasta"
+  },
+  "20": {
+   "file": "c28_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sıbyan Mektebi"
+  }
+ }
+}

@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 23,
+ "name": "İslâm’ın Kaleleri (23. Cüz)",
+ "sahne": "kale",
+ "ek": "",
+ "birim": "kale",
+ "tanim": "kaleler",
+ "ui": {
+  "bgGarden": "kale_sayfa.jpg",
+  "bgForest": "kale_sayfa.jpg",
+  "bgPage": "kale_sayfa.jpg",
+  "bgAyet": "kale_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c23_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hayber Kalesi"
+  },
+  "2": {
+   "file": "c23_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Halep Kalesi"
+  },
+  "3": {
+   "file": "c23_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kerek Kalesi"
+  },
+  "4": {
+   "file": "c23_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Selâhaddîn Kalesi"
+  },
+  "5": {
+   "file": "c23_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kudüs Surları"
+  },
+  "6": {
+   "file": "c23_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Rumeli Hisarı"
+  },
+  "7": {
+   "file": "c23_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Anadolu Hisarı"
+  },
+  "8": {
+   "file": "c23_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Diyarbakır Surları"
+  },
+  "9": {
+   "file": "c23_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Alanya Kalesi"
+  },
+  "10": {
+   "file": "c23_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ankara Kalesi"
+  },
+  "11": {
+   "file": "c23_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Elhamra"
+  },
+  "12": {
+   "file": "c23_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mardin Kalesi"
+  },
+  "13": {
+   "file": "c23_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Topkapı Sarayı Kapısı"
+  },
+  "14": {
+   "file": "c23_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ahlat Kümbetleri"
+  },
+  "15": {
+   "file": "c23_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bursa Surları"
+  },
+  "16": {
+   "file": "c23_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kars Kalesi"
+  },
+  "17": {
+   "file": "c23_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Calahorra Kulesi"
+  },
+  "18": {
+   "file": "c23_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bodrum Kalesi"
+  },
+  "19": {
+   "file": "c23_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hoşap Kalesi"
+  },
+  "20": {
+   "file": "c23_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kızkalesi"
+  }
+ }
+}

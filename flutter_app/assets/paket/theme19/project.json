@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 19,
+ "name": "Cami ve Mihrap (19. Cüz)",
+ "sahne": "avlu",
+ "ek": "",
+ "birim": "parça",
+ "tanim": "caminin parçaları",
+ "ui": {
+  "bgGarden": "avlu_sayfa.jpg",
+  "bgForest": "avlu_sayfa.jpg",
+  "bgPage": "avlu_sayfa.jpg",
+  "bgAyet": "avlu_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c19_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Minare"
+  },
+  "2": {
+   "file": "c19_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mihrap"
+  },
+  "3": {
+   "file": "c19_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Minber"
+  },
+  "4": {
+   "file": "c19_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Vaaz Kürsüsü"
+  },
+  "5": {
+   "file": "c19_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kubbenin İçi"
+  },
+  "6": {
+   "file": "c19_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kandil"
+  },
+  "7": {
+   "file": "c19_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sütunlar"
+  },
+  "8": {
+   "file": "c19_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Şadırvan"
+  },
+  "9": {
+   "file": "c19_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Seccade"
+  },
+  "10": {
+   "file": "c19_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Rahle ve Mushaf"
+  },
+  "11": {
+   "file": "c19_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tespih"
+  },
+  "12": {
+   "file": "c19_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kıble Levhası"
+  },
+  "13": {
+   "file": "c19_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hat Levha"
+  },
+  "14": {
+   "file": "c19_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Cami Halısı"
+  },
+  "15": {
+   "file": "c19_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Müezzin Mahfili"
+  },
+  "16": {
+   "file": "c19_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Avlu Kapısı"
+  },
+  "17": {
+   "file": "c19_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Revak"
+  },
+  "18": {
+   "file": "c19_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mahya"
+  },
+  "19": {
+   "file": "c19_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Minare Külahı"
+  },
+  "20": {
+   "file": "c19_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Vitray Pencere"
+  }
+ }
+}

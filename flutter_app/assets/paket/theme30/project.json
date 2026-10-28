@@ -1,0 +1,162 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 30,
+ "name": "Kısa Sûreler (30. Cüz)",
+ "sahne": "otlak",
+ "ek": "",
+ "birim": "sûre",
+ "tanim": "kısa sûreler",
+ "ui": {
+  "bgGarden": "otlak_sayfa.jpg",
+  "bgForest": "otlak_sayfa.jpg",
+  "bgPage": "otlak_sayfa.jpg",
+  "bgAyet": "otlak_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c30_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dağ Kazıkları"
+  },
+  "2": {
+   "file": "c30_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dürülen Güneş"
+  },
+  "3": {
+   "file": "c30_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Saçılan Yıldızlar"
+  },
+  "4": {
+   "file": "c30_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mühürlü Kitap"
+  },
+  "5": {
+   "file": "c30_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Burç Kuleleri"
+  },
+  "6": {
+   "file": "c30_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yeşil Çayır ve Kuru Ot"
+  },
+  "7": {
+   "file": "c30_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sıra Yastıklar"
+  },
+  "8": {
+   "file": "c30_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "On Gece"
+  },
+  "9": {
+   "file": "c30_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Şehir Kapısı"
+  },
+  "10": {
+   "file": "c30_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İncir ve Zeytin"
+  },
+  "11": {
+   "file": "c30_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hira Mağarası"
+  },
+  "12": {
+   "file": "c30_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kadir Gecesi"
+  },
+  "13": {
+   "file": "c30_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yerin Yükleri"
+  },
+  "14": {
+   "file": "c30_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nal İzi"
+  },
+  "15": {
+   "file": "c30_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Atılmış Yün"
+  },
+  "16": {
+   "file": "c30_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kum Saati"
+  },
+  "17": {
+   "file": "c30_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Fil"
+  },
+  "18": {
+   "file": "c30_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kervan Yolu"
+  },
+  "19": {
+   "file": "c30_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sancak"
+  },
+  "20": {
+   "file": "c30_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Odun Demeti"
+  },
+  "21": {
+   "file": "c30_21.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nur Dairesi"
+  },
+  "22": {
+   "file": "c30_22.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Doğan Işık"
+  },
+  "23": {
+   "file": "c30_23.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sığınak"
+  },
+  "24": {
+   "file": "c30_24.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İki Yol"
+  }
+ }
+}

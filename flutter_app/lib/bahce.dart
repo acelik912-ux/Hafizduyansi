@@ -635,7 +635,8 @@ class GardenGrid extends StatelessWidget {
     final cw = (gw - padX * 2 - gap * 3) / 4;
     final top = pad.top + 70, bot = pad.bottom + 76;
     final ch = ((H - top - bot - gap * 4) / 5).clamp(112.0, 176.0);
-    final n = math.min(20, pages.length);
+    final n = pages.length;
+    final rows = (n + 3) ~/ 4;
     return Stack(children: [
       Positioned(
         left: 0, right: 0, top: top, bottom: bot,
@@ -643,7 +644,7 @@ class GardenGrid extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 6),
           child: Center(
             child: SizedBox(
-              width: gw, height: ch * 5 + gap * 4 + 6,
+              width: gw, height: ch * rows + gap * (rows - 1) + 6,
               child: Stack(children: [
                 for (var i = 0; i < n; i++)
                   Positioned(
@@ -708,6 +709,7 @@ class PathForest extends StatelessWidget {
     final nodeW = (gw - sideM * 2) / 2, treeH = nodeW * 1.22, rowH = treeH + 64;
     double cx(int c) => sideM + nodeW * (c + 0.5);
     double roadY(int r) => r * rowH + treeH * 0.92;
+    final rows = math.max(1, (pages.length + 1) ~/ 2); // 20 sayfa = 10 satır (30. cüz 24 sayfa = 12)
     final pieces = <Widget>[];
     if (pics) {
       const hb = 64.0, rc = 32.0, xvL = 30.0, twd = 128.0;
@@ -730,17 +732,17 @@ class PathForest extends StatelessWidget {
             left: x, top: y, width: hb, height: hb,
             child: Transform.scale(scaleX: fx ? -1 : 1, scaleY: fy ? -1 : 1, child: img(sC, fit: BoxFit.cover)),
           ));
-      for (var r = 0; r < 10; r++) {
-        bar(xvL + rc, r == 0 || r == 9 ? gw : xvR - rc, roadY(r)); // ilk ve son satırda dere kenardan girip çıkar
+      for (var r = 0; r < rows; r++) {
+        bar(xvL + rc, r == 0 || r == rows - 1 ? gw : xvR - rc, roadY(r)); // ilk ve son satırda dere kenardan girip çıkar
       }
-      for (var t = 0; t < 9; t++) {
+      for (var t = 0; t < rows - 1; t++) {
         final yT = roadY(t), yB = roadY(t + 1), left = t % 2 == 0, xv = left ? xvL : xvR;
         corner(xv - hb / 2, yT - hb / 2, !left, false);
         corner(xv - hb / 2, yB - hb / 2, !left, true);
         vbar(xv, yT + rc, yB - rc);
       }
     }
-    final n = math.min(20, pages.length);
+    final n = pages.length;
     return Stack(children: [
       Positioned(
         left: 0, right: 0, top: pad.top + 70, bottom: pad.bottom + 74,
@@ -748,7 +750,7 @@ class PathForest extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 20),
           child: Center(
             child: SizedBox(
-              width: gw, height: rowH * 10 + 20,
+              width: gw, height: rowH * rows + 20,
               child: Stack(children: [...pieces, for (var i = 0; i < n; i++) _dugum(i, cx, nodeW, treeH, rowH)]),
             ),
           ),

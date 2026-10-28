@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 27,
+ "name": "Bilim ve Medeniyet (27. Cüz)",
+ "sahne": "gok",
+ "ek": "",
+ "birim": "eser",
+ "tanim": "bilim ve medeniyet",
+ "ui": {
+  "bgGarden": "gok_sayfa.jpg",
+  "bgForest": "gok_sayfa.jpg",
+  "bgPage": "gok_sayfa.jpg",
+  "bgAyet": "gok_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c27_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Usturlap"
+  },
+  "2": {
+   "file": "c27_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Rasathane"
+  },
+  "3": {
+   "file": "c27_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gök Küresi"
+  },
+  "4": {
+   "file": "c27_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Su Saati"
+  },
+  "5": {
+   "file": "c27_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sekstant"
+  },
+  "6": {
+   "file": "c27_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Pusula"
+  },
+  "7": {
+   "file": "c27_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mercek"
+  },
+  "8": {
+   "file": "c27_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İmbik"
+  },
+  "9": {
+   "file": "c27_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Güneş Saati"
+  },
+  "10": {
+   "file": "c27_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kitaplık"
+  },
+  "11": {
+   "file": "c27_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Harita Tomarı"
+  },
+  "12": {
+   "file": "c27_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Havan ve Şişeler"
+  },
+  "13": {
+   "file": "c27_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Geometrik Levha"
+  },
+  "14": {
+   "file": "c27_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Demir Örs"
+  },
+  "15": {
+   "file": "c27_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Saban"
+  },
+  "16": {
+   "file": "c27_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Pergel ve Cetvel"
+  },
+  "17": {
+   "file": "c27_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yerküre"
+  },
+  "18": {
+   "file": "c27_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ay Evreleri"
+  },
+  "19": {
+   "file": "c27_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kervansaray"
+  },
+  "20": {
+   "file": "c27_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Taş Köprü"
+  }
+ }
+}

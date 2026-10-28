@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 24,
+ "name": "Cennet (24. Cüz)",
+ "sahne": "cennet",
+ "ek": "",
+ "birim": "nimet",
+ "tanim": "cennet nimetleri",
+ "ui": {
+  "bgGarden": "cennet_sayfa.jpg",
+  "bgForest": "cennet_sayfa.jpg",
+  "bgPage": "cennet_sayfa.jpg",
+  "bgAyet": "cennet_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c24_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Cennet Köşkü"
+  },
+  "2": {
+   "file": "c24_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sekiz Kapı"
+  },
+  "3": {
+   "file": "c24_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Su Irmağı"
+  },
+  "4": {
+   "file": "c24_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Süt Irmağı"
+  },
+  "5": {
+   "file": "c24_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bal Irmağı"
+  },
+  "6": {
+   "file": "c24_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tûbâ Ağacı"
+  },
+  "7": {
+   "file": "c24_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sidretü’l-Müntehâ"
+  },
+  "8": {
+   "file": "c24_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gümüş İbrik"
+  },
+  "9": {
+   "file": "c24_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sedir ve Yastıklar"
+  },
+  "10": {
+   "file": "c24_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İnci Çadır"
+  },
+  "11": {
+   "file": "c24_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nar"
+  },
+  "12": {
+   "file": "c24_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Meyve Tepsisi"
+  },
+  "13": {
+   "file": "c24_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yeşil İpek"
+  },
+  "14": {
+   "file": "c24_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gül Kemeri"
+  },
+  "15": {
+   "file": "c24_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yasemin Çardağı"
+  },
+  "16": {
+   "file": "c24_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Cennet Kandili"
+  },
+  "17": {
+   "file": "c24_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Altın Taç"
+  },
+  "18": {
+   "file": "c24_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nur Merdiveni"
+  },
+  "19": {
+   "file": "c24_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Zümrüt Yaprak"
+  },
+  "20": {
+   "file": "c24_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Firdevs Bahçesi"
+  }
+ }
+}
