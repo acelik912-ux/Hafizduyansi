@@ -391,6 +391,8 @@ def main():
     cur = (s, n)
     files, pages = {}, []
     carry = {}
+    if cur[1] == 1 and cur[0] not in (1, 9):
+        carry['besmele'] = True  # cüz sûre başında başlıyorsa ilk sayfanın başındaki besmele atlanır (başlık önceki cüzdedir)
     for i, (pth, pno) in enumerate(zip(paths, pnos)):
         img = Image.open(pth)
         if img.size != (W0, H0):
