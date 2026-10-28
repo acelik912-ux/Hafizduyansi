@@ -127,6 +127,7 @@ class Bahce3B extends StatefulWidget {
   final String? Function(int p, int k) meyve; // ağacın k. meyve görseli (0-4)
   final void Function(int) onOpen;
   final void Function(int p, int j) onAyet; // sayfanın j. ayeti
+  final void Function(int p)? onIc; // cami içine gir (yalnızca 18. cüz)
   final bool Function(int p) ozel; // 1. cüzün Kayısı ağacı: yalnızca Fâtiha ve Bakara'nın ilk ayet başı
   const Bahce3B({
     super.key,
@@ -143,6 +144,7 @@ class Bahce3B extends StatefulWidget {
     required this.pad,
     required this.onOpen,
     required this.onAyet,
+    this.onIc,
   });
   @override
   State<Bahce3B> createState() => _Bahce3BState();
@@ -501,6 +503,17 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
               ),
             ),
             const SizedBox(width: 8),
+            if (widget.onIc != null) ...[
+              Bas(
+                onTap: () => widget.onIc!(i),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                  decoration: BoxDecoration(color: R.gold, borderRadius: BorderRadius.circular(16)),
+                  child: Text('İçeri gir', style: ts(const Color(0xFF222222), 12.5, FontWeight.w800)),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
             Container(
               width: 40,
               height: 40,
