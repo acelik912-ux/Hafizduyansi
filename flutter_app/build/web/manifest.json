@@ -1,0 +1,35 @@
+{
+    "name": "Hafız Dünyası",
+    "short_name": "Hafız Dünyası",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0B1020",
+    "theme_color": "#0B1020",
+    "description": "Kuran ezberi için görsel bahçe",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

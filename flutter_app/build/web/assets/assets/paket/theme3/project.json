@@ -1,0 +1,133 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 3,
+ "name": "Kuşlar (3. Cüz)",
+ "sahne": "kus",
+ "ek": "",
+ "birim": "kuş",
+ "tanim": "kuşlar bahçesi",
+ "ui": {},
+ "trees": {
+  "1": {
+   "file": "kus01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kartal"
+  },
+  "2": {
+   "file": "kus02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Şahin"
+  },
+  "3": {
+   "file": "kus03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Güvercin"
+  },
+  "4": {
+   "file": "kus04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Altın Sülün"
+  },
+  "5": {
+   "file": "kus05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tavus"
+  },
+  "6": {
+   "file": "kus06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Keklik"
+  },
+  "7": {
+   "file": "kus07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Anka"
+  },
+  "8": {
+   "file": "kus08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hüthüt"
+  },
+  "9": {
+   "file": "kus09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Puhu"
+  },
+  "10": {
+   "file": "kus10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tukan"
+  },
+  "11": {
+   "file": "kus11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kırmızı Papağan"
+  },
+  "12": {
+   "file": "kus12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Pelikan"
+  },
+  "13": {
+   "file": "kus13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ağaçkakan"
+  },
+  "14": {
+   "file": "kus14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Flamingo"
+  },
+  "15": {
+   "file": "kus15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kolibri"
+  },
+  "16": {
+   "file": "kus16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Saka"
+  },
+  "17": {
+   "file": "kus17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bülbül"
+  },
+  "18": {
+   "file": "kus18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kerkenez"
+  },
+  "19": {
+   "file": "kus19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Atmaca"
+  },
+  "20": {
+   "file": "kus20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Leylek"
+  }
+ }
+}

@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 5,
+ "name": "Tarla ve Bostan (5. Cüz)",
+ "sahne": "ova",
+ "ek": "",
+ "birim": "bitki",
+ "tanim": "tarla ve bostan",
+ "ui": {
+  "bgGarden": "ova_sayfa.jpg",
+  "bgForest": "ova_sayfa.jpg",
+  "bgPage": "ova_sayfa.jpg",
+  "bgAyet": "ova_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c05_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Buğday"
+  },
+  "2": {
+   "file": "c05_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mercimek"
+  },
+  "3": {
+   "file": "c05_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Soğan"
+  },
+  "4": {
+   "file": "c05_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sarımsak"
+  },
+  "5": {
+   "file": "c05_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hıyar"
+  },
+  "6": {
+   "file": "c05_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bakla"
+  },
+  "7": {
+   "file": "c05_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yonca"
+  },
+  "8": {
+   "file": "c05_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hardal"
+  },
+  "9": {
+   "file": "c05_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kabak"
+  },
+  "10": {
+   "file": "c05_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Zencefil"
+  },
+  "11": {
+   "file": "c05_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Reyhan"
+  },
+  "12": {
+   "file": "c05_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gül"
+  },
+  "13": {
+   "file": "c05_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Arpa"
+  },
+  "14": {
+   "file": "c05_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Harman"
+  },
+  "15": {
+   "file": "c05_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Filiz"
+  },
+  "16": {
+   "file": "c05_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tane Çuvalı"
+  },
+  "17": {
+   "file": "c05_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sebze Sepeti"
+  },
+  "18": {
+   "file": "c05_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mer'â"
+  },
+  "19": {
+   "file": "c05_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yedi Başak"
+  },
+  "20": {
+   "file": "c05_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Orak"
+  }
+ }
+}

@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 26,
+ "name": "İslâm Devletleri (26. Cüz)",
+ "sahne": "kale",
+ "ek": "",
+ "birim": "devlet",
+ "tanim": "İslâm devletleri",
+ "ui": {
+  "bgGarden": "kale_sayfa.jpg",
+  "bgForest": "kale_sayfa.jpg",
+  "bgPage": "kale_sayfa.jpg",
+  "bgAyet": "kale_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c26_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Emevîler"
+  },
+  "2": {
+   "file": "c26_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Abbâsîler"
+  },
+  "3": {
+   "file": "c26_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Endülüs"
+  },
+  "4": {
+   "file": "c26_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Selçuklular"
+  },
+  "5": {
+   "file": "c26_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Osmanlılar"
+  },
+  "6": {
+   "file": "c26_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Eyyûbîler"
+  },
+  "7": {
+   "file": "c26_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Memlükler"
+  },
+  "8": {
+   "file": "c26_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Fâtımîler"
+  },
+  "9": {
+   "file": "c26_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gazneliler"
+  },
+  "10": {
+   "file": "c26_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Karahanlılar"
+  },
+  "11": {
+   "file": "c26_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Timurlular"
+  },
+  "12": {
+   "file": "c26_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Babürlüler"
+  },
+  "13": {
+   "file": "c26_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Safevîler"
+  },
+  "14": {
+   "file": "c26_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Songhay"
+  },
+  "15": {
+   "file": "c26_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Harezmşahlar"
+  },
+  "16": {
+   "file": "c26_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İlhanlılar"
+  },
+  "17": {
+   "file": "c26_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tolunoğulları"
+  },
+  "18": {
+   "file": "c26_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Merînîler"
+  },
+  "19": {
+   "file": "c26_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Delhi Sultanlığı"
+  },
+  "20": {
+   "file": "c26_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Zengîler"
+  }
+ }
+}

@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 22,
+ "name": "Medine Yılları (22. Cüz)",
+ "sahne": "dag",
+ "ek": "",
+ "birim": "mekân",
+ "tanim": "Medine yılları",
+ "ui": {
+  "bgGarden": "dag_sayfa.jpg",
+  "bgForest": "dag_sayfa.jpg",
+  "bgPage": "dag_sayfa.jpg",
+  "bgAyet": "dag_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c22_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hendek"
+  },
+  "2": {
+   "file": "c22_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mescid-i Nebevî"
+  },
+  "3": {
+   "file": "c22_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Uhud Dağı"
+  },
+  "4": {
+   "file": "c22_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bedir Vadisi"
+  },
+  "5": {
+   "file": "c22_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kuba Mescidi"
+  },
+  "6": {
+   "file": "c22_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sevr Mağarası"
+  },
+  "7": {
+   "file": "c22_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hudeybiye Ağacı"
+  },
+  "8": {
+   "file": "c22_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mescid-i Kıbleteyn"
+  },
+  "9": {
+   "file": "c22_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Suffe Sofası"
+  },
+  "10": {
+   "file": "c22_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hurma Bahçesi"
+  },
+  "11": {
+   "file": "c22_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hücreler"
+  },
+  "12": {
+   "file": "c22_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ahzâb Çadırları"
+  },
+  "13": {
+   "file": "c22_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Minber"
+  },
+  "14": {
+   "file": "c22_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kılıç ve Kalkan"
+  },
+  "15": {
+   "file": "c22_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Medine Çarşısı"
+  },
+  "16": {
+   "file": "c22_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kardeşlik Sofrası"
+  },
+  "17": {
+   "file": "c22_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hicret Devesi"
+  },
+  "18": {
+   "file": "c22_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ezan Damı"
+  },
+  "19": {
+   "file": "c22_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hannâne Direği"
+  },
+  "20": {
+   "file": "c22_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Harre Kayalığı"
+  }
+ }
+}

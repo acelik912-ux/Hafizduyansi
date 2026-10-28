@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 10,
+ "name": "Deniz Canlıları (10. Cüz)",
+ "sahne": "sahil",
+ "ek": "",
+ "birim": "canlı",
+ "tanim": "deniz canlıları",
+ "ui": {
+  "bgGarden": "sahil_sayfa.jpg",
+  "bgForest": "sahil_sayfa.jpg",
+  "bgPage": "sahil_sayfa.jpg",
+  "bgAyet": "sahil_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c10_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Balina (Hût)"
+  },
+  "2": {
+   "file": "c10_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Balık (Nûn)"
+  },
+  "3": {
+   "file": "c10_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yunus"
+  },
+  "4": {
+   "file": "c10_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Karides"
+  },
+  "5": {
+   "file": "c10_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yengeç"
+  },
+  "6": {
+   "file": "c10_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ahtapot"
+  },
+  "7": {
+   "file": "c10_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Deniz Kaplumbağası"
+  },
+  "8": {
+   "file": "c10_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Deniz Yıldızı"
+  },
+  "9": {
+   "file": "c10_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Deniz Atı"
+  },
+  "10": {
+   "file": "c10_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Denizanası"
+  },
+  "11": {
+   "file": "c10_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Köpekbalığı"
+  },
+  "12": {
+   "file": "c10_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İstiridye"
+  },
+  "13": {
+   "file": "c10_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Midye"
+  },
+  "14": {
+   "file": "c10_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Deniz Kabuğu"
+  },
+  "15": {
+   "file": "c10_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mercan"
+  },
+  "16": {
+   "file": "c10_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Vatoz"
+  },
+  "17": {
+   "file": "c10_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gemi (Fülk)"
+  },
+  "18": {
+   "file": "c10_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Çıpa"
+  },
+  "19": {
+   "file": "c10_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dalga"
+  },
+  "20": {
+   "file": "c10_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ada"
+  }
+ }
+}

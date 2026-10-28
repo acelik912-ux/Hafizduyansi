@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 14,
+ "name": "Nahl Nimetleri (14. Cüz)",
+ "sahne": "nahl",
+ "ek": "",
+ "birim": "nimet",
+ "tanim": "Nahl nimetleri",
+ "ui": {
+  "bgGarden": "nahl_sayfa.jpg",
+  "bgForest": "nahl_sayfa.jpg",
+  "bgPage": "nahl_sayfa.jpg",
+  "bgAyet": "nahl_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c14_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bal Arısı"
+  },
+  "2": {
+   "file": "c14_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Petek"
+  },
+  "3": {
+   "file": "c14_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bal"
+  },
+  "4": {
+   "file": "c14_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Süt"
+  },
+  "5": {
+   "file": "c14_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Zeytin"
+  },
+  "6": {
+   "file": "c14_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Zeytin Yağı"
+  },
+  "7": {
+   "file": "c14_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Üzüm"
+  },
+  "8": {
+   "file": "c14_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hurma"
+  },
+  "9": {
+   "file": "c14_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ekin"
+  },
+  "10": {
+   "file": "c14_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Çiçek"
+  },
+  "11": {
+   "file": "c14_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İnci"
+  },
+  "12": {
+   "file": "c14_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gemi"
+  },
+  "13": {
+   "file": "c14_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yıldız"
+  },
+  "14": {
+   "file": "c14_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kuş"
+  },
+  "15": {
+   "file": "c14_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Giysi"
+  },
+  "16": {
+   "file": "c14_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dağ"
+  },
+  "17": {
+   "file": "c14_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yağmur Damlası"
+  },
+  "18": {
+   "file": "c14_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Arı Kovanı"
+  },
+  "19": {
+   "file": "c14_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Zeytin Dalı"
+  },
+  "20": {
+   "file": "c14_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hurma Ağacı"
+  }
+ }
+}

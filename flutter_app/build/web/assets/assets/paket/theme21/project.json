@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 21,
+ "name": "Geçmiş Milletler (21. Cüz)",
+ "sahne": "col",
+ "ek": "",
+ "birim": "iz",
+ "tanim": "geçmiş milletlerin izleri",
+ "ui": {
+  "bgGarden": "col_sayfa.jpg",
+  "bgForest": "col_sayfa.jpg",
+  "bgPage": "col_sayfa.jpg",
+  "bgAyet": "col_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c21_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İrem Sütunları"
+  },
+  "2": {
+   "file": "c21_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Semûd Kaya Evleri"
+  },
+  "3": {
+   "file": "c21_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Medyen Kapısı"
+  },
+  "4": {
+   "file": "c21_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Lût Şehri Yıkıntısı"
+  },
+  "5": {
+   "file": "c21_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Fir'avn Piramidi"
+  },
+  "6": {
+   "file": "c21_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kârûn Hazinesi"
+  },
+  "7": {
+   "file": "c21_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ashâb-ı Rass Çukuru"
+  },
+  "8": {
+   "file": "c21_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Me'rib Seddi"
+  },
+  "9": {
+   "file": "c21_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sebe Bahçeleri"
+  },
+  "10": {
+   "file": "c21_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tufan Suyu"
+  },
+  "11": {
+   "file": "c21_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Rûm Şehri Kalıntısı"
+  },
+  "12": {
+   "file": "c21_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kum Tepeleri"
+  },
+  "13": {
+   "file": "c21_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Su Payı Çukuru"
+  },
+  "14": {
+   "file": "c21_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Boş Put Kaidesi"
+  },
+  "15": {
+   "file": "c21_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kervan Yolu Taşları"
+  },
+  "16": {
+   "file": "c21_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Örümcek Ağı"
+  },
+  "17": {
+   "file": "c21_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yazıtlı Taş"
+  },
+  "18": {
+   "file": "c21_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yarılan Yer"
+  },
+  "19": {
+   "file": "c21_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yıkık Köprü"
+  },
+  "20": {
+   "file": "c21_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Terk Edilmiş Köy"
+  }
+ }
+}

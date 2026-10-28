@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 11,
+ "name": "Su ve Nimetleri (11. Cüz)",
+ "sahne": "vadi",
+ "ek": "",
+ "birim": "nimet",
+ "tanim": "su ve nimetleri",
+ "ui": {
+  "bgGarden": "vadi_sayfa.jpg",
+  "bgForest": "vadi_sayfa.jpg",
+  "bgPage": "vadi_sayfa.jpg",
+  "bgAyet": "vadi_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c11_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yağmur Bulutu"
+  },
+  "2": {
+   "file": "c11_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Su Damlası"
+  },
+  "3": {
+   "file": "c11_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Pınar"
+  },
+  "4": {
+   "file": "c11_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Selsebil"
+  },
+  "5": {
+   "file": "c11_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kevser Havuzu"
+  },
+  "6": {
+   "file": "c11_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Irmak"
+  },
+  "7": {
+   "file": "c11_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Şelale"
+  },
+  "8": {
+   "file": "c11_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Göl"
+  },
+  "9": {
+   "file": "c11_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kuyu"
+  },
+  "10": {
+   "file": "c11_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dere"
+  },
+  "11": {
+   "file": "c11_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Vaha"
+  },
+  "12": {
+   "file": "c11_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sel"
+  },
+  "13": {
+   "file": "c11_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Buzdağı"
+  },
+  "14": {
+   "file": "c11_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Çiy"
+  },
+  "15": {
+   "file": "c11_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Testi"
+  },
+  "16": {
+   "file": "c11_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kova"
+  },
+  "17": {
+   "file": "c11_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Su Değirmeni"
+  },
+  "18": {
+   "file": "c11_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sulama Kanalı"
+  },
+  "19": {
+   "file": "c11_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yeşil Vadi"
+  },
+  "20": {
+   "file": "c11_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Dolu"
+  }
+ }
+}

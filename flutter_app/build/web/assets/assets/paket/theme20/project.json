@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 20,
+ "name": "Süleymân’ın Mülkü (20. Cüz)",
+ "sahne": "kale",
+ "ek": "",
+ "birim": "eser",
+ "tanim": "Süleymân’ın mülkü",
+ "ui": {
+  "bgGarden": "kale_sayfa.jpg",
+  "bgForest": "kale_sayfa.jpg",
+  "bgPage": "kale_sayfa.jpg",
+  "bgAyet": "kale_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c20_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Belkıs’ın Tahtı"
+  },
+  "2": {
+   "file": "c20_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Cam Saray"
+  },
+  "3": {
+   "file": "c20_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Belkıs’a Mektup"
+  },
+  "4": {
+   "file": "c20_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mücevher Kutusu"
+  },
+  "5": {
+   "file": "c20_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bakır Pınar"
+  },
+  "6": {
+   "file": "c20_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Büyük Kazanlar"
+  },
+  "7": {
+   "file": "c20_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sebe Seddi"
+  },
+  "8": {
+   "file": "c20_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Boyun Eğen Rüzgâr"
+  },
+  "9": {
+   "file": "c20_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Saray Kemerleri"
+  },
+  "10": {
+   "file": "c20_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Örümcek Evi"
+  },
+  "11": {
+   "file": "c20_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kârûn’un Hazine Kapısı"
+  },
+  "12": {
+   "file": "c20_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yere Batan Köşk"
+  },
+  "13": {
+   "file": "c20_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bulut Gibi Geçen Dağlar"
+  },
+  "14": {
+   "file": "c20_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sûr"
+  },
+  "15": {
+   "file": "c20_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gölge Ağacı"
+  },
+  "16": {
+   "file": "c20_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kor Ateş"
+  },
+  "17": {
+   "file": "c20_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Taş Aslanlar"
+  },
+  "18": {
+   "file": "c20_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hazine Anahtarları"
+  },
+  "19": {
+   "file": "c20_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mektup Mührü"
+  },
+  "20": {
+   "file": "c20_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İki Bahçe"
+  }
+ }
+}

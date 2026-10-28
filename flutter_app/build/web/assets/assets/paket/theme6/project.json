@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 6,
+ "name": "Ağaçlar ve Orman (6. Cüz)",
+ "sahne": "orman",
+ "ek": "ağacı",
+ "birim": "ağaç",
+ "tanim": "ağaçlar ve orman",
+ "ui": {
+  "bgGarden": "orman_sayfa.jpg",
+  "bgForest": "orman_sayfa.jpg",
+  "bgPage": "orman_sayfa.jpg",
+  "bgAyet": "orman_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c06_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sidre"
+  },
+  "2": {
+   "file": "c06_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Akasya (Talh)"
+  },
+  "3": {
+   "file": "c06_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ilgın (Ethl)"
+  },
+  "4": {
+   "file": "c06_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sedir"
+  },
+  "5": {
+   "file": "c06_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Selvi"
+  },
+  "6": {
+   "file": "c06_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Çınar"
+  },
+  "7": {
+   "file": "c06_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Meşe"
+  },
+  "8": {
+   "file": "c06_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Söğüt"
+  },
+  "9": {
+   "file": "c06_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ardıç"
+  },
+  "10": {
+   "file": "c06_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ceviz"
+  },
+  "11": {
+   "file": "c06_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kavak"
+  },
+  "12": {
+   "file": "c06_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kestane"
+  },
+  "13": {
+   "file": "c06_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ihlamur"
+  },
+  "14": {
+   "file": "c06_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Akçaağaç"
+  },
+  "15": {
+   "file": "c06_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Karaağaç"
+  },
+  "16": {
+   "file": "c06_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Defne"
+  },
+  "17": {
+   "file": "c06_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gürgen"
+  },
+  "18": {
+   "file": "c06_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Okaliptüs"
+  },
+  "19": {
+   "file": "c06_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Huş"
+  },
+  "20": {
+   "file": "c06_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Şecere-i Tayyibe"
+  }
+ }
+}

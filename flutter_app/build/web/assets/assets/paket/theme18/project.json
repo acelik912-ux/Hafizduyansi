@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 18,
+ "name": "Camiler (18. Cüz)",
+ "sahne": "avlu",
+ "ek": "",
+ "birim": "cami",
+ "tanim": "camiler",
+ "ui": {
+  "bgGarden": "avlu_sayfa.jpg",
+  "bgForest": "avlu_sayfa.jpg",
+  "bgPage": "avlu_sayfa.jpg",
+  "bgAyet": "avlu_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c18_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mescid-i Harâm"
+  },
+  "2": {
+   "file": "c18_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mescid-i Nebevî"
+  },
+  "3": {
+   "file": "c18_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mescid-i Aksâ"
+  },
+  "4": {
+   "file": "c18_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kubbetüssahra"
+  },
+  "5": {
+   "file": "c18_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kubâ Mescidi"
+  },
+  "6": {
+   "file": "c18_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ayasofya"
+  },
+  "7": {
+   "file": "c18_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Süleymaniye"
+  },
+  "8": {
+   "file": "c18_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Selimiye"
+  },
+  "9": {
+   "file": "c18_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sultanahmet"
+  },
+  "10": {
+   "file": "c18_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Eşrefoğlu"
+  },
+  "11": {
+   "file": "c18_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bursa Ulu Cami"
+  },
+  "12": {
+   "file": "c18_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Ezher"
+  },
+  "13": {
+   "file": "c18_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kurtuba"
+  },
+  "14": {
+   "file": "c18_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kayrevan"
+  },
+  "15": {
+   "file": "c18_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "II. Hasan"
+  },
+  "16": {
+   "file": "c18_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Muhammed Ali Paşa"
+  },
+  "17": {
+   "file": "c18_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Şeyh Zâyed"
+  },
+  "18": {
+   "file": "c18_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bâdşâhî"
+  },
+  "19": {
+   "file": "c18_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Djinguereber"
+  },
+  "20": {
+   "file": "c18_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gâzi Hüsrev Bey"
+  }
+ }
+}

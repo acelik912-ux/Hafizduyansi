@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 16,
+ "name": "Mûsâ’nın Yolculukları (16. Cüz)",
+ "sahne": "col",
+ "ek": "",
+ "birim": "durak",
+ "tanim": "yolculuk",
+ "ui": {
+  "bgGarden": "col_sayfa.jpg",
+  "bgForest": "col_sayfa.jpg",
+  "bgPage": "col_sayfa.jpg",
+  "bgAyet": "col_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c16_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hızır’ın Gemisi"
+  },
+  "2": {
+   "file": "c16_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kaçan Balık"
+  },
+  "3": {
+   "file": "c16_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İki Denizin Buluştuğu Yer"
+  },
+  "4": {
+   "file": "c16_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yıkık Duvar"
+  },
+  "5": {
+   "file": "c16_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hazine Sandığı"
+  },
+  "6": {
+   "file": "c16_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Zülkarneyn Seddi"
+  },
+  "7": {
+   "file": "c16_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Demir Kütleleri ve Körük"
+  },
+  "8": {
+   "file": "c16_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tûr Dağı"
+  },
+  "9": {
+   "file": "c16_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yanan Ağaç"
+  },
+  "10": {
+   "file": "c16_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Asâ ve Yılan"
+  },
+  "11": {
+   "file": "c16_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nil’de Sandık"
+  },
+  "12": {
+   "file": "c16_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Fir’avn Sarayı Sütunları"
+  },
+  "13": {
+   "file": "c16_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kızıldeniz’in Yarılması"
+  },
+  "14": {
+   "file": "c16_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sâmirî’nin Buzağısı"
+  },
+  "15": {
+   "file": "c16_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tevrât Levhaları"
+  },
+  "16": {
+   "file": "c16_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nalın"
+  },
+  "17": {
+   "file": "c16_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kudret Helvası"
+  },
+  "18": {
+   "file": "c16_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Medyen Suluğu"
+  },
+  "19": {
+   "file": "c16_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yolculuk Heybesi"
+  },
+  "20": {
+   "file": "c16_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hâmân’ın Kerpiç Kulesi"
+  }
+ }
+}

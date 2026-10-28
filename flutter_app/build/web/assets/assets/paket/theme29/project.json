@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 29,
+ "name": "Kalem ve Levh (29. Cüz)",
+ "sahne": "vadi",
+ "ek": "",
+ "birim": "nesne",
+ "tanim": "kalem ve levh",
+ "ui": {
+  "bgGarden": "vadi_sayfa.jpg",
+  "bgForest": "vadi_sayfa.jpg",
+  "bgPage": "vadi_sayfa.jpg",
+  "bgAyet": "vadi_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c29_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kalem"
+  },
+  "2": {
+   "file": "c29_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hokka ve Divit"
+  },
+  "3": {
+   "file": "c29_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Levh-i Mahfûz"
+  },
+  "4": {
+   "file": "c29_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nûn"
+  },
+  "5": {
+   "file": "c29_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hat Levhası"
+  },
+  "6": {
+   "file": "c29_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gök Kandilleri"
+  },
+  "7": {
+   "file": "c29_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sıra Sıra Kuşlar"
+  },
+  "8": {
+   "file": "c29_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Amel Defteri"
+  },
+  "9": {
+   "file": "c29_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tufan Dalgası"
+  },
+  "10": {
+   "file": "c29_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Parmak İzi"
+  },
+  "11": {
+   "file": "c29_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mum ve Şamdan"
+  },
+  "12": {
+   "file": "c29_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Örtü"
+  },
+  "13": {
+   "file": "c29_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Saçılmış İnciler"
+  },
+  "14": {
+   "file": "c29_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gümüş Sürahi"
+  },
+  "15": {
+   "file": "c29_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yeşil İpek"
+  },
+  "16": {
+   "file": "c29_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Seccade"
+  },
+  "17": {
+   "file": "c29_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Meâric Merdiveni"
+  },
+  "18": {
+   "file": "c29_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Tespih"
+  },
+  "19": {
+   "file": "c29_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mushaf ve Rahle"
+  },
+  "20": {
+   "file": "c29_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Sûr"
+  }
+ }
+}

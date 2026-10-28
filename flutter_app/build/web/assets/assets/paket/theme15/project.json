@@ -1,0 +1,138 @@
+{
+ "version": 7,
+ "kind": "theme",
+ "cuz": 15,
+ "name": "Kehf ve İsrâ (15. Cüz)",
+ "sahne": "dag",
+ "ek": "",
+ "birim": "işaret",
+ "tanim": "Kehf ve İsrâ",
+ "ui": {
+  "bgGarden": "dag_sayfa.jpg",
+  "bgForest": "dag_sayfa.jpg",
+  "bgPage": "dag_sayfa.jpg",
+  "bgAyet": "dag_kemer.jpg"
+ },
+ "trees": {
+  "1": {
+   "file": "c15_01.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mağara"
+  },
+  "2": {
+   "file": "c15_02.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kandil"
+  },
+  "3": {
+   "file": "c15_03.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Köpek"
+  },
+  "4": {
+   "file": "c15_04.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gemi"
+  },
+  "5": {
+   "file": "c15_05.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Balık"
+  },
+  "6": {
+   "file": "c15_06.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Duvar"
+  },
+  "7": {
+   "file": "c15_07.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İki Bağ"
+  },
+  "8": {
+   "file": "c15_08.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Üzüm Bağı"
+  },
+  "9": {
+   "file": "c15_09.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Demir Set"
+  },
+  "10": {
+   "file": "c15_10.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Bakır"
+  },
+  "11": {
+   "file": "c15_11.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mürekkep"
+  },
+  "12": {
+   "file": "c15_12.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kalem"
+  },
+  "13": {
+   "file": "c15_13.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Gece"
+  },
+  "14": {
+   "file": "c15_14.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Hilal"
+  },
+  "15": {
+   "file": "c15_15.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Mescid"
+  },
+  "16": {
+   "file": "c15_16.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "İki Denizin Birleştiği Yer"
+  },
+  "17": {
+   "file": "c15_17.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Nur"
+  },
+  "18": {
+   "file": "c15_18.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Kaya"
+  },
+  "19": {
+   "file": "c15_19.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Anahtar"
+  },
+  "20": {
+   "file": "c15_20.png",
+   "w": 1080,
+   "h": 1440,
+   "name": "Yol"
+  }
+ }
+}
