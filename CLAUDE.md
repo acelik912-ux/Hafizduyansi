@@ -96,3 +96,15 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Gerçek cihazda denenmedi. CI: yalnızca web derlemesi + ekran görüntüsü (geçici `cuz5-15-ekran` dalı, ana dala ALINMAZ).
 - Depo özel tutulmalı (release anahtarı içinde); kullanıcı elle yapmalı.
 - Açık: cüz 14'te bazı sayfalarda ayet sayısı çok (ör. 5. sayfa 20 ayet, cüz toplamı 227); 3B'de ayet başları ağacın üstünde sıkışık görünüyor. Gerçek cihazda bakılmalı; gerekirse ayet başı yerleşimi sıklığa göre ayarlanır.
+
+
+## 16–30. CÜZLER (28 Ekim 2026) – kodla çizilmiş yer tutucu görseller
+- Yedek: `yedek-cuz16-oncesi` dalı. Paketler: `cuz16..30`, `ses16..30` (Nâsır el-Katâmî), `theme16..30` (bundle/). Cüz 30 **24 sayfa** (78:1–114:6); uygulama sayfa sayısından bağımsız (kart/orman görünümleri 24'e göre ayarlandı).
+- Ayet kesimi: `tools/cuz_kes.py` (artık main'de; tam sure adları). PDF sayfası = mushaf+2; cüz N = PDF `20(N-1)+3` .. +19. **Cüz başları sayfa başı olmayabilir:** önceki cüzün son ayetinden zincirle (cüz 26 `45:33`'ten başlar, 46:1'den değil; ilk denemede 5 ayet kaydı). `--hata-ayikla` görseline bak: sayfadaki ayet numarası ile etiket tutmalı.
+- Konseptler (sahne): 16 Mûsâ'nın Yolculukları (col) · 17 Peygamberlerin İzleri (nahl) · 18 Camiler (avlu) · 19 Caminin Parçaları (avlu) · 20 Süleymân'ın Mülkü (kale) · 21 Geçmiş Milletler (col) · 22 Medine Yılları (dag) · 23 Kaleler (kale) · 24 Cennet (cennet) · 25 Mekke ve Hac (col) · 26 İslâm Devletleri (kale) · 27 Bilim ve Medeniyet (gok) · 28 Hayır Eserleri (avlu) · 29 Kalem ve Levh (vadi) · 30 Kısa Sûreler (otlak). İnsan/peygamber figürü yok.
+- Yeni sahneler: `avlu`, `kale`, `cennet` (`bahce3d.dart` `_ayarlar` + `tools/sahne_bg.py` `sehir`/`sur` siluetleri). Mimari çizim kitaplığı: `tools/mimari.py` (kubbe, minare, cami, kule, sur, kemer, sutun).
+- Çizim hattı cüz 5–15 ile aynı: `tools/c16.py … c30.py` → `tools/tema_kur.py [cüz…]` → `tools/flutter_varlik.py`. Bilgi kartları: `tools/bilgi_cNN.txt` → `python3 tools/bilgi_birlestir.py` (bilgi.dart'a ekler, yinelenen anahtarı atlar; yeniden çalıştırılabilir).
+- CI: web derlemesi + 30 ekran görüntüsü (geçici `cuz16-30-ekran` dalı, ana dala ALINMAZ): hepsi açılıyor. `flutter analyze`: 6 sorun (3 bilinen deprecated + 1 unused_element_parameter `cim` + 2 curly_braces info). Gerçek cihazda denenmedi.
+- Açık: cüz 19, 27, 29, 30'da bazı sayfalarda ayet çok (20+); 3B'de ayet başları sıkışık. Camiler/kaleler vb. çizimlerinin bir kısmı zayıf; kullanıcı Canva'dan/kendi illüstrasyonuyla değiştirecek (`tools/*_gorsel.py` yolu). Kullanıcı cami içi 3B sahne (mihrap/minber, minarede ayet) istedi: yapılmadı.
+- Kullanıcı Canva Bileşenler'den seçip indirip yükleyecek (Canva MCP'si Bileşenler'e erişemez, dışa aktarımı sandbox'tan indirilemez). Cüz 5 için 20 sayfalık Canva şablonu hazırlandı (DAHZRfmS3O8).
+- 28 Ekim: cüz 5–13'te benzer görseller değiştirildi (Arpa, Harman, yeşil/kuru yedi başak, bulut tipleri, Dolu, kandil) — `benzer-gorseller` dalı.
