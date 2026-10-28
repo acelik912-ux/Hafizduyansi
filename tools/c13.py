@@ -34,7 +34,7 @@ def simsek_ciz(sv, ps, w=18, ac='#fff7b0'):
 
 def simsek(sv, rng):
     yer(sv, rng, 300)
-    bulut_(sv, rng, 360, 280, 560, True)
+    bulut_(sv, rng, 360, 280, 560, True, tip=0)
     zz = [(380, 380), (320, 500), (390, 520), (300, 680), (370, 700), (300, 930)]
     simsek_ciz(sv, zz, 40)
     f = sv.blur(14)
@@ -44,7 +44,7 @@ def simsek(sv, rng):
 def yildirim(sv, rng):
     yer(sv, rng, 300)
     # ağaca çarpan yıldırım (iki dallı)
-    bulut_(sv, rng, 360, 260, 520, True)
+    bulut_(sv, rng, 360, 260, 520, True, tip=1)
     main = [(360, 350), (310, 470), (370, 490), (330, 600), (350, 720)]
     simsek_ciz(sv, main, 32)
     sv.add('<path d="M350 720 l-14 18 l14 -4 l-8 24z" fill="#ffd21a"/>')
@@ -60,7 +60,7 @@ def yildirim(sv, rng):
 
 def gurultu(sv, rng):
     yer(sv, rng, 300)
-    bulut_(sv, rng, 360, 400, 560, True)
+    bulut_(sv, rng, 360, 400, 560, True, tip=2)
     # ses dalgaları (konsantrik yaylar) ve darbuka benzeri vurgu
     for k in range(5):
         r = 60 + k * 56
@@ -114,7 +114,7 @@ def ruzgar(sv, rng):
 
 def kasirga(sv, rng):
     yer(sv, rng, 420)
-    bulut_(sv, rng, 360, 300, 600, True)
+    bulut_(sv, rng, 360, 300, 600, True, tip=1)
     g = sv.lin([(0, '#8a96a8', 0.95), (1, '#4a5466', 0.9)], 0, 340, 0, 940, units=1)
     for k in range(14):
         t = k / 13
@@ -134,7 +134,7 @@ def kasirga(sv, rng):
 
 def firtina(sv, rng):
     yer(sv, rng, 500)
-    bulut_(sv, rng, 360, 330, 640, True)
+    bulut_(sv, rng, 360, 330, 640, True, tip=2)
     for k in range(18):
         sv.add('<path d="M%d %d l-22 60" stroke="#6fa8d0" stroke-width="4" stroke-linecap="round" opacity="0.85"/>' % (130 + k * 30, 500 + (k % 4) * 60))
     simsek_ciz(sv, [(300, 440), (270, 540), (310, 550), (280, 640)], 18)
@@ -318,7 +318,7 @@ def rahmet(sv, rng):
 
 def saganak(sv, rng):
     yer(sv, rng, 520)
-    bulut_(sv, rng, 360, 330, 640, True)
+    bulut_(sv, rng, 360, 330, 640, True, tip=1)
     for k in range(60):
         x = 90 + rng.uniform(0, 560)
         y = 470 + rng.uniform(0, 440)

@@ -3,13 +3,14 @@ import math
 from cizim import *  # noqa: F401,F403
 
 ADLAR = ['Buğday', 'Mercimek', 'Soğan', 'Sarımsak', 'Hıyar', 'Bakla', 'Yonca', 'Hardal', 'Kabak', 'Zencefil',
-         'Reyhan', 'Gül', 'Başak Demeti', 'Ekin Tarlası', 'Filiz', 'Tane Çuvalı', 'Sebze Sepeti', 'Mer\'â', 'Yedi Başak', 'Orak']
+         'Reyhan', 'Gül', 'Arpa', 'Harman', 'Filiz', 'Tane Çuvalı', 'Sebze Sepeti', 'Mer\'â', 'Yedi Başak', 'Orak']
 SAHNE = 'ova'
 TANIM = 'tarla ve bostan'
 BIRIM = 'bitki'
 EK = ''
 
 ALTIN = (42, 0.78, 0.52)
+YESIL = (96, 0.5, 0.42)
 
 
 def basak(sv, rng, x, y, ang, L=210, gw=40, renk=ALTIN, N=9, ak=True):
@@ -354,37 +355,48 @@ def gul(sv, rng):
 
 
 def demet(sv, rng):
-    golge(sv, 440, 420)
-    # bağlı demet
-    for k in range(-5, 6):
-        x0 = 360 + k * 14
-        ang = -90 + k * 5.5
-        ps = sap(sv, 360 + k * 2, 940, x0 + k * 14, 560 - abs(k) * 6, -k * 3, 9, 6, (52, 0.5, 0.5))
-        basak(sv, rng, ps[-1][0], ps[-1][1] + 6, ang, L=180, gw=36, N=8)
+    """Arpa: uzun kılçıklı, sarkan başaklar; yeşilimsi saman rengi"""
+    golge(sv, 440, 380)
+    for k in range(-4, 5):
+        x1 = 360 + k * 46
+        ps = bez3((360 + k * 6, 945), (360 + k * 12, 760), (x1 - k * 6, 540), (x1 + k * 8, 330 + abs(k) * 14), 30)
+        govde(sv, ps, 8, 4, (68, 0.35, 0.5))
+        tx, ty = ps[-1]
+        d = 1 if k >= 0 else -1
+        for j in range(7):
+            yy = ty - 6 + j * 17
+            for sd in (-1, 1):
+                x0 = tx + sd * 7 + d * j * 2
+                sv.add('<path d="M%.1f %.1f q%.1f %.1f %.1f %.1f" fill="none" stroke="%s" stroke-width="1.6" opacity="0.85"/>' % (x0, yy, sd * 14 + d * 8, 40, sd * 22 + d * 22, 128, hsl(52, 0.45, 0.62)))
+            elips(sv, tx + d * j * 2, yy, 8, 12, (54, 0.55, 0.55), 0, kenar=False, parlak=0.2)
     for k in range(-3, 4):
-        yaprak(sv, 360 + k * 8, 940, 190, 20, -90 + k * 14, (60, 0.5, 0.45), uc=0.95, damar=False, taban_dar=0.5)
-    # bağ
-    g = sv.lin([(0, hsl(30, 0.5, 0.5), 1), (1, hsl(26, 0.5, 0.28), 1)], 0, 690, 0, 740, units=1)
-    sv.add('<path d="M268 715 Q360 760 452 715 L450 752 Q360 800 270 752 Z" fill="%s" stroke="%s" stroke-width="1.5"/>' % (g, hsl(26, 0.5, 0.2)))
-    for k in range(8):
-        sv.add('<path d="M%.1f 722 l-8 36" stroke="%s" stroke-width="1.5" opacity="0.4"/>' % (284 + k * 22, hsl(26, 0.5, 0.2)))
-    sv.add('<path d="M445 740 q36 14 30 60 M440 744 q-6 34 -30 52" fill="none" stroke="%s" stroke-width="7" stroke-linecap="round"/>' % hsl(30, 0.5, 0.4))
+        yaprak(sv, 360 + k * 10, 945, 220, 18, -90 + k * 16, (78, 0.4, 0.4), uc=0.95, damar=False, taban_dar=0.5)
 
 
 def ekin(sv, rng):
-    golge(sv, 640, 330)
-    # sıra sıra ekin: perspektifle ön sıra büyük
-    for row, (y, sc, n) in enumerate([(700, 0.55, 9), (790, 0.75, 7), (890, 1.0, 5)]):
-        for k in range(n):
-            x = 360 + (k - (n - 1) / 2) * (640 / n) * 0.98 + rng.uniform(-10, 10)
-            toprak = (24, 0.4, 0.3)
-            for j in range(3):
-                bx = x + (j - 1) * 18 * sc
-                ps = bez2((bx, y), (bx + rng.uniform(-14, 14) * sc, y - 120 * sc), (bx + (j - 1) * 24 * sc, y - 220 * sc), 14)
-                govde(sv, ps, 8 * sc, 5 * sc, (66, 0.45, 0.42))
-                basak(sv, rng, ps[-1][0], ps[-1][1], -90 + (j - 1) * 16, L=120 * sc, gw=26 * sc, N=7, ak=(sc > 0.7))
-    for k in range(5):
-        sv.add('<path d="M%d 948 Q360 934 %d 948" fill="none" stroke="%s" stroke-width="3" opacity="0.4"/>' % (60 + k * 6, 660 - k * 6, hsl(24, 0.4, 0.2)))
+    """Harman: yuvarlak harman yeri, saman yığını, tahıl tepesi ve dirgen"""
+    golge(sv, 560, 120, 0.3)
+    g = sv.lin([(0, hsl(36, 0.45, 0.62), 1), (1, hsl(32, 0.4, 0.45), 1)], 0, 0, 0, 1)
+    sv.add('<ellipse cx="360" cy="880" rx="340" ry="62" fill="%s" stroke="%s" stroke-width="2"/>' % (g, hsl(30, 0.4, 0.3)))
+    for k in range(40):
+        a = rng.uniform(0, 6.28); r = rng.uniform(0.2, 0.95)
+        sv.add('<path d="M%.1f %.1f l%.1f %.1f" stroke="%s" stroke-width="2" opacity="0.5"/>' % (360 + math.cos(a) * 320 * r, 880 + math.sin(a) * 56 * r, rng.uniform(-24, 24), rng.uniform(-4, 4), hsl(44, 0.5, 0.7)))
+    # saman yığını
+    gs = sv.lin([(0, hsl(46, 0.6, 0.66), 1), (1, hsl(38, 0.5, 0.42), 1)], 0, 0, 0, 1)
+    sv.add('<path d="M110 880 Q130 640 250 600 Q330 570 400 600 Q500 640 520 880 Q320 930 110 880Z" fill="%s" stroke="%s" stroke-width="2.5"/>' % (gs, hsl(34, 0.5, 0.28)))
+    for k in range(60):
+        x = rng.uniform(150, 490); y = rng.uniform(640, 880)
+        sv.add('<path d="M%.1f %.1f l%.1f %.1f" stroke="%s" stroke-width="2.2" opacity="0.55"/>' % (x, y, rng.uniform(-26, 26), rng.uniform(-16, 6), hsl(rng.choice([40, 46, 50]), 0.55, rng.choice([0.4, 0.75]))))
+    # tahıl tepesi
+    gt = sv.rad([(0, '#f2cf68', 1), (1, '#b88a2a', 1)], 0.4, 0.3, 0.8)
+    sv.add('<path d="M450 900 Q520 760 590 800 Q660 840 680 900 Q560 940 450 900Z" fill="%s" stroke="#6a4a12" stroke-width="2.5"/>' % gt)
+    for k in range(70):
+        x = rng.uniform(470, 660); y = rng.uniform(800, 905)
+        elips(sv, x, y, 3.2, 5, (44, 0.8, rng.choice([0.5, 0.62])), rng.uniform(0, 180), kenar=False)
+    # dirgen
+    sv.add('<path d="M600 520 L560 930" stroke="%s" stroke-width="12" stroke-linecap="round"/>' % hsl(26, 0.45, 0.4))
+    sv.add('<path d="M545 640 Q545 580 560 560 M575 640 Q580 570 595 545 M605 640 Q615 575 630 555" fill="none" stroke="#8a929b" stroke-width="6" stroke-linecap="round"/>')
+    sv.add('<path d="M540 645 L630 645" stroke="#6c747d" stroke-width="9" stroke-linecap="round"/>')
 
 
 def filiz(sv, rng):
@@ -428,9 +440,7 @@ def cuval(sv, rng):
         elips(sv, x, y, 8, 13, (42, 0.75, 0.5), rng.uniform(40, 140), kenar=False, parlak=0.2)
     # etiket
     sv.add('<circle cx="360" cy="660" r="62" fill="#f4e9c8" opacity="0.18"/>')
-    for k in range(7):
-        a = -90 + k * 12 - 36
-        basak(sv, rng, 360 + (k - 3) * 6, 700, a, L=70, gw=14, N=6, ak=False, renk=(28, 0.5, 0.28))
+    sv.add('<path d="M300 700 Q360 670 420 700" fill="none" stroke="#5a3a14" stroke-width="5" opacity="0.6"/>')
 
 
 def sepet(sv, rng):
@@ -494,7 +504,7 @@ def yedi_basak(sv, rng):
     for k, (ex, ey, ang) in enumerate([(130, 360, -118), (215, 250, -108), (295, 170, -97), (360, 120, -90), (425, 170, -83), (505, 250, -72), (590, 360, -62)]):
         ps = bez3((360, 945), (360 + (ex - 360) * 0.1, 780), (ex + (360 - ex) * 0.1, ey + 220), (ex, ey + 190), 30)
         govde(sv, ps, 12 if k == 3 else 9, 5, (54, 0.5, 0.5))
-        basak(sv, rng, ps[-1][0], ps[-1][1] + 4, ang, L=175, gw=36, N=8)
+        basak(sv, rng, ps[-1][0], ps[-1][1] + 4, ang, L=175, gw=36, N=8, renk=YESIL, ak=False)
     for side in (-1, 1):
         yaprak(sv, 360, 945, 260, 26, -90 + side * 22, (88, 0.45, 0.4), kıvrım=side * 0.18, uc=0.95, taban_dar=0.5, damar=False)
     ot_demeti(sv, rng, 360, 950, 300, 120, (90, 0.45, 0.34), 8)
@@ -505,7 +515,7 @@ def orak(sv, rng):
     # buğday demeti arka
     for k in range(-3, 4):
         ps = sap(sv, 330 + k * 6, 945, 300 + k * 26, 470, k * -4, 8, 5, (52, 0.5, 0.5))
-        basak(sv, rng, ps[-1][0], ps[-1][1], -90 + k * 6, L=150, gw=32, N=7)
+        pass
     # orak: ahşap sap + kavisli bıçak
     g = sv.lin([(0, hsl(26, 0.5, 0.5), 1), (1, hsl(22, 0.5, 0.28), 1)], 0, -1, 0, 1)
     sv.add('<g transform="translate(480 800) rotate(-18)"><rect x="-10" y="-130" width="40" height="270" rx="18" fill="%s" stroke="%s" stroke-width="2"/><rect x="-2" y="-110" width="8" height="220" rx="4" fill="#fff" opacity="0.2"/></g>' % (g, hsl(22, 0.5, 0.18)))

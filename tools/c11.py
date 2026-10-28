@@ -25,11 +25,14 @@ def damla(sv, cx, cy, w, h, ton=1.0):
     sv.add('<ellipse cx="%.1f" cy="%.1f" rx="%.1f" ry="%.1f" fill="#fff" opacity="0.7" transform="rotate(-18 %.1f %.1f)"/>' % (cx - w * 0.2, cy + h * 0.1, w * 0.09, h * 0.18, cx, cy))
 
 
-def bulut_(sv, rng, cx, cy, w, koyu=False):
+def bulut_(sv, rng, cx, cy, w, koyu=False, tip=0):
     f = sv.blur(1)
     c1, c2 = ('#7c8a9c', '#4e5a6c') if koyu else ('#ffffff', '#c6d4e4')
     g = sv.lin([(0, c1, 1), (1, c2, 1)], 0, 0, 0, 1)
-    for (dx, dy, r) in [(-0.3, 0.05, 0.22), (-0.1, -0.12, 0.3), (0.16, -0.06, 0.26), (0.33, 0.06, 0.2), (0, 0.1, 0.3)]:
+    PAR = [[(-0.3, 0.05, 0.22), (-0.1, -0.12, 0.3), (0.16, -0.06, 0.26), (0.33, 0.06, 0.2), (0, 0.1, 0.3)],
+           [(-0.38, 0.1, 0.14), (-0.2, 0.04, 0.17), (0.0, 0.0, 0.2), (0.22, 0.04, 0.17), (0.4, 0.1, 0.13), (0.05, -0.08, 0.14)],
+           [(-0.16, 0.1, 0.19), (0.16, 0.1, 0.19), (-0.04, -0.07, 0.23), (0.1, -0.12, 0.17), (-0.2, -0.04, 0.13)]][tip]
+    for (dx, dy, r) in PAR:
         sv.add('<circle cx="%.1f" cy="%.1f" r="%.1f" fill="%s" stroke="%s" stroke-width="2" stroke-opacity="0.5"/>' % (cx + dx * w, cy + dy * w, r * w, g, c2))
     sv.add('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="%.1f" fill="%s"/>' % (cx - w * 0.48, cy + w * 0.02, w * 0.96, w * 0.22, w * 0.11, g))
 
@@ -388,10 +391,11 @@ def yesil_vadi(sv, rng):
 
 def dolu(sv, rng):
     golge(sv, 500, 40, 0.3)
-    bulut_(sv, rng, 360, 330, 560, True)
+    g0 = sv.lin([(0, '#8fd05a', 1), (1, '#4a8a2c', 1)], 0, 780, 0, 950, units=1)
+    sv.add('<path d="M0 946 L0 850 Q200 770 360 800 Q520 770 720 850 L720 946Z" fill="%s"/>' % g0)
     for k in range(18):
         x = 120 + rng.uniform(0, 480)
-        y = 470 + rng.uniform(0, 440)
+        y = 300 + rng.uniform(0, 600)
         r = rng.uniform(14, 34)
         g = sv.rad([(0, '#ffffff', 1), (0.6, '#dff3ff', 1), (1, '#9ac8e8', 1)], 0.35, 0.3, 0.8)
         sv.add('<circle cx="%.1f" cy="%.1f" r="%.1f" fill="%s" stroke="#6aa0c8" stroke-width="2"/>' % (x, y, r, g))

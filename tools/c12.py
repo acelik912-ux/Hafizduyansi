@@ -116,7 +116,16 @@ def kervan(sv, rng):
 
 def yedi_basak(sv, rng):
     import c05
-    c05.yedi_basak(sv, rng)
+    golge(sv, 420, 420)
+    # yeşil yedi başak solda, kuru yedi başak sağda (Yûsuf 43)
+    for grup, (x0, renk, sol) in enumerate([(210, (96, 0.5, 0.42), 1), (510, (40, 0.18, 0.66), 0)]):
+        for k in range(7):
+            ex = x0 + (k - 3) * 30 + (0 if sol else 6)
+            ey = 360 + abs(k - 3) * 22 + (60 if not sol else 0)
+            ps = bez3((x0, 945), (x0 + (ex - x0) * 0.1, 780), (ex, ey + 220), (ex, ey + 190), 30)
+            govde(sv, ps, 7, 4, (80, 0.4, 0.42) if sol else (40, 0.15, 0.5))
+            c05.basak(sv, rng, ps[-1][0], ps[-1][1] + 4, -90 + (k - 3) * (9 if sol else 12), L=140, gw=28, N=7, renk=renk, ak=bool(sol))
+    ot_demeti(sv, rng, 360, 950, 620, 100, (80, 0.3, 0.34), 8)
 
 
 def yedi_sigir(sv, rng):
@@ -170,9 +179,10 @@ def ambar(sv, rng):
     sv.add('<path d="M290 946 L290 790 Q290 740 360 740 Q430 740 430 790 L430 946Z" fill="#5a3a22" stroke="#2e1a0a" stroke-width="3"/>')
     sv.add('<circle cx="410" cy="850" r="6" fill="#e8c860"/>')
     # taşan buğday başakları
-    import c05
-    for k in range(5):
-        c05.basak(sv, rng, 260 + k * 50, 450, -90 + (k - 2) * 12, L=110, gw=26, N=6, ak=False)
+    # yan duvara dayalı merdiven
+    for yy in range(560, 930, 44):
+        sv.add('<rect x="578" y="%d" width="70" height="8" fill="#6a4a2a" stroke="#2e1a0a" stroke-width="1.5"/>' % yy)
+    sv.add('<rect x="574" y="540" width="9" height="410" fill="#7a5a36" stroke="#2e1a0a" stroke-width="1.5"/><rect x="643" y="540" width="9" height="410" fill="#7a5a36" stroke="#2e1a0a" stroke-width="1.5"/>')
 
 
 def kese(sv, rng):

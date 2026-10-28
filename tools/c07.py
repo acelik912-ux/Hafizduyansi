@@ -330,18 +330,18 @@ def gece(sv, rng):
 
 
 def kevkeb(sv, rng):
-    """Nûr 35: 'inci gibi parlayan yıldız' (kevkeb-i dürrî)"""
-    zemin_isik(sv, 360, '#fff2d0', 340, 0.4)
-    hale(sv, 360, CY, 170, '#fff2d0', 0.6, 2.2)
-    for i in range(12):
-        a = i * math.pi / 6
-        L = 270 if i % 2 == 0 else 200
-        sv.add('<line x1="360" y1="%d" x2="%.1f" y2="%.1f" stroke="#fff6dc" stroke-width="5" stroke-linecap="round" opacity="0.6"/>' % (CY, 360 + math.cos(a) * L, CY + math.sin(a) * L))
-    g = sv.rad([(0, '#ffffff', 1), (0.55, '#f5eadf', 1), (0.9, '#d9c9d4', 1), (1, '#b8a2c4', 1)], 0.36, 0.3, 0.8)
-    sv.add('<circle cx="360" cy="%d" r="150" fill="%s" stroke="#cbb8c9" stroke-width="2"/>' % (CY, g))
-    g2 = sv.rad([(0, '#ffffff', 0.95), (1, '#ffffff', 0)], 0.5, 0.5, 0.5)
-    sv.add('<ellipse cx="318" cy="%d" rx="52" ry="34" fill="%s" transform="rotate(-30 318 %d)"/>' % (CY - 60, g2, CY - 60))
-    sv.add('<circle cx="360" cy="%d" r="150" fill="none" stroke="#f0d8ff" stroke-width="3" opacity="0.5"/>' % CY)
+    """Nûr 35: 'sanki bir cam kandil; cam, inci gibi parlayan bir yıldız' — asılı cam kandil, içinde alev"""
+    zemin_isik(sv, 360, '#fff2d0', 300, 0.3)
+    hale(sv, 360, CY + 20, 120, '#ffe9a8', 0.55, 2.2)
+    sv.add('<path d="M360 60 L360 330" stroke="#b9954a" stroke-width="5"/><circle cx="360" cy="330" r="12" fill="#d8b25a" stroke="#7a5a1e" stroke-width="2"/>')
+    gc = sv.lin([(0, '#fff7dc', 0.85), (0.5, '#d6ecf8', 0.55), (1, '#9ec8e0', 0.8)], 0, 0, 1, 1)
+    sv.add('<path d="M290 400 Q290 360 330 345 L390 345 Q430 360 430 400 Q470 520 430 620 Q410 690 360 700 Q310 690 290 620 Q250 520 290 400Z" fill="%s" stroke="#7aa4bc" stroke-width="3"/>' % gc)
+    sv.add('<path d="M326 700 L394 700 L384 740 L336 740Z" fill="#d8b25a" stroke="#7a5a1e" stroke-width="3"/>')
+    sv.add('<path d="M300 380 Q430 380 430 380 L420 360 Q360 340 300 360Z" fill="#d8b25a" stroke="#7a5a1e" stroke-width="3"/>')
+    sv.add('<path d="M360 690 L360 600" stroke="#5a4418" stroke-width="4"/>')
+    fl = sv.rad([(0, '#ffffff', 1), (0.35, '#ffe27a', 1), (1, '#ff9a2a', 0.0)], 0.5, 0.6, 0.55)
+    sv.add('<path d="M360 450 Q330 540 350 600 Q360 620 370 600 Q392 540 360 450Z" fill="%s"/>' % fl)
+    sv.add('<path d="M314 440 Q300 520 318 600" fill="none" stroke="#ffffff" stroke-width="8" opacity="0.55" stroke-linecap="round"/>')
 
 
 ISLER = [gunes, hilal, dolunay, yildiz, siraa, tarik, sihab, dunya, saturn, jupiter, mars, venus, samanyolu, ay_tutulma, gunes_tutulma, burclar, yedi_kat, safak, gece, kevkeb]
