@@ -26,6 +26,8 @@ class _Y {
 Color _ton(Color c, double k) => Color.fromARGB(255, (c.red * k).round().clamp(0, 255), (c.green * k).round().clamp(0, 255), (c.blue * k).round().clamp(0, 255));
 
 // ---------------------------------------------------------------- cami planları
+const double _goz = 2.8; // göz yüksekliği: salonu biraz yukarıdan, uzaktan gösterir
+
 class _Plan {
   final String ad;
   final int nx, nz; // salonun x ve z yönündeki göz (bay) sayısı
@@ -544,10 +546,13 @@ class _Salon {
     nok.add(_V(xm, 6.1, D - 1.2)); // minber
     nok.add(_V(-xm, 3.2, D - 1.6)); // kürsü
     // yan duvar pencereleri
+    // okuma yolu: mihrap → minber → kürsü → sağ duvar (kıbleden girişe) → sol duvar (girişten kıbleye) → kubbe / tavan
+    final wy = p.spring * 0.38 + math.min(p.spring * 0.78, 5) + 0.7;
+    for (var j = p.nz - 1; j >= 0; j--) {
+      nok.add(_V(hw - 0.3, wy, _cz(j)));
+    }
     for (var j = 0; j < p.nz; j++) {
-      final z = _cz(j);
-      nok.add(_V(-hw + 0.3, p.spring * 0.38 + math.min(p.spring * 0.78, 5) + 0.7, z));
-      nok.add(_V(hw - 0.3, p.spring * 0.38 + math.min(p.spring * 0.78, 5) + 0.7, z));
+      nok.add(_V(-hw + 0.3, wy, _cz(j)));
     }
     // büyük kubbe kasnağı ya da tavan
     if (p.cb > 0) {
@@ -585,16 +590,16 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
   late final _Plan plan = camiPlani(widget.index);
   late final _Salon salon = _Salon(plan);
   late final Ticker _t = createTicker(_tik);
-  double kx = 0, kz = 3.0, yaw = 0, pitch = 0.06, zum = 1.0, zumBas = 1.0;
+  double kx = 0, kz = 1.5, yaw = 0, pitch = 0.16, zum = 1.0, zumBas = 1.0;
   Offset? hedef;
   Duration _son = Duration.zero;
   bool ipucu = false;
-  late double F = widget.H * 0.9;
+  late double F = widget.H * 0.6;
 
   @override
   void initState() {
     super.initState();
-    kz = salon.D * 0.35;
+    kz = 1.5;
   }
 
   @override
@@ -628,7 +633,7 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
 
   // dünya -> kamera uzayı
   _V _kam(_V p) {
-    final rx = p.x - kx, ry = p.y - 1.6, rz = p.z - kz;
+    final rx = p.x - kx, ry = p.y - _goz, rz = p.z - kz;
     final cs = math.cos(yaw), sn = math.sin(yaw);
     final cx = rx * cs - rz * sn, cz = rx * sn + rz * cs;
     final cp = math.cos(pitch), sp = math.sin(pitch);
@@ -647,7 +652,7 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
     final cs = math.cos(yaw), sn = math.sin(yaw);
     final wx = dx * cs + rz * sn, wz = -dx * sn + rz * cs;
     if (ry >= -0.02) return;
-    final t = 1.6 / -ry;
+    final t = _goz / -ry;
     final tx = (kx + wx * t).clamp(-salon.hw + 1.0, salon.hw - 1.0), tz = (kz + wz * t).clamp(1.0, salon.D - 1.6);
     setState(() {
       hedef = Offset(tx, tz);
@@ -660,7 +665,7 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final W = widget.W, H = widget.H, pad = widget.pad;
-    F = H * 0.9;
+    F = H * 0.6;
     final ayetler = _ayetBaslari(Size(W, H));
     return Stack(children: [
       Positioned.fill(
@@ -674,7 +679,7 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
           },
           onScaleUpdate: (g) => setState(() {
             if (g.pointerCount >= 2) {
-              zum = (zumBas * g.scale).clamp(0.8, 3.0);
+              zum = (zumBas * g.scale).clamp(0.6, 3.0);
             } else {
               yaw -= g.focalPointDelta.dx / (F * zum);
               pitch = (pitch + g.focalPointDelta.dy / (F * zum)).clamp(-0.55, 1.05);
@@ -695,6 +700,28 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
           const SizedBox(width: 54),
         ]),
       ),
+      Positioned(
+        left: 0,
+        right: 0,
+        bottom: pad.bottom + 16,
+        child: Center(
+          child: Bas(
+            onTap: () => setState(() {
+              yaw = 0;
+              pitch = 0.2;
+              hedef = Offset(0, salon.D * 0.5);
+              ipucu = true;
+              _son = Duration.zero;
+              if (!_t.isActive) _t.start();
+            }),
+            child: Cam(
+              radius: 20,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Text('1. ayet mihrapta · oraya git', style: ts(Colors.white, 13, FontWeight.w700)),
+            ),
+          ),
+        ),
+      ),
       if (!ipucu)
         Positioned(
           left: 0,
@@ -705,7 +732,7 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
               child: Cam(
                 radius: 18,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                child: Text('Yere dokun: yürü · kaydır: bak · iki parmak: yakınlaş', style: ts(Colors.white, 13)),
+                child: Text('Ayetler numaralı: 1 mihrapta, sonra sağ duvar, sol duvar, kubbe', style: ts(Colors.white, 13)),
               ),
             ),
           ),
@@ -725,7 +752,7 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
       if (c.z < 0.8 || c.z > 60) continue;
       final o = _ekran(c, size), olc = (14.0 / c.z).clamp(0.8, 1.5);
       final w = 150.0 * olc, h = 38.0 * olc;
-      final r = Rect.fromCenter(center: o, width: w + h, height: h);
+      final r = Rect.fromCenter(center: o, width: w + h + 30, height: h);
       if (r.right < 0 || r.left > size.width || r.bottom < 0 || r.top > size.height) continue;
       if (cizilen.any((e) => e.overlaps(r.deflate(4)))) continue; // üst üste binenleri atla
       cizilen.add(r);
@@ -752,6 +779,12 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
                 child: src != null ? img(src, w: fd * 0.64, h: fd * 0.64) : Text('${j + 1}', style: ts(fruitFg(renk), fd * 0.4, FontWeight.w800)),
               ),
               SizedBox(width: 4 * olc),
+              Container(
+                margin: EdgeInsets.only(right: 4 * olc),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(color: j == 0 ? R.gold : const Color(0xCC0A0F1C), borderRadius: BorderRadius.circular(10)),
+                child: Text('${j + 1}', style: ts(j == 0 ? const Color(0xFF222222) : Colors.white, 11 * olc, FontWeight.w800)),
+              ),
               Expanded(child: AyetEtiket(ayat[j].start.path, double.infinity, h, border: fruitCol[renk], radius: 12)),
             ]),
           ),
