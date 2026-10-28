@@ -39,7 +39,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
   String _ad(int i) => widget.depo.adOf(widget.cd, i);
   String? _agac(int i) => widget.depo.agacOf(widget.cd, i);
   int cur = -1; // -1 = bahçe
-  int camiIc = -1; // 18. cüz: içinde bulunulan caminin sayfa sırası
+  int camiIc = int.tryParse(Uri.base.queryParameters['ic'] ?? '') ?? -1; // 18. cüz: içinde bulunulan caminin sayfa sırası
   int open = -1; // açık ayet (flat sırası)
   bool dinle = false; // "Sayfayı dinle": açılan ayetten sayfa sonuna kadar sırayla okunur
   Duz? sheetFor; // mushaf sayfası
