@@ -470,9 +470,9 @@ def merdiven(sv, rng):
     # basamaklar: sağa-yukarıya doğru yükselen altın merdiven (kademeli)
     n = 9
     for k in range(n):
-        x = 60 + k * 58
+        x = 30 + k * 52
         y = 900 - k * 80
-        w = 190
+        w = 170
         # üst yüzey
         sv.add('<polygon points="%d,%d %d,%d %d,%d %d,%d" fill="%s" stroke="#8a6a1a" stroke-width="3"/>' % (x, y, x + w, y, x + w + 24, y - 20, x + 24, y - 20, LG(sv, '#fff4c0', '#f0d070', x, y - 20, x + w, y)))
         # ön yüz

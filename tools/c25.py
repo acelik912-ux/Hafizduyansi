@@ -190,23 +190,23 @@ def arafat(sv, rng):
 def muzdelife(sv, rng):
     golge(sv, 640, 80, 0.3)
     zemin(sv, rng, 360, 720, 12, (36, 0.4, 0.72))
-    # açık bir bez üstüne toplanmış küçük taşlar: yedi'lik grup ve bez kese
-    sv.add('<path d="M100 %d L190 640 L560 640 L650 %d Z" fill="%s" stroke="%s" stroke-width="3"/>' % (Y - 6, Y - 6, hsl(210, 0.2, 0.8), hsl(210, 0.2, 0.4)))
-    for k in range(40):
-        x = rng.uniform(190, 530)
-        y = rng.uniform(700, 900)
-        elips(sv, x, y, rng.uniform(9, 15), rng.uniform(6, 10), (32 + rng.uniform(-6, 6), 0.15, rng.uniform(0.4, 0.58)), rng.uniform(0, 180))
-    # bez kese
-    g = sv.rad([(0, '#f4f4ee', 1), (1, '#b8b8a8', 1)], 0.4, 0.3, 0.8)
-    sv.add('<path d="M260 %d Q240 360 270 340 L360 340 Q420 360 420 470 L430 640 L260 640 Z" fill="%s" stroke="#8a8a7a" stroke-width="3" opacity="0"/>' % (640, g))
-    sv.add('<path d="M570 %d Q540 700 580 640 Q640 620 640 %d" fill="none"/>' % (Y, Y))
-    sv.add('<path d="M420 640 Q360 410 400 340 Q420 320 460 340 Q500 420 460 640 Z" fill="%s" stroke="#8a8a7a" stroke-width="3"/>' % g)
-    sv.add('<path d="M410 346 q30 -12 56 0" fill="none" stroke="#b49a3a" stroke-width="7" stroke-linecap="round"/>')
+    # yere serilmiş bez üstünde küçük taş yığını ve yanında bez kese
+    sv.add('<path d="M60 %d L150 760 L600 760 L680 %d Z" fill="%s" stroke="%s" stroke-width="3"/>' % (Y - 4, Y - 4, hsl(210, 0.2, 0.82), hsl(210, 0.2, 0.42)))
     for k in range(7):
-        sv.add('<ellipse cx="%.1f" cy="%.1f" rx="14" ry="9" fill="%s" opacity="0.9" transform="rotate(%d %.1f %.1f)"/>' % (420 + (k % 4) * 10, 346 - 24 + (k // 4) * 10 - 6, hsl(32, 0.15, 0.5), k * 18, 430, 330))
-    # ay-yıldız kabartması yok; gökyüzü göz yormasın
-    for k in range(3):
-        sv.add('<path d="M%d 560 l0 -90" stroke="#fff" stroke-width="2" opacity="0"/>' % (460 + k * 8))
+        sv.add('<path d="M%d %d L%d %d" stroke="%s" stroke-width="2" opacity="0.4"/>' % (80 + k * 90, Y - 6, 160 + k * 72, 764, hsl(210, 0.2, 0.5)))
+    pts_ = []
+    for r in range(11):
+        for c in range(max(1, 12 - r)):
+            x = 360 + (c - (11 - r) / 2) * 26 + rng.uniform(-5, 5)
+            y = 880 - r * 24 + rng.uniform(-4, 4)
+            pts_.append((x, y))
+    for (x, y) in pts_:
+        elips(sv, x, y, rng.uniform(11, 16), rng.uniform(8, 11), (32 + rng.uniform(-6, 6), 0.15, rng.uniform(0.38, 0.6)), rng.uniform(0, 180))
+    g = sv.rad([(0, '#f6f6ee', 1), (1, '#b8b8a8', 1)], 0.4, 0.3, 0.8)
+    sv.add('<path d="M530 %d Q490 840 520 800 Q560 780 600 800 Q640 850 620 %d Z" fill="%s" stroke="#8a8a7a" stroke-width="3"/>' % (Y - 4, Y - 4, g))
+    sv.add('<path d="M528 806 q40 -18 70 0" fill="none" stroke="#b49a3a" stroke-width="7" stroke-linecap="round"/>')
+    for k in range(7):
+        elips(sv, 550 + (k % 4) * 14, 780 + (k // 4) * 12, 10, 7, (32, 0.15, 0.5), k * 20, kenar=True)
 
 
 def cemre(sv, rng):
@@ -228,42 +228,54 @@ def cemre(sv, rng):
 def ihram(sv, rng):
     golge(sv, 500, 80, 0.25)
     zemin(sv, rng, 360, 620, 12, (40, 0.12, 0.84))
-    # katlı iki parça beyaz havlu kumaş, kemer ve terlik
-    for (y, w, h, a) in [(880, 460, 60, 0), (820, 420, 60, 1), (760, 380, 60, -1), (700, 340, 60, 0)]:
-        g = sv.lin([(0, '#ffffff', 1), (1, '#d8dce4', 1)], 0, y - h, 0, y, units=1)
-        sv.add('<g transform="rotate(%d 360 %d)"><path d="M%.1f %d Q%.1f %d %.1f %d L%.1f %d Q%.1f %d %.1f %d Z" fill="%s" stroke="#a9b0ba" stroke-width="3"/>' % (a, y, 360 - w / 2, y, 360, y - h - 8, 360 + w / 2, y, 360 + w / 2, y - 6, 360, y + 14, 360 - w / 2, y - 6, g))
-        for k in range(-6, 7):
-            sv.add('<path d="M%.1f %d q4 -18 %d -%d" stroke="#b8bec8" stroke-width="2" opacity="0.5" fill="none"/></g>' % (360 + k * 28, y - 10, 0, 22) if k == 6 else '<path d="M%.1f %d l0 -22" stroke="#b8bec8" stroke-width="2" opacity="0.5"/>' % (360 + k * 28, y - 10))
-    # saçaklar
-    for k in range(18):
-        sv.add('<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#ffffff" stroke-width="3"/>' % (130 + k * 26, 892, 128 + k * 26, 912))
-    # kemer ve sandalet
-    sv.add('<path d="M240 650 Q360 590 480 650" fill="none" stroke="#6a4a2a" stroke-width="14" stroke-linecap="round"/>')
-    sv.add('<rect x="340" y="618" width="40" height="24" rx="5" fill="#b8903a" stroke="#6a4a0a" stroke-width="2.5"/>')
-    for x in (200, 470):
-        sv.add('<path d="M%d %d q16 -50 50 -10 q6 30 -10 50 l-40 0 Z" fill="#8a6038" stroke="#3a2412" stroke-width="3"/><path d="M%d %d l50 0" stroke="#3a2412" stroke-width="6"/>' % (x, Y - 4, x - 6, Y - 4))
+    # üst üste katlanmış iki beyaz kumaş (ince gri kenar çizgili), kemer ve sandaletler
+    for k, (y, w, h) in enumerate([(930, 480, 120), (810, 440, 110)]):
+        g = sv.lin([(0, '#ffffff', 1), (1, '#d6dbe4', 1)], 0, y - h, 0, y, units=1)
+        sv.add('<rect x="%.1f" y="%d" width="%d" height="%d" rx="22" fill="%s" stroke="#a9b0ba" stroke-width="3.5"/>' % (360 - w / 2, y - h, w, h, g))
+        for x in (360 - w / 2 + 40, 360 + w / 2 - 54):
+            for j in range(3):
+                sv.add('<line x1="%.1f" y1="%d" x2="%.1f" y2="%d" stroke="#9aa2ae" stroke-width="3" opacity="0.7"/>' % (x + j * 6, y - h + 14, x + j * 6, y - 14))
+        for j in range(4):
+            sv.add('<path d="M%.1f %d q%d 6 %d 0" fill="none" stroke="#b8bec8" stroke-width="2" opacity="0.5"/>' % (360 - w / 2 + 70, y - h + 24 + j * 22, w * 0.3, w * 0.5))
+        for k2 in range(20):
+            sv.add('<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#ffffff" stroke-width="3"/>' % (360 - w / 2 + 14 + k2 * (w - 28) / 19, y, 360 - w / 2 + 14 + k2 * (w - 28) / 19, y + 12))
+    # üst: kıvrık kumaş
+    g = sv.lin([(0, '#ffffff', 1), (1, '#d6dbe4', 1)], 0, 560, 0, 720, units=1)
+    sv.add('<path d="M170 700 Q180 580 360 570 Q540 580 550 700 Q360 740 170 700 Z" fill="%s" stroke="#a9b0ba" stroke-width="3.5"/>' % g)
+    sv.add('<path d="M240 690 Q360 640 480 690" fill="none" stroke="#b8bec8" stroke-width="3"/>')
+    # kemer halkası (sarılı)
+    sv.add('<ellipse cx="360" cy="520" rx="92" ry="34" fill="none" stroke="#6a4a2a" stroke-width="12"/>')
+    sv.add('<rect x="340" y="496" width="40" height="24" rx="5" fill="#b8903a" stroke="#6a4a0a" stroke-width="2.5"/>')
+    # sandaletler
+    for x in (150, 500):
+        sv.add('<path d="M%d %d Q%d %d %d %d L%d %d Z" fill="#8a6038" stroke="#3a2412" stroke-width="3"/><path d="M%d %d q24 -34 52 -2" fill="none" stroke="#3a2412" stroke-width="6"/>' % (x, Y - 4, x + 20, Y - 60, x + 80, Y - 28, x + 90, Y - 4, x + 20, Y - 30))
 
 
 def yular(sv, rng):
-    golge(sv, 500, 80, 0.25)
-    zemin(sv, rng, 360, 620, 12, (36, 0.4, 0.72))
-    # direğe asılı süslü kurban yuları: örgülü halat, çan, boncuk ve püskül
-    sv.add('<rect x="340" y="320" width="40" height="%d" rx="8" fill="%s" stroke="%s" stroke-width="3"/>' % (Y - 320, hsl(28, 0.4, 0.4), hsl(24, 0.4, 0.16)))
-    sv.add('<path d="M380 360 Q520 340 540 440 Q550 560 470 600 L440 560 Q490 520 480 450 Q470 400 380 410 Z" fill="%s" stroke="%s" stroke-width="3"/>' % (hsl(8, 0.7, 0.45), hsl(8, 0.7, 0.2)))
-    for k in range(16):
-        sv.add('<path d="M%d %d l10 -8" stroke="#ffe9a0" stroke-width="3" opacity="0.7"/>' % (400 + k * 9 if k < 8 else 510 - (k - 8) * 4, 380 + k * 14))
-    sv.add('<path d="M340 380 Q200 360 190 460 Q180 580 260 620 L290 580 Q240 540 250 470 Q260 420 340 424 Z" fill="%s" stroke="%s" stroke-width="3"/>' % (hsl(46, 0.7, 0.5), hsl(40, 0.7, 0.22)))
-    # çan
-    g = sv.rad([(0, '#ffe9a0', 1), (1, '#b8841a', 1)], 0.35, 0.3, 0.8)
-    sv.add('<path d="M440 640 q0 -50 40 -50 q40 0 40 50 l0 22 l-80 0 Z" fill="%s" stroke="#6a4a0a" stroke-width="3"/><circle cx="480" cy="676" r="12" fill="%s" stroke="#6a4a0a" stroke-width="2.5"/>' % (g, hsl(*ALTIN)))
-    # püsküller
-    for (x, c) in [(190, 6), (270, 46), (530, 8)]:
-        sv.add('<path d="M%d 620 l-16 0 l8 -26 l8 0 Z" fill="%s"/>' % (x, hsl(c, 0.8, 0.5)))
+    golge(sv, 600, 80, 0.25)
+    zemin(sv, rng, 360, 680, 12, (36, 0.4, 0.72))
+    # iki direk arasında sarkan süslü örgü ip: çan, boncuk ve püsküller
+    for x in (100, 620):
+        sv.add('<rect x="%d" y="320" width="26" height="%d" rx="8" fill="%s" stroke="%s" stroke-width="3"/>' % (x - 13, Y - 320, hsl(28, 0.4, 0.4), hsl(24, 0.4, 0.16)))
+        kure(sv, x, 310, 18, (45, 0.85, 0.5), kenar=True)
+    for (c, w_, off) in [(8, 14, 0), (46, 9, 14)]:
+        sv.add('<path d="M100 350 Q360 %d 620 350" fill="none" stroke="%s" stroke-width="%d" stroke-linecap="round"/>' % (700 + off, hsl(c, 0.75, 0.46), w_))
+    for k in range(25):
+        t = k / 24
+        x = 100 + 520 * t
+        y = (1 - t) ** 2 * 350 + 2 * (1 - t) * t * 700 + t ** 2 * 350 + 8
+        sv.add('<path d="M%.1f %.1f l8 -8" stroke="#ffe9a0" stroke-width="3" opacity="0.8"/>' % (x - 4, y))
+    for t in (0.15, 0.3, 0.7, 0.85):
+        x = 100 + 520 * t
+        y = (1 - t) ** 2 * 350 + 2 * (1 - t) * t * 700 + t ** 2 * 350 + 8
+        c = 6 if t < 0.5 else 46
+        sv.add('<path d="M%.1f %.1f l-14 0 l7 -22 l7 0 Z" fill="%s"/>' % (x + 7, y + 8, hsl(c, 0.8, 0.5)))
         for j in range(7):
-            sv.add('<line x1="%d" y1="620" x2="%d" y2="%d" stroke="%s" stroke-width="3"/>' % (x - 12 + j * 4, x - 14 + j * 4 + (j - 3), 700, hsl(c, 0.8, 0.5)))
-    for x in (200, 540):
-        for k in range(6):
-            kure(sv, x + (k - 3) * 8, 720 + (k % 2) * 4, 6, (rng.choice([6, 46, 200]), 0.7, 0.5), kenar=False)
+            sv.add('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="%s" stroke-width="3"/>' % (x - 5 + j * 2, y + 8, x - 6 + j * 2, y + 62, hsl(c, 0.8, 0.5)))
+    g = sv.rad([(0, '#ffe9a0', 1), (1, '#b8841a', 1)], 0.35, 0.3, 0.8)
+    sv.add('<path d="M320 530 q0 -56 40 -56 q40 0 40 56 l0 26 l-80 0 Z" fill="%s" stroke="#6a4a0a" stroke-width="3.5"/><circle cx="360" cy="570" r="12" fill="%s" stroke="#6a4a0a" stroke-width="2.5"/><line x1="360" y1="474" x2="360" y2="440" stroke="#6a4a0a" stroke-width="4"/>' % (g, hsl(*ALTIN)))
+    for k in range(9):
+        kure(sv, 150 + k * 52, 380 + math.sin(k / 8 * math.pi) * 140, 7, (rng.choice([6, 46, 200]), 0.7, 0.5), kenar=False)
 
 
 def kisve(sv, rng):

@@ -527,11 +527,13 @@ def buzagi(sv, rng):
     ko = hsl(34, 0.9, 0.22)
     # arka bacaklar, ön bacaklar
     for (x0, w) in ((190, 44), (270, 44)):
-        path(sv, 'M%d 700 L%d 700 L%d 812 L%d 812 Z' % (x0, x0 + w, x0 + w - 4, x0 + 4), alt2, ko, 2.5)
+        path(sv, 'M%d 700 L%d 700 L%d 806 L%d 806 Z' % (x0, x0 + w, x0 + w - 10, x0 + 10), alt2, ko, 2.5)
+        rect(sv, x0 + 4, 802, w - 8, 12, hsl(34, 0.9, 0.2), ko, 1.5, 4)
     # gövde
     path(sv, 'M150 660 Q150 560 280 550 Q400 540 450 580 Q490 610 490 680 Q490 740 420 750 Q300 770 190 750 Q150 730 150 660 Z', alt, ko, 3.5)
     for (x0, w) in ((380, 48), (448, 46)):
-        path(sv, 'M%d 700 L%d 700 L%d 812 L%d 812 Z' % (x0, x0 + w, x0 + w - 2, x0 + 2), alt, ko, 2.5)
+        path(sv, 'M%d 700 L%d 700 L%d 806 L%d 806 Z' % (x0, x0 + w, x0 + w - 10, x0 + 10), alt, ko, 2.5)
+        rect(sv, x0 + 4, 802, w - 8, 12, hsl(34, 0.9, 0.2), ko, 1.5, 4)
     # boyun-baş
     path(sv, 'M430 590 Q470 540 520 520 Q560 500 590 520 Q640 540 640 590 Q640 640 580 650 Q530 655 500 640 Q470 650 470 690 Z', alt, ko, 3.5)
     path(sv, 'M560 505 Q540 450 575 440 Q570 480 590 510 Z', alt2, ko, 2.2)
@@ -540,8 +542,6 @@ def buzagi(sv, rng):
     circ(sv, 590, 560, 7.5, '#3a2406', ko, 1.5)
     circ(sv, 592, 558, 2.4, '#ffffff')
     ell(sv, 626, 612, 22, 14, hsl(40, 0.8, 0.5), ko, 2)
-    circ(sv, 620, 610, 3, ko)
-    circ(sv, 634, 612, 3, ko)
     # kuyruk
     sv.add('<path d="M152 640 Q110 650 120 720 Q124 760 138 770" fill="none" stroke="%s" stroke-width="16" stroke-linecap="round"/>' % ko)
     sv.add('<path d="M152 640 Q110 650 120 720 Q124 760 138 770" fill="none" stroke="%s" stroke-width="10" stroke-linecap="round"/>' % hsl(46, 0.9, 0.5))
