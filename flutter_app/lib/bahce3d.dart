@@ -120,7 +120,7 @@ class Bahce3B extends StatefulWidget {
   final List<Sayfa> pages;
   final String? Function(int) agac;
   final String Function(int) ad; // ağaç / maden adı
-  final String sahne; // 'bahce' | 'magara' | 'kus' | 'cayir' | 'orman' | 'gok' | 'otlak' | 'col' | 'ova' | 'sahil' | 'vadi' | 'nahl' | 'dag' (bkz. _ayarlar)
+  final String sahne; // 'bahce' | 'magara' | 'kus' | 'cayir' | 'orman' | 'gok' | 'otlak' | 'col' | 'ova' | 'sahil' | 'vadi' | 'nahl' | 'dag' | 'avlu' | 'kale' | 'cennet' (bkz. _ayarlar)
   final String birim; // 'ağaç' | 'maden'
   final double W, H;
   final EdgeInsets pad;
@@ -581,6 +581,10 @@ const _ayarlar = <String, _Ayar>{
   'nahl': _Ayar(gokUst: Color(0xFF69B0E4), gokAlt: Color(0xFFFFEFC8), uzak: Color(0xFFC6CFA6), orta: Color(0xFFA6BF7E), koruA: Color(0xFF86A85E), koruB: Color(0xFF5F8A42), sis: Color(0xFFD8DDB0), zeminTon: Color(0xFFFFF3CC), kir: true),
   // 15. cüz: Kehf ve İsrâ — dağ eteği, şafak
   'dag': _Ayar(gokUst: Color(0xFF7C9DC8), gokAlt: Color(0xFFF3D8C4), uzak: Color(0xFFA9A3B5), orta: Color(0xFF8A8590), koruA: Color(0xFF6D6F6A), koruB: Color(0xFF55584F), sis: Color(0xFFBEB9C8), zeminTon: Color(0xFFCFC9B4), cimTon: Color(0xFF9A9A7A), cimOran: 0.5, tarh: false, cit: 'tas'),
+  // 16–30. cüzler: avlu (cami/medeniyet), kale (sur ve kuleler), cennet (bahçe, sular)
+  'avlu': _Ayar(gokUst: Color(0xFF6FA6D6), gokAlt: Color(0xFFFBEBCB), uzak: Color(0xFFD9C9A6), orta: Color(0xFFC9B68E), koruA: Color(0xFFB09F78), koruB: Color(0xFF8E7E5C), sis: Color(0xFFE6D6B0), zeminTon: Color(0xFFE4D6B4), cimTon: Color(0xFFD8C9A0), cimOran: 0.8, bulut: 0.4, tarh: false, cit: 'tas'),
+  'kale': _Ayar(gokUst: Color(0xFF7592BC), gokAlt: Color(0xFFF0DEC2), uzak: Color(0xFFB4A89A), orta: Color(0xFF9A8D7E), koruA: Color(0xFF7E715F), koruB: Color(0xFF5F5445), sis: Color(0xFFD2C5B0), zeminTon: Color(0xFFD9CDB2), cimTon: Color(0xFF8F8466), cimOran: 0.7, bulut: 0.5, tarh: false, cit: 'tas'),
+  'cennet': _Ayar(gokUst: Color(0xFF58B4EA), gokAlt: Color(0xFFFFF6D6), uzak: Color(0xFFBFE0B8), orta: Color(0xFF8FD08A), koruA: Color(0xFF5FB86A), koruB: Color(0xFF3C9A52), sis: Color(0xFFD2EFC4), zeminTon: Color(0xFFD8F4C0), kir: true, dere: true, tarh: false, cit: 'yok'),
 };
 
 _Ayar _ayarOf(String sahne) => _ayarlar[sahne] ?? const _Ayar();

@@ -16,7 +16,10 @@ import svg_png, sahne_bg
 import kus_gorsel as kg
 
 ADLAR = {5: 'Tarla ve Bostan', 6: 'Ağaçlar ve Orman', 7: 'Gök Cisimleri', 8: 'Çiftlik Hayvanları', 9: 'Dağlar', 10: 'Deniz Canlıları',
-         11: 'Su ve Nimetleri', 12: 'Yûsuf Kıssası', 13: 'Hava Olayları', 14: 'Nahl Nimetleri', 15: 'Kehf ve İsrâ'}
+         11: 'Su ve Nimetleri', 12: 'Yûsuf Kıssası', 13: 'Hava Olayları', 14: 'Nahl Nimetleri', 15: 'Kehf ve İsrâ',
+         16: 'Mûsâ’nın Yolculukları', 17: 'Peygamberler', 18: 'Camiler', 19: 'Cami ve Mihrap', 20: 'Süleymân’ın Mülkü', 21: 'Geçmiş Milletler',
+         22: 'Medine Yılları', 23: 'İslâm’ın Kaleleri', 24: 'Cennet', 25: 'Mekke ve Hac', 26: 'İslâm Devletleri', 27: 'Bilim ve Medeniyet',
+         28: 'Hayır Eserleri', 29: 'Kalem ve Levh', 30: 'Kısa Sûreler'}
 
 
 def kur(n, onizleme=None):
@@ -24,7 +27,7 @@ def kur(n, onizleme=None):
     tmp = tempfile.mkdtemp()
     sd, pd = os.path.join(tmp, 'svg'), os.path.join(tmp, 'png')
     os.makedirs(sd)
-    for i in range(20):
+    for i in range(len(m.ADLAR)):
         sv = m.ciz(i, random.Random(1000 + i))
         open(os.path.join(sd, '%02d.svg' % (i + 1)), 'w', encoding='utf-8').write(str(sv))
     svg_png.donustur(1.5, sd, pd)
@@ -33,7 +36,7 @@ def kur(n, onizleme=None):
              'tanim': m.TANIM, 'ui': {'bgGarden': sahne + '_sayfa.jpg', 'bgForest': sahne + '_sayfa.jpg', 'bgPage': sahne + '_sayfa.jpg', 'bgAyet': sahne + '_kemer.jpg'}, 'trees': {}}
     tampon = io.BytesIO()
     with zipfile.ZipFile(tampon, 'w', zipfile.ZIP_STORED) as z:
-        for i in range(20):
+        for i in range(len(m.ADLAR)):
             im = Image.open(os.path.join(pd, '%02d.png' % (i + 1))).convert('RGBA')
             assert im.size == (1080, 1440), im.size
             d = 'c%02d_%02d.png' % (n, i + 1)
@@ -65,7 +68,7 @@ def main():
     on = None
     if '--onizleme' in a:
         j = a.index('--onizleme'); on = a[j + 1]; a = a[:j] + a[j + 2:]
-    for n in ([int(x) for x in a] or range(5, 16)):
+    for n in ([int(x) for x in a] or range(5, 31)):
         kur(n, on and os.path.join(on, 'c%02d' % n))
 
 

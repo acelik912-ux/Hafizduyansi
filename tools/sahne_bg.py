@@ -31,6 +31,9 @@ PALET = {
     'vadi': ('1C2A37', 'A2B8C2', '3B5C5A', '14242A', 'D8E6EE', '2A4846', 'bulut', False),
     'nahl': ('3A3012', 'FFE38C', '62802B', '1E2E0E', 'FFEDB0', '48611F', 'tepe', False),
     'dag': ('26263F', 'F6CCAA', '5C5C56', '1C1C20', 'FFE2CC', '3A3A46', 'dag', False),
+    'avlu': ('24405E', 'F7DDB0', '9C8C6A', '463C2A', 'FFEBC4', '6C6048', 'sehir', False),
+    'kale': ('2E3E5C', 'EDD2A8', '7C6E58', '342C20', 'FFE2B8', '4C4434', 'sur', False),
+    'cennet': ('1F5C8E', 'FFF0C0', '4F9A46', '1A4E28', 'FFF6CC', '3A7E40', 'tepe', False),
 }
 
 
@@ -75,6 +78,35 @@ def siluet(w, h, yh, tur, rnd, col, olc):
         d.polygon(pts, fill=255)
     elif tur == 'deniz':
         d.rectangle([0, yh, w, h], fill=255)
+    elif tur == 'sehir':
+        x = -20
+        while x < w + 20:
+            bw = rnd.uniform(60, 150) * olc
+            bh = rnd.uniform(30, 110) * olc
+            d.rectangle([x, yh - bh, x + bw, yh + 6], fill=255)
+            if rnd.random() < 0.6:
+                r = bw * 0.42
+                d.pieslice([x + bw / 2 - r, yh - bh - r, x + bw / 2 + r, yh - bh + r], 180, 360, fill=255)
+            if rnd.random() < 0.45:
+                mx = x + bw + rnd.uniform(4, 14) * olc
+                mh = bh + rnd.uniform(80, 200) * olc
+                d.rectangle([mx - 4 * olc, yh - mh, mx + 4 * olc, yh + 6], fill=255)
+                d.polygon([(mx - 6 * olc, yh - mh), (mx, yh - mh - 30 * olc), (mx + 6 * olc, yh - mh)], fill=255)
+            x += bw + rnd.uniform(0, 30) * olc
+        d.rectangle([0, yh - 4, w, h], fill=255)
+    elif tur == 'sur':
+        d.rectangle([0, yh - 40 * olc, w, h], fill=255)
+        x = 0
+        while x < w:
+            d.rectangle([x, yh - 62 * olc, x + 22 * olc, yh - 40 * olc], fill=255)
+            x += 44 * olc
+        x = rnd.uniform(40, 120) * olc
+        while x < w:
+            tw, th = rnd.uniform(60, 90) * olc, rnd.uniform(110, 190) * olc
+            d.rectangle([x, yh - th, x + tw, yh], fill=255)
+            for k in range(4):
+                d.rectangle([x + k * tw / 3.6, yh - th - 18 * olc, x + k * tw / 3.6 + tw / 6, yh - th], fill=255)
+            x += tw + rnd.uniform(150, 330) * olc
     return m
 
 
