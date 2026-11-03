@@ -638,6 +638,7 @@ class _Ayar {
   final Color gokUst, gokAlt, uzak, orta, koruA, koruB, sis, zeminTon, cimTon;
   final double bulut, cimOran, golge;
   final bool yildiz, deniz, tarh, kir, dere, cim, piramit;
+  final String sinir; // çit yerine alan sınırı: '' | 'kaya' | 'agac' | 'kamis' | 'bugday' | 'cali' | 'hurma' | 'sutun'
   final String siluet; // ufuk yapıları: '' | 'cami' | 'kale' | 'dag' | 'mesa' | 'orman'
   final Color? zemRenk; // zemin dokusunun rengini bu tona çevirir (parlaklık korunur): kum, taş...
   final String cit; // 'cit' (beyaz çit) | 'ahsap' (kırsal ahşap çit) | 'tas' (alçak taş duvar) | 'yok'
@@ -662,6 +663,7 @@ class _Ayar {
     this.cim = true,
     this.piramit = false,
     this.siluet = '',
+    this.sinir = '',
     this.zemRenk,
     this.cit = 'cit',
   });
@@ -669,31 +671,31 @@ class _Ayar {
 
 const _ayarlar = <String, _Ayar>{
   'kus': _Ayar(cit: 'tas', dere: true),
-  'cayir': _Ayar(kir: true),
+  'cayir': _Ayar(kir: true, cit: 'yok', sinir: 'cali'),
   // 6. cüz: kıssalardaki hayvanlar — gür orman
-  'orman': _Ayar(gokUst: Color(0xFF7FB3A6), gokAlt: Color(0xFFDCEBD0), uzak: Color(0xFF9DBBA0), orta: Color(0xFF6E9873), koruA: Color(0xFF4F7F55), koruB: Color(0xFF2F5E3C), sis: Color(0xFF96BEA0), zeminTon: Color(0xFFB4D6A6), bulut: 0.6, cit: 'ahsap', tarh: false, siluet: 'orman'),
+  'orman': _Ayar(gokUst: Color(0xFF7FB3A6), gokAlt: Color(0xFFDCEBD0), uzak: Color(0xFF9DBBA0), orta: Color(0xFF6E9873), koruA: Color(0xFF4F7F55), koruB: Color(0xFF2F5E3C), sis: Color(0xFF96BEA0), zeminTon: Color(0xFFB4D6A6), bulut: 0.6, cit: 'yok', tarh: false, siluet: 'orman', sinir: 'agac'),
   // 7. cüz: gök cisimleri — gece göğü, sabit yıldızlar ve hilal
-  'gok': _Ayar(gokUst: Color(0xFF080C2E), gokAlt: Color(0xFF4A4682), uzak: Color(0xFF2A2E5C), orta: Color(0xFF1F2448), koruA: Color(0xFF161B38), koruB: Color(0xFF0E1228), sis: Color(0xFF28306A), zeminTon: Color(0xFF5C6AA6), cimTon: Color(0xFF1A2448), cimOran: 0.75, bulut: 0, golge: 0.3, yildiz: true, tarh: false, cit: 'tas'),
+  'gok': _Ayar(gokUst: Color(0xFF080C2E), gokAlt: Color(0xFF4A4682), uzak: Color(0xFF2A2E5C), orta: Color(0xFF1F2448), koruA: Color(0xFF161B38), koruB: Color(0xFF0E1228), sis: Color(0xFF28306A), zeminTon: Color(0xFF5C6AA6), cimTon: Color(0xFF1A2448), cimOran: 0.75, bulut: 0, golge: 0.3, yildiz: true, tarh: false, cit: 'yok', sinir: 'kaya'),
   // 8. cüz: sürü hayvanları — sabah otlağı
   'otlak': _Ayar(gokUst: Color(0xFF6FB1E6), gokAlt: Color(0xFFFCE9C0), uzak: Color(0xFFC9C79F), orta: Color(0xFFA9B97C), koruA: Color(0xFF86A55C), koruB: Color(0xFF5F8A42), sis: Color(0xFFD6D6AA), zeminTon: Color(0xFFFFF0C8), kir: true, tarh: false, cit: 'ahsap'),
   // 9. ve 12. cüz: mekânlar, Yûsuf — çöl ve kayalık vadi
-  'col': _Ayar(gokUst: Color(0xFF7AB6E6), gokAlt: Color(0xFFF6E2BE), uzak: Color(0xFFD8B98F), orta: Color(0xFFC49A6B), koruA: Color(0xFFB07E52), koruB: Color(0xFF93663F), sis: Color(0xFFE8C896), zeminTon: Color(0xFFE8C99A), cimTon: Color(0xFFC9A56A), cimOran: 0.75, bulut: 0.5, tarh: false, cit: 'tas', siluet: 'mesa', zemRenk: Color(0xFFD9B070)),
+  'col': _Ayar(gokUst: Color(0xFF7AB6E6), gokAlt: Color(0xFFF6E2BE), uzak: Color(0xFFD8B98F), orta: Color(0xFFC49A6B), koruA: Color(0xFFB07E52), koruB: Color(0xFF93663F), sis: Color(0xFFE8C896), zeminTon: Color(0xFFE8C99A), cimTon: Color(0xFFC9A56A), cimOran: 0.75, bulut: 0.5, tarh: false, cit: 'yok', siluet: 'mesa', zemRenk: Color(0xFFD9B070), sinir: 'kaya'),
   // 10. cüz: atlar — altın başaklı ova
-  'ova': _Ayar(gokUst: Color(0xFF5FA3E0), gokAlt: Color(0xFFE8F1F2), uzak: Color(0xFFB8C9A6), orta: Color(0xFFC8BB7C), koruA: Color(0xFFB9A25E), koruB: Color(0xFF92823E), sis: Color(0xFFDCD2A0), zeminTon: Color(0xFFF2E3A0), cimTon: Color(0xFFD9C46E), cimOran: 0.55, bulut: 0.8, tarh: false, cit: 'ahsap'),
+  'ova': _Ayar(gokUst: Color(0xFF5FA3E0), gokAlt: Color(0xFFE8F1F2), uzak: Color(0xFFB8C9A6), orta: Color(0xFFC8BB7C), koruA: Color(0xFFB9A25E), koruB: Color(0xFF92823E), sis: Color(0xFFDCD2A0), zeminTon: Color(0xFFF2E3A0), cimTon: Color(0xFFD9C46E), cimOran: 0.55, bulut: 0.8, tarh: false, cit: 'yok', sinir: 'bugday'),
   // 11. cüz: deniz canlıları — kumsal ve açık deniz
-  'sahil': _Ayar(gokUst: Color(0xFF4FA8E8), gokAlt: Color(0xFFDFF1F7), uzak: Color(0xFF5AB0D0), orta: Color(0xFF2F8FB8), sis: Color(0xFFBEE1EB), zeminTon: Color(0xFFF3E6C0), cimTon: Color(0xFFE9D6A4), cimOran: 0.9, deniz: true, tarh: false, cit: 'ahsap', zemRenk: Color(0xFFF0DEA6)),
+  'sahil': _Ayar(gokUst: Color(0xFF4FA8E8), gokAlt: Color(0xFFDFF1F7), uzak: Color(0xFF5AB0D0), orta: Color(0xFF2F8FB8), sis: Color(0xFFBEE1EB), zeminTon: Color(0xFFF3E6C0), cimTon: Color(0xFFE9D6A4), cimOran: 0.9, deniz: true, tarh: false, cit: 'yok', zemRenk: Color(0xFFF0DEA6), sinir: 'kaya'),
   // 13. cüz: su ve hava olayları — bulutlu vadi, dereler
-  'vadi': _Ayar(gokUst: Color(0xFF5E7389), gokAlt: Color(0xFFB8C6CF), uzak: Color(0xFF8FA3AD), orta: Color(0xFF6F8A8F), koruA: Color(0xFF4E6F6A), koruB: Color(0xFF365A55), sis: Color(0xFFA0B4B9), zeminTon: Color(0xFFB9CCB0), bulut: 1.5, dere: true, tarh: false, cit: 'tas', siluet: 'dag'),
+  'vadi': _Ayar(gokUst: Color(0xFF5E7389), gokAlt: Color(0xFFB8C6CF), uzak: Color(0xFF8FA3AD), orta: Color(0xFF6F8A8F), koruA: Color(0xFF4E6F6A), koruB: Color(0xFF365A55), sis: Color(0xFFA0B4B9), zeminTon: Color(0xFFB9CCB0), bulut: 1.5, dere: true, tarh: false, cit: 'yok', siluet: 'dag', sinir: 'kamis'),
   // 14. cüz: Nahl'in nimetleri — bal rengi sabah çayırı
-  'nahl': _Ayar(gokUst: Color(0xFF69B0E4), gokAlt: Color(0xFFFFEFC8), uzak: Color(0xFFC6CFA6), orta: Color(0xFFA6BF7E), koruA: Color(0xFF86A85E), koruB: Color(0xFF5F8A42), sis: Color(0xFFD8DDB0), zeminTon: Color(0xFFFFF3CC), kir: true),
+  'nahl': _Ayar(gokUst: Color(0xFF69B0E4), gokAlt: Color(0xFFFFEFC8), uzak: Color(0xFFC6CFA6), orta: Color(0xFFA6BF7E), koruA: Color(0xFF86A85E), koruB: Color(0xFF5F8A42), sis: Color(0xFFD8DDB0), zeminTon: Color(0xFFFFF3CC), kir: true, cit: 'yok', sinir: 'cali'),
   // 15. cüz: Kehf ve İsrâ — dağ eteği, şafak
-  'dag': _Ayar(gokUst: Color(0xFF7C9DC8), gokAlt: Color(0xFFF3D8C4), uzak: Color(0xFFA9A3B5), orta: Color(0xFF8A8590), koruA: Color(0xFF6D6F6A), koruB: Color(0xFF55584F), sis: Color(0xFFBEB9C8), zeminTon: Color(0xFFCFC9B4), cimTon: Color(0xFF9A9A7A), cimOran: 0.5, tarh: false, cit: 'tas', siluet: 'dag', zemRenk: Color(0xFFB4AC9C)),
+  'dag': _Ayar(gokUst: Color(0xFF7C9DC8), gokAlt: Color(0xFFF3D8C4), uzak: Color(0xFFA9A3B5), orta: Color(0xFF8A8590), koruA: Color(0xFF6D6F6A), koruB: Color(0xFF55584F), sis: Color(0xFFBEB9C8), zeminTon: Color(0xFFCFC9B4), cimTon: Color(0xFF9A9A7A), cimOran: 0.5, tarh: false, cit: 'yok', siluet: 'dag', zemRenk: Color(0xFFB4AC9C), sinir: 'kaya'),
   // 12. cüz: Yûsuf'un Mısır'ı — piramitler, dikilitaş, hurma ve kum tepeleri (hepsi sabit)
-  'misir': _Ayar(gokUst: Color(0xFF6FB0E4), gokAlt: Color(0xFFFBE6BC), uzak: Color(0xFFE2C79A), orta: Color(0xFFD2AA72), koruA: Color(0xFFC79B62), koruB: Color(0xFFAE814B), sis: Color(0xFFEBD0A0), zeminTon: Color(0xFFEBCF9C), cimTon: Color(0xFFD2AE70), cimOran: 0.75, bulut: 0.3, tarh: false, piramit: true, cit: 'tas', zemRenk: Color(0xFFD9B070)),
+  'misir': _Ayar(gokUst: Color(0xFF6FB0E4), gokAlt: Color(0xFFFBE6BC), uzak: Color(0xFFE2C79A), orta: Color(0xFFD2AA72), koruA: Color(0xFFC79B62), koruB: Color(0xFFAE814B), sis: Color(0xFFEBD0A0), zeminTon: Color(0xFFEBCF9C), cimTon: Color(0xFFD2AE70), cimOran: 0.75, bulut: 0.3, tarh: false, piramit: true, cit: 'yok', zemRenk: Color(0xFFD9B070), sinir: 'hurma'),
   // 16–30. cüzler: avlu (cami/medeniyet), kale (sur ve kuleler), cennet (bahçe, sular)
-  'avlu': _Ayar(gokUst: Color(0xFF6FA6D6), gokAlt: Color(0xFFFBEBCB), uzak: Color(0xFFD9C9A6), orta: Color(0xFFC9B68E), koruA: Color(0xFFB09F78), koruB: Color(0xFF8E7E5C), sis: Color(0xFFE6D6B0), zeminTon: Color(0xFFE4D6B4), cimTon: Color(0xFFD8C9A0), cimOran: 0.8, bulut: 0.4, tarh: false, cit: 'tas', siluet: 'cami', zemRenk: Color(0xFFD2C4A0)),
+  'avlu': _Ayar(gokUst: Color(0xFF6FA6D6), gokAlt: Color(0xFFFBEBCB), uzak: Color(0xFFD9C9A6), orta: Color(0xFFC9B68E), koruA: Color(0xFFB09F78), koruB: Color(0xFF8E7E5C), sis: Color(0xFFE6D6B0), zeminTon: Color(0xFFE4D6B4), cimTon: Color(0xFFD8C9A0), cimOran: 0.8, bulut: 0.4, tarh: false, cit: 'yok', siluet: 'cami', zemRenk: Color(0xFFD2C4A0), sinir: 'sutun'),
   'kale': _Ayar(gokUst: Color(0xFF7592BC), gokAlt: Color(0xFFF0DEC2), uzak: Color(0xFFB4A89A), orta: Color(0xFF9A8D7E), koruA: Color(0xFF7E715F), koruB: Color(0xFF5F5445), sis: Color(0xFFD2C5B0), zeminTon: Color(0xFFD9CDB2), cimTon: Color(0xFF8F8466), cimOran: 0.7, bulut: 0.5, tarh: false, cit: 'tas', siluet: 'kale', zemRenk: Color(0xFFB8AC96)),
-  'cennet': _Ayar(gokUst: Color(0xFF58B4EA), gokAlt: Color(0xFFFFF6D6), uzak: Color(0xFFBFE0B8), orta: Color(0xFF8FD08A), koruA: Color(0xFF5FB86A), koruB: Color(0xFF3C9A52), sis: Color(0xFFD2EFC4), zeminTon: Color(0xFFD8F4C0), kir: true, dere: true, tarh: false, cit: 'yok'),
+  'cennet': _Ayar(gokUst: Color(0xFF58B4EA), gokAlt: Color(0xFFFFF6D6), uzak: Color(0xFFBFE0B8), orta: Color(0xFF8FD08A), koruA: Color(0xFF5FB86A), koruB: Color(0xFF3C9A52), sis: Color(0xFFD2EFC4), zeminTon: Color(0xFFD8F4C0), kir: true, dere: true, tarh: false, cit: 'yok', sinir: 'cali'),
 };
 
 _Ayar _ayarOf(String sahne) => _ayarlar[sahne] ?? const _Ayar();
@@ -1202,6 +1204,98 @@ class _Dunya extends CustomPainter {
             for (final y in const [0.32, 0.72]) {
               cit.dortgen(ekran(ks, y), ekran(ki, y), ekran(ki, y + 0.08), ekran(ks, y + 0.08), ahsap ? const Color(0xFF7A5C3C) : const Color(0xFFCFC6B2), ahsap ? const Color(0xFF94734C) : const Color(0xFFE2DACA));
             }
+          }
+        }
+      }
+
+
+      // alan sınırı çit yerine konsepte uygun nesnelerle (kaya, çam, kamış, buğday, çalı, hurma, sütun): sabit, kıpırdamaz
+      if (ay.sinir.isNotEmpty) {
+        final nesneler = <(Offset, double, int)>[]; // (kamera, tohum, sıra)
+        final adim = switch (ay.sinir) { 'kaya' => 1.7, 'agac' => 2.4, 'kamis' => 0.9, 'bugday' => 0.55, 'cali' => 1.5, 'hurma' => 3.2, _ => 3.0 };
+        var no = 0;
+        void kenarda(Offset a, Offset b) {
+          final l = (b - a).distance, yon = (b - a) / l;
+          for (var t = 0.0, i = 0; t < l; t += adim, i++) {
+            final h1 = _h(i, no, 501), h2 = _h(i, no, 502);
+            final m = a + yon * (t + adim * 0.4 * h1) + Offset((h2 - 0.5) * 0.5, (h1 - 0.5) * 0.5);
+            final o = s.kamera(m.dx, m.dy);
+            no++;
+            if (o.dy < 0.8 || o.dy > 38) continue;
+            final ex = W / 2 + o.dx / o.dy * f;
+            if (ex < -160 || ex > W + 160) continue;
+            nesneler.add((o, _h(i, no, 503), no));
+          }
+        }
+
+        kenarda(Offset(-_citX, z0), Offset(_citX, z0));
+        kenarda(Offset(_citX, z0), Offset(_citX, z1));
+        kenarda(Offset(_citX, z1), Offset(-_citX, z1));
+        kenarda(Offset(-_citX, z1), Offset(-_citX, z0));
+        nesneler.sort((a, b) => b.$1.dy.compareTo(a.$1.dy));
+        for (final (o, hz, sr) in nesneler) {
+          final e = ekran(o), u = f / o.dy, sis = (1 - (o.dy - 22) / 16).clamp(0.0, 1.0);
+          Color havali(Color col) => Color.lerp(col, ay.sis, (o.dy / 45).clamp(0.0, 0.5))!.withValues(alpha: sis);
+          final cizgi = Paint()..strokeCap = StrokeCap.round..style = PaintingStyle.stroke;
+          switch (ay.sinir) {
+            case 'kaya':
+              final w = (0.55 + 0.75 * hz) * u, hg = w * (0.55 + 0.25 * _h(sr, 1, 511));
+              final ton = Color.lerp(ay.orta, const Color(0xFF3A3328), 0.35 + 0.2 * hz)!;
+              c.drawOval(Rect.fromCenter(center: e.translate(w * 0.12, 0), width: w * 1.25, height: w * 0.22), Paint()..color = const Color(0x33000000));
+              final yol = Path();
+              for (var j = 0; j < 9; j++) {
+                final an = math.pi + j * math.pi / 8, r = 1 + 0.12 * (_h(sr, j, 512) - 0.5);
+                final pt = Offset(e.dx + math.cos(an) * w * 0.5 * r, e.dy + math.sin(an) * hg * r);
+                j == 0 ? yol.moveTo(pt.dx, pt.dy) : yol.lineTo(pt.dx, pt.dy);
+              }
+              yol.close();
+              c.drawPath(yol, Paint()..color = havali(ton));
+              c.drawOval(Rect.fromCenter(center: e.translate(-w * 0.12, -hg * 0.55), width: w * 0.5, height: hg * 0.4), Paint()..color = havali(Color.lerp(ton, Colors.white, 0.3)!));
+            case 'agac':
+              final hh = (1.6 + 1.2 * hz) * u, gw = hh * 0.32;
+              c.drawOval(Rect.fromCenter(center: e.translate(hh * 0.12, 0), width: gw * 1.6, height: gw * 0.3), Paint()..color = const Color(0x33000000));
+              c.drawRect(Rect.fromLTRB(e.dx - gw * 0.07, e.dy - hh * 0.22, e.dx + gw * 0.07, e.dy), Paint()..color = havali(const Color(0xFF5B3F26)));
+              for (var j = 0; j < 3; j++) {
+                final yb = e.dy - hh * (0.14 + 0.24 * j), yt = yb - hh * 0.42, ww = gw * (1 - 0.22 * j);
+                c.drawPath(Path()..moveTo(e.dx - ww, yb)..lineTo(e.dx, yt)..lineTo(e.dx + ww, yb)..close(), Paint()..color = havali(Color.lerp(ay.koruB, const Color(0xFF123A1E), 0.35 + 0.1 * j)!));
+                c.drawPath(Path()..moveTo(e.dx - ww, yb)..lineTo(e.dx, yt)..lineTo(e.dx, yb)..close(), Paint()..color = havali(Color.lerp(ay.koruA, const Color(0xFF1E5A2C), 0.3)!).withValues(alpha: 0.5 * sis));
+              }
+            case 'kamis':
+              for (var j = 0; j < 6; j++) {
+                final bx = e.dx + (j - 2.5) * 0.06 * u, boy = (1.1 + 0.8 * _h(sr, j, 513)) * u, egim = (_h(sr, j, 514) - 0.5) * 0.25 * u;
+                c.drawLine(Offset(bx, e.dy), Offset(bx + egim, e.dy - boy), cizgi..color = havali(const Color(0xFF7C8A47))..strokeWidth = math.max(1.0, 0.035 * u));
+                c.drawOval(Rect.fromCenter(center: Offset(bx + egim, e.dy - boy), width: 0.07 * u, height: 0.2 * u), Paint()..color = havali(const Color(0xFF6B4A2B)));
+              }
+            case 'bugday':
+              for (var j = 0; j < 5; j++) {
+                final bx = e.dx + (j - 2) * 0.1 * u, boy = (0.85 + 0.25 * _h(sr, j, 515)) * u, egim = (_h(sr, j, 516) - 0.5) * 0.12 * u;
+                c.drawLine(Offset(bx, e.dy), Offset(bx + egim, e.dy - boy), cizgi..color = havali(const Color(0xFFC9A646))..strokeWidth = math.max(1.0, 0.025 * u));
+                c.drawOval(Rect.fromCenter(center: Offset(bx + egim, e.dy - boy - 0.06 * u), width: 0.07 * u, height: 0.2 * u), Paint()..color = havali(const Color(0xFFE6BE55)));
+              }
+            case 'cali':
+              final w = (0.7 + 0.6 * hz) * u;
+              c.drawOval(Rect.fromCenter(center: e.translate(w * 0.1, 0), width: w * 1.5, height: w * 0.25), Paint()..color = const Color(0x2E000000));
+              for (var j = 0; j < 4; j++) {
+                final ox = (j - 1.5) * w * 0.28, oy = -w * (0.28 + 0.12 * _h(sr, j, 517)), r = w * (0.3 + 0.08 * _h(sr, j, 518));
+                c.drawCircle(Offset(e.dx + ox, e.dy + oy), r, Paint()..color = havali(Color.lerp(ay.koruA, const Color(0xFF2F6B28), 0.35 + 0.1 * j)!));
+              }
+              for (var j = 0; j < 5; j++) {
+                const ren = [Color(0xFFE53935), Color(0xFFFFD54F), Color(0xFFF8F8F8), Color(0xFFEC77AB), Color(0xFF7E57C2)];
+                c.drawCircle(Offset(e.dx + (_h(sr, j, 519) - 0.5) * w * 1.0, e.dy - w * (0.2 + 0.4 * _h(sr, j, 520))), math.max(1.0, 0.045 * u), Paint()..color = havali(ren[(sr + j) % 5]));
+              }
+            case 'hurma':
+              final hh = (2.6 + 0.8 * hz) * u, tepe = Offset(e.dx + 0.1 * u, e.dy - hh);
+              c.drawLine(e, tepe, cizgi..color = havali(const Color(0xFF6B4A2B))..strokeWidth = math.max(2.0, 0.16 * u));
+              for (var j = 0; j < 7; j++) {
+                final an = -math.pi + (j + 0.5) * math.pi / 7, ux = math.cos(an), uy = math.sin(an);
+                c.drawPath(Path()..moveTo(tepe.dx, tepe.dy)..quadraticBezierTo(tepe.dx + ux * 0.7 * u, tepe.dy + uy * 0.8 * u - 0.2 * u, tepe.dx + ux * 1.2 * u, tepe.dy + uy * 0.5 * u + 0.6 * u), cizgi..color = havali(const Color(0xFF4E6B33))..strokeWidth = math.max(1.5, 0.1 * u));
+              }
+            case 'sutun':
+              final hh = 2.4 * u, w = 0.36 * u, krem = const Color(0xFFE9DEC4);
+              c.drawRect(Rect.fromLTRB(e.dx - w * 0.75, e.dy - 0.16 * u, e.dx + w * 0.75, e.dy), Paint()..color = havali(const Color(0xFFCFC2A2)));
+              c.drawRect(Rect.fromLTRB(e.dx - w / 2, e.dy - hh, e.dx, e.dy - 0.16 * u), Paint()..color = havali(krem));
+              c.drawRect(Rect.fromLTRB(e.dx, e.dy - hh, e.dx + w / 2, e.dy - 0.16 * u), Paint()..color = havali(Color.lerp(krem, Colors.black, 0.16)!));
+              c.drawRect(Rect.fromLTRB(e.dx - w * 0.8, e.dy - hh - 0.2 * u, e.dx + w * 0.8, e.dy - hh), Paint()..color = havali(const Color(0xFFD9CBA8)));
           }
         }
       }
