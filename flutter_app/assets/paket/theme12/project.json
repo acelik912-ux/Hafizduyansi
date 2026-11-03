@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 12,
- "name": "Yûsuf Kıssası (12. Cüz)",
+ "name": "Hûd ve Yûsuf (12. Cüz)",
  "sahne": "col",
  "ek": "",
  "birim": "nişan",
- "tanim": "Yûsuf kıssası",
+ "tanim": "Hûd ve Yûsuf kıssaları",
  "ui": {
   "bgGarden": "col_sayfa.jpg",
   "bgForest": "col_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c12_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "On Bir Yıldız"
+   "name": "Mercan Kayalığı"
   },
   "2": {
    "file": "c12_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Güneş ve Ay"
+   "name": "Altın Hazine Sandığı"
   },
   "3": {
    "file": "c12_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kuyu"
+   "name": "Gemi Tezgâhı"
   },
   "4": {
    "file": "c12_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gömlek"
+   "name": "Tandır"
   },
   "5": {
    "file": "c12_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kurt"
+   "name": "Tufan ve Gemi"
   },
   "6": {
    "file": "c12_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kervan"
+   "name": "Cûdî Dağı ve Gemi"
   },
   "7": {
    "file": "c12_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yedi Başak"
+   "name": "Âd Sütunları"
   },
   "8": {
    "file": "c12_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yedi Sığır"
+   "name": "Semûd Kayaları"
   },
   "9": {
    "file": "c12_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ekmek Sepeti"
+   "name": "Kızartılmış Buzağı"
   },
   "10": {
    "file": "c12_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Buğday Ambarı"
+   "name": "Lût’un Yıkılan Şehri"
   },
   "11": {
    "file": "c12_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Para Kesesi"
+   "name": "Ölçü ve Terazi"
   },
   "12": {
    "file": "c12_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mühür"
+   "name": "Firavun Dikilitaşı"
   },
   "13": {
    "file": "c12_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Zindan"
+   "name": "Güneş Saati"
   },
   "14": {
    "file": "c12_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ölçek"
+   "name": "Güneş, Ay ve Yıldızlar"
   },
   "15": {
    "file": "c12_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Çuval"
+   "name": "Yûsuf’un Kuyusu"
   },
   "16": {
    "file": "c12_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kral Kâsesi"
+   "name": "Dirhem Kesesi ve Sandık"
   },
   "17": {
    "file": "c12_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Anahtar"
+   "name": "Kapalı Kapı"
   },
   "18": {
    "file": "c12_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Nûh'un Gemisi"
+   "name": "Ekmek ve Üzüm"
   },
   "19": {
    "file": "c12_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hurma Salkımı"
+   "name": "Yedi Başak"
   },
   "20": {
    "file": "c12_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Taht"
+   "name": "Buğday Çuvalları"
   }
  }
 }
