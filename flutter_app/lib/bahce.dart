@@ -1,6 +1,7 @@
 // MEYVE BAHÇESİ (CÜZ): bahçe görünümleri (derinlikli orman, 4×5 kart, orman yolu) ve ağaç sayfası.
 // Bir cüz = 20 ağaç = 20 sayfa. Her ağaçta en çok 5 meyve = 5 ayet başı (siyah, kırmızı, sarı, yeşil, lacivert).
 // 5'ten fazlaysa "Sayfa devamı" ile aynı sayfanın ikinci ağaç ekranı açılır.
+import 'capa.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -235,6 +236,8 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
             ),
           ),
           if (N) const Positioned.fill(child: IgnorePointer(child: ColoredBox(color: Color(0x6B060905)))),
+          if (!(cur < 0 && camiIc < 0 && open < 0 && sheetFor == null && tercih.bahce == '3d')) // 3B bahçenin kendi çapaları var
+            Positioned.fill(child: CapaKatman(key: ValueKey(_capaAnahtar()), anahtar: _capaAnahtar(), solAlt: 0.42)),
           if (open >= 0 && sheetFor == null)
             Positioned.fill(
               child: AyetPaneli(
@@ -264,6 +267,16 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         ]),
       ),
     );
+  }
+
+  // çapa katmanının ekran anahtarı: cüz + bulunulan ekran (ayet paneli ve mushaf sayfası dahil)
+  String _capaAnahtar() {
+    final c = 'c${widget.cd.no}';
+    if (sheetFor != null) return '${c}_mushaf${sheetFor!.p}';
+    if (open >= 0) return '${c}_ayet${flat[open].p}_${flat[open].s}_${flat[open].k}';
+    if (camiIc >= 0) return '${c}_cami$camiIc';
+    if (cur >= 0) return '${c}_agac${seq[cur].p}';
+    return '${c}_bahce_${tercih.bahce}${tercih.bahce == 'kart' ? gview : ''}';
   }
 
   Widget _agacSayfasi(double W, double H, EdgeInsets pad) {
