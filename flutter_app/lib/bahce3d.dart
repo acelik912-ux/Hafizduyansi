@@ -164,6 +164,8 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
   double zumBas = 1;
   List<_Cizim> cizim = [];
   List<Capa> capalar = [];
+  bool _ikiParmak = false;
+  double _yaw0 = 0; // dönüşün başladığı bakış yönü (küçük kaymalar odaklanmaya yol açmasın)
 
   int get n => widget.pages.length;
   double get zSon => 3 + ((n + 1) ~/ 2 - 1) * _aralik;
@@ -228,6 +230,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     hedef = Offset(h.dx.clamp(-_citX + 0.7, _citX - 0.7), h.dy.clamp(_citZ0 + 0.7, citZ1 - 0.7));
     hedefIdx = agac;
     bakHedef = bak;
+    if (bak != null) _yaw0 = k.yaw;
     hedefSure = 0;
     sureSiniri = (hedef! - Offset(k.x, k.z)).distance / _hiz + 3;
     _ipucuGoruldu = true;
@@ -235,6 +238,25 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
       son = Duration.zero;
       _t.start();
     }
+  }
+
+  // ağaca doğru dönülünce (yana kaydırma ya da göğe dokunma sonrası) o ağaca odaklan: karşısındaki duruş yerine yürü.
+  // Yolda düz giderken ağaçlar yanda kaldığı için kendiliğinden odaklanılmaz.
+  void _odakla() {
+    if (hedef != null || _aci(k.yaw - _yaw0).abs() < 0.3) return; // belirgin bir dönüş olmalı (~17°)
+    var en = -1;
+    var ea = 0.3; // ~17° içindeki ağaçlar
+    for (final a in agaclar) {
+      final d = Offset(a.x - k.x, a.z - k.z).distance;
+      if (d < 1.5 || d > 12) continue;
+      if ((onu(a.idx) - Offset(k.x, k.z)).distance < 0.4) return; // zaten karşısında
+      final fark = _aci(math.atan2(a.x - k.x, a.z - k.z) - k.yaw).abs();
+      if (fark < ea) {
+        ea = fark;
+        en = a.idx;
+      }
+    }
+    if (en >= 0) _git(onu(en), agac: en);
   }
 
   void _tik(Duration e) {
@@ -261,7 +283,9 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
       final fark = istek == null ? 0.0 : _aci(istek - k.yaw);
       k.yaw = _aci(k.yaw + fark.clamp(-2.4 * dt, 2.4 * dt));
       if ((l <= 0.05 && fark.abs() < 0.01) || hedefSure > sureSiniri) {
+        final donustu = bakHedef != null && hedefIdx < 0;
         hedef = null;
+        if (donustu) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _odakla() : null);
       } else {
         devam = true;
       }
@@ -286,10 +310,12 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
   }
 
   void _dokun(Offset e) {
+    // ağaca dokunmak yalnızca karşısındayken (odaklıyken) sayfayı açar; yürürken yanlışlıkla ağaca gidilmez.
+    // Ağaca yönelmek için ona doğru dönmek yeter (bkz. _odakla).
+    final yk = yakinAgac;
     for (final c in cizim.reversed) {
-      // en yakından başla
       final r = c.r, ic = Rect.fromLTRB(r.left + r.width * 0.12, r.top + r.height * 0.15, r.right - r.width * 0.12, r.bottom);
-      if (ic.contains(e)) {
+      if (ic.contains(e) && c.s.idx == yk && hedef == null) {
         _sec(c.s.idx);
         return;
       }
@@ -298,7 +324,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     if (y != null) {
       // ağacın dibine dokunduysa karşısındaki duruş yerine git (ağaç ekranı kaplamasın, etiketler düzgün dursun)
       for (final a in agaclar) {
-        if ((y - Offset(a.x, a.z)).distance < 3.0) {
+        if ((y - Offset(a.x, a.z)).distance < 1.2) {
           _git(onu(a.idx), agac: a.idx);
           return;
         }
@@ -406,13 +432,20 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
             behavior: HitTestBehavior.opaque,
             onTapUp: (g) => _dokun(g.localPosition),
             // tek parmak: yana kaydırınca dönülür (dünyayı tutup çevirir gibi); iki parmak: yakınlaş / uzaklaş
+            onScaleEnd: (d) {
+              if (!_ikiParmak) _odakla();
+              _ikiParmak = false;
+            },
             onScaleStart: (_) {
               hedef = null;
+              _ikiParmak = false;
+              _yaw0 = k.yaw;
               _ipucuGoruldu = true;
               zumBas = k.zum;
             },
             onScaleUpdate: (g) => setState(() {
               if (g.pointerCount >= 2) {
+                _ikiParmak = true;
                 k.zum = (zumBas * g.scale).clamp(0.8, 3.0);
               } else {
                 k.yaw = _aci(k.yaw - g.focalPointDelta.dx / F);
@@ -605,6 +638,8 @@ class _Ayar {
   final Color gokUst, gokAlt, uzak, orta, koruA, koruB, sis, zeminTon, cimTon;
   final double bulut, cimOran, golge;
   final bool yildiz, deniz, tarh, kir, dere, cim, piramit;
+  final String siluet; // ufuk yapıları: '' | 'cami' | 'kale' | 'dag' | 'mesa' | 'orman'
+  final Color? zemRenk; // zemin dokusunun rengini bu tona çevirir (parlaklık korunur): kum, taş...
   final String cit; // 'cit' (beyaz çit) | 'ahsap' (kırsal ahşap çit) | 'tas' (alçak taş duvar) | 'yok'
   const _Ayar({
     this.gokUst = const Color(0xFF5FA6DE),
@@ -626,6 +661,8 @@ class _Ayar {
     this.dere = false,
     this.cim = true,
     this.piramit = false,
+    this.siluet = '',
+    this.zemRenk,
     this.cit = 'cit',
   });
 }
@@ -634,28 +671,28 @@ const _ayarlar = <String, _Ayar>{
   'kus': _Ayar(cit: 'tas', dere: true),
   'cayir': _Ayar(kir: true),
   // 6. cüz: kıssalardaki hayvanlar — gür orman
-  'orman': _Ayar(gokUst: Color(0xFF7FB3A6), gokAlt: Color(0xFFDCEBD0), uzak: Color(0xFF9DBBA0), orta: Color(0xFF6E9873), koruA: Color(0xFF4F7F55), koruB: Color(0xFF2F5E3C), sis: Color(0xFF96BEA0), zeminTon: Color(0xFFB4D6A6), bulut: 0.6, cit: 'ahsap', tarh: false),
+  'orman': _Ayar(gokUst: Color(0xFF7FB3A6), gokAlt: Color(0xFFDCEBD0), uzak: Color(0xFF9DBBA0), orta: Color(0xFF6E9873), koruA: Color(0xFF4F7F55), koruB: Color(0xFF2F5E3C), sis: Color(0xFF96BEA0), zeminTon: Color(0xFFB4D6A6), bulut: 0.6, cit: 'ahsap', tarh: false, siluet: 'orman'),
   // 7. cüz: gök cisimleri — gece göğü, sabit yıldızlar ve hilal
   'gok': _Ayar(gokUst: Color(0xFF080C2E), gokAlt: Color(0xFF4A4682), uzak: Color(0xFF2A2E5C), orta: Color(0xFF1F2448), koruA: Color(0xFF161B38), koruB: Color(0xFF0E1228), sis: Color(0xFF28306A), zeminTon: Color(0xFF5C6AA6), cimTon: Color(0xFF1A2448), cimOran: 0.75, bulut: 0, golge: 0.3, yildiz: true, tarh: false, cit: 'tas'),
   // 8. cüz: sürü hayvanları — sabah otlağı
   'otlak': _Ayar(gokUst: Color(0xFF6FB1E6), gokAlt: Color(0xFFFCE9C0), uzak: Color(0xFFC9C79F), orta: Color(0xFFA9B97C), koruA: Color(0xFF86A55C), koruB: Color(0xFF5F8A42), sis: Color(0xFFD6D6AA), zeminTon: Color(0xFFFFF0C8), kir: true, tarh: false, cit: 'ahsap'),
   // 9. ve 12. cüz: mekânlar, Yûsuf — çöl ve kayalık vadi
-  'col': _Ayar(gokUst: Color(0xFF7AB6E6), gokAlt: Color(0xFFF6E2BE), uzak: Color(0xFFD8B98F), orta: Color(0xFFC49A6B), koruA: Color(0xFFB07E52), koruB: Color(0xFF93663F), sis: Color(0xFFE8C896), zeminTon: Color(0xFFE8C99A), cimTon: Color(0xFFC9A56A), cimOran: 0.75, bulut: 0.5, tarh: false, cit: 'tas'),
+  'col': _Ayar(gokUst: Color(0xFF7AB6E6), gokAlt: Color(0xFFF6E2BE), uzak: Color(0xFFD8B98F), orta: Color(0xFFC49A6B), koruA: Color(0xFFB07E52), koruB: Color(0xFF93663F), sis: Color(0xFFE8C896), zeminTon: Color(0xFFE8C99A), cimTon: Color(0xFFC9A56A), cimOran: 0.75, bulut: 0.5, tarh: false, cit: 'tas', siluet: 'mesa', zemRenk: Color(0xFFD9B070)),
   // 10. cüz: atlar — altın başaklı ova
   'ova': _Ayar(gokUst: Color(0xFF5FA3E0), gokAlt: Color(0xFFE8F1F2), uzak: Color(0xFFB8C9A6), orta: Color(0xFFC8BB7C), koruA: Color(0xFFB9A25E), koruB: Color(0xFF92823E), sis: Color(0xFFDCD2A0), zeminTon: Color(0xFFF2E3A0), cimTon: Color(0xFFD9C46E), cimOran: 0.55, bulut: 0.8, tarh: false, cit: 'ahsap'),
   // 11. cüz: deniz canlıları — kumsal ve açık deniz
-  'sahil': _Ayar(gokUst: Color(0xFF4FA8E8), gokAlt: Color(0xFFDFF1F7), uzak: Color(0xFF5AB0D0), orta: Color(0xFF2F8FB8), sis: Color(0xFFBEE1EB), zeminTon: Color(0xFFF3E6C0), cimTon: Color(0xFFE9D6A4), cimOran: 0.9, deniz: true, tarh: false, cit: 'ahsap'),
+  'sahil': _Ayar(gokUst: Color(0xFF4FA8E8), gokAlt: Color(0xFFDFF1F7), uzak: Color(0xFF5AB0D0), orta: Color(0xFF2F8FB8), sis: Color(0xFFBEE1EB), zeminTon: Color(0xFFF3E6C0), cimTon: Color(0xFFE9D6A4), cimOran: 0.9, deniz: true, tarh: false, cit: 'ahsap', zemRenk: Color(0xFFF0DEA6)),
   // 13. cüz: su ve hava olayları — bulutlu vadi, dereler
-  'vadi': _Ayar(gokUst: Color(0xFF5E7389), gokAlt: Color(0xFFB8C6CF), uzak: Color(0xFF8FA3AD), orta: Color(0xFF6F8A8F), koruA: Color(0xFF4E6F6A), koruB: Color(0xFF365A55), sis: Color(0xFFA0B4B9), zeminTon: Color(0xFFB9CCB0), bulut: 1.5, dere: true, tarh: false, cit: 'tas'),
+  'vadi': _Ayar(gokUst: Color(0xFF5E7389), gokAlt: Color(0xFFB8C6CF), uzak: Color(0xFF8FA3AD), orta: Color(0xFF6F8A8F), koruA: Color(0xFF4E6F6A), koruB: Color(0xFF365A55), sis: Color(0xFFA0B4B9), zeminTon: Color(0xFFB9CCB0), bulut: 1.5, dere: true, tarh: false, cit: 'tas', siluet: 'dag'),
   // 14. cüz: Nahl'in nimetleri — bal rengi sabah çayırı
   'nahl': _Ayar(gokUst: Color(0xFF69B0E4), gokAlt: Color(0xFFFFEFC8), uzak: Color(0xFFC6CFA6), orta: Color(0xFFA6BF7E), koruA: Color(0xFF86A85E), koruB: Color(0xFF5F8A42), sis: Color(0xFFD8DDB0), zeminTon: Color(0xFFFFF3CC), kir: true),
   // 15. cüz: Kehf ve İsrâ — dağ eteği, şafak
-  'dag': _Ayar(gokUst: Color(0xFF7C9DC8), gokAlt: Color(0xFFF3D8C4), uzak: Color(0xFFA9A3B5), orta: Color(0xFF8A8590), koruA: Color(0xFF6D6F6A), koruB: Color(0xFF55584F), sis: Color(0xFFBEB9C8), zeminTon: Color(0xFFCFC9B4), cimTon: Color(0xFF9A9A7A), cimOran: 0.5, tarh: false, cit: 'tas'),
+  'dag': _Ayar(gokUst: Color(0xFF7C9DC8), gokAlt: Color(0xFFF3D8C4), uzak: Color(0xFFA9A3B5), orta: Color(0xFF8A8590), koruA: Color(0xFF6D6F6A), koruB: Color(0xFF55584F), sis: Color(0xFFBEB9C8), zeminTon: Color(0xFFCFC9B4), cimTon: Color(0xFF9A9A7A), cimOran: 0.5, tarh: false, cit: 'tas', siluet: 'dag', zemRenk: Color(0xFFB4AC9C)),
   // 12. cüz: Yûsuf'un Mısır'ı — piramitler, dikilitaş, hurma ve kum tepeleri (hepsi sabit)
-  'misir': _Ayar(gokUst: Color(0xFF6FB0E4), gokAlt: Color(0xFFFBE6BC), uzak: Color(0xFFE2C79A), orta: Color(0xFFD2AA72), koruA: Color(0xFFC79B62), koruB: Color(0xFFAE814B), sis: Color(0xFFEBD0A0), zeminTon: Color(0xFFEBCF9C), cimTon: Color(0xFFD2AE70), cimOran: 0.75, bulut: 0.3, tarh: false, piramit: true, cit: 'tas'),
+  'misir': _Ayar(gokUst: Color(0xFF6FB0E4), gokAlt: Color(0xFFFBE6BC), uzak: Color(0xFFE2C79A), orta: Color(0xFFD2AA72), koruA: Color(0xFFC79B62), koruB: Color(0xFFAE814B), sis: Color(0xFFEBD0A0), zeminTon: Color(0xFFEBCF9C), cimTon: Color(0xFFD2AE70), cimOran: 0.75, bulut: 0.3, tarh: false, piramit: true, cit: 'tas', zemRenk: Color(0xFFD9B070)),
   // 16–30. cüzler: avlu (cami/medeniyet), kale (sur ve kuleler), cennet (bahçe, sular)
-  'avlu': _Ayar(gokUst: Color(0xFF6FA6D6), gokAlt: Color(0xFFFBEBCB), uzak: Color(0xFFD9C9A6), orta: Color(0xFFC9B68E), koruA: Color(0xFFB09F78), koruB: Color(0xFF8E7E5C), sis: Color(0xFFE6D6B0), zeminTon: Color(0xFFE4D6B4), cimTon: Color(0xFFD8C9A0), cimOran: 0.8, bulut: 0.4, tarh: false, cit: 'tas'),
-  'kale': _Ayar(gokUst: Color(0xFF7592BC), gokAlt: Color(0xFFF0DEC2), uzak: Color(0xFFB4A89A), orta: Color(0xFF9A8D7E), koruA: Color(0xFF7E715F), koruB: Color(0xFF5F5445), sis: Color(0xFFD2C5B0), zeminTon: Color(0xFFD9CDB2), cimTon: Color(0xFF8F8466), cimOran: 0.7, bulut: 0.5, tarh: false, cit: 'tas'),
+  'avlu': _Ayar(gokUst: Color(0xFF6FA6D6), gokAlt: Color(0xFFFBEBCB), uzak: Color(0xFFD9C9A6), orta: Color(0xFFC9B68E), koruA: Color(0xFFB09F78), koruB: Color(0xFF8E7E5C), sis: Color(0xFFE6D6B0), zeminTon: Color(0xFFE4D6B4), cimTon: Color(0xFFD8C9A0), cimOran: 0.8, bulut: 0.4, tarh: false, cit: 'tas', siluet: 'cami', zemRenk: Color(0xFFD2C4A0)),
+  'kale': _Ayar(gokUst: Color(0xFF7592BC), gokAlt: Color(0xFFF0DEC2), uzak: Color(0xFFB4A89A), orta: Color(0xFF9A8D7E), koruA: Color(0xFF7E715F), koruB: Color(0xFF5F5445), sis: Color(0xFFD2C5B0), zeminTon: Color(0xFFD9CDB2), cimTon: Color(0xFF8F8466), cimOran: 0.7, bulut: 0.5, tarh: false, cit: 'tas', siluet: 'kale', zemRenk: Color(0xFFB8AC96)),
   'cennet': _Ayar(gokUst: Color(0xFF58B4EA), gokAlt: Color(0xFFFFF6D6), uzak: Color(0xFFBFE0B8), orta: Color(0xFF8FD08A), koruA: Color(0xFF5FB86A), koruB: Color(0xFF3C9A52), sis: Color(0xFFD2EFC4), zeminTon: Color(0xFFD8F4C0), kir: true, dere: true, tarh: false, cit: 'yok'),
 };
 
@@ -874,6 +911,38 @@ class _Dunya extends CustomPainter {
         ufukCiz((t) => 3.5, ay.orta);
       } else {
         ufukCiz((t) => 34 + 16 * math.sin(3 * t) + 9 * math.sin(7 * t + 1) + 4 * math.sin(13 * t + 2), ay.uzak);
+        // konsepte göre ufuk yapıları (hepsi gökte sabit yönlerde; yalnızca bakış yönüyle kayar)
+        if (ay.siluet == 'dag') {
+          ufukCiz((t) => 40 + 85 * (1 - math.sin(2.1 * t + 0.5).abs()) * (0.65 + 0.35 * math.sin(5 * t + 1)), ay.uzak);
+          ufukCiz((t) => 22 + 48 * (1 - math.sin(3.3 * t + 2).abs()) * (0.6 + 0.4 * math.sin(7 * t)), ay.orta);
+        } else if (ay.siluet == 'mesa') {
+          ufukCiz((t) => 26 + 58 * math.min(1.0, math.max(0.0, 6 * (math.sin(2.2 * t + 1) - 0.55))), Color.lerp(ay.uzak, const Color(0xFFB07048), 0.5)!);
+          ufukCiz((t) => 20 + 36 * math.min(1.0, math.max(0.0, 6 * (math.sin(3.4 * t + 4) - 0.6))), Color.lerp(ay.orta, const Color(0xFFA0623C), 0.4)!);
+        } else if (ay.siluet == 'kale') {
+          ufukCiz((t) => 44, Color.lerp(ay.uzak, const Color(0xFF6F6454), 0.35)!);
+          for (var i = 0; i < 9; i++) {
+            final az = (i / 9) * 2 * math.pi - math.pi + 0.2, da = _aci(az - k.yaw);
+            if (da.abs() > 1.4) continue;
+            final cx = W / 2 + f * math.tan(da), hw = f * 0.028, taban = yH - 40 * olc, tepe = taban - f * (0.11 + 0.05 * _h(i, 1, 421));
+            final govde = Color.lerp(ay.uzak, const Color(0xFF6F6454), 0.5)!;
+            c.drawRect(Rect.fromLTRB(cx - hw, tepe, cx + hw, taban + 8 * olc), Paint()..color = govde);
+            for (var j = 0; j < 3; j++) {
+              c.drawRect(Rect.fromLTWH(cx - hw + j * hw * 0.78, tepe - hw * 0.45, hw * 0.44, hw * 0.45), Paint()..color = govde);
+            }
+          }
+        } else if (ay.siluet == 'cami') {
+          for (var i = 0; i < 8; i++) {
+            final az = (i / 8) * 2 * math.pi - math.pi + 0.3 * _h(i, 2, 422), da = _aci(az - k.yaw);
+            if (da.abs() > 1.4) continue;
+            final cx = W / 2 + f * math.tan(da), hw = f * (0.05 + 0.03 * _h(i, 3, 423)), taban = yH - 6 * olc;
+            final govde = const Color(0xFFD9C8A2), kubbe = const Color(0xFFB9A57F);
+            c.drawRect(Rect.fromLTRB(cx - hw, taban - hw * 0.9, cx + hw, taban + 4 * olc), Paint()..color = govde);
+            c.drawArc(Rect.fromCenter(center: Offset(cx, taban - hw * 0.9), width: hw * 1.7, height: hw * 1.7), math.pi, math.pi, true, Paint()..color = kubbe);
+            final mx = cx + hw * 1.25, mh = hw * 3.0, mw = hw * 0.16;
+            c.drawRect(Rect.fromLTRB(mx - mw, taban - mh, mx + mw, taban + 4 * olc), Paint()..color = govde);
+            c.drawPath(Path()..moveTo(mx - mw * 1.6, taban - mh)..lineTo(mx, taban - mh - hw * 0.7)..lineTo(mx + mw * 1.6, taban - mh)..close(), Paint()..color = kubbe);
+          }
+        }
         if (ay.piramit) {
           // uzakta sabit piramitler ve dikilitaş: gökte sabit yönlerde, yalnızca bakış yönüyle kayar
           void piramit(double az, double yarim, Color aydin, Color golge) {
@@ -919,6 +988,15 @@ class _Dunya extends CustomPainter {
           }
         }
         ufukCiz((t) => 6 + 4 * math.sin(6 * t + 1.3), ay.koruB);
+      } else if (!ay.deniz && ay.siluet == 'orman') {
+        // sık çam sıraları (uzaktaki açık, yakındaki koyu)
+        double cam(double t, double sik, double ph) {
+          final fr = (t * sik / (2 * math.pi) + ph) % 1.0;
+          return 1 - (2 * fr - 1).abs();
+        }
+
+        ufukCiz((t) => 22 + 34 * cam(t, 61, 0.2) + 10 * math.sin(3 * t), ay.koruA);
+        ufukCiz((t) => 12 + 30 * cam(t, 83, 0.6) + 6 * math.sin(5 * t + 1), ay.koruB);
       } else if (!ay.deniz) {
         ufukCiz((t) => koru(t, 37, 61, 0.5) + 14, ay.koruA);
         ufukCiz((t) => koru(t, 53, 89, 1.3), ay.koruB);
@@ -981,7 +1059,7 @@ class _Dunya extends CustomPainter {
       }
       }
 
-      if (ay.piramit) c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = const Color(0xFFD9B070)..blendMode = BlendMode.color); // çim dokusu kuma döner (parlaklık korunur)
+      if (ay.zemRenk != null) c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = ay.zemRenk!..blendMode = BlendMode.color); // çim dokusu kum/taşa döner (parlaklık korunur)
       if (ay.zeminTon.a > 0) c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = ay.zeminTon..blendMode = BlendMode.multiply); // konsepte göre zemin rengi
 
       if (ay.dere) {
