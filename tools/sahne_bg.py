@@ -33,6 +33,7 @@ PALET = {
     'dag': ('26263F', 'F6CCAA', '5C5C56', '1C1C20', 'FFE2CC', '3A3A46', 'dag', False),
     'avlu': ('24405E', 'F7DDB0', '9C8C6A', '463C2A', 'FFEBC4', '6C6048', 'sehir', False),
     'kale': ('2E3E5C', 'EDD2A8', '7C6E58', '342C20', 'FFE2B8', '4C4434', 'sur', False),
+    'misir': ('2E3F66', 'FAD9A0', 'B58A55', '4A3220', 'FFE4B0', '8A6238', 'piramit', False),
     'cennet': ('1F5C8E', 'FFF0C0', '4F9A46', '1A4E28', 'FFF6CC', '3A7E40', 'tepe', False),
 }
 
@@ -93,6 +94,16 @@ def siluet(w, h, yh, tur, rnd, col, olc):
                 d.rectangle([mx - 4 * olc, yh - mh, mx + 4 * olc, yh + 6], fill=255)
                 d.polygon([(mx - 6 * olc, yh - mh), (mx, yh - mh - 30 * olc), (mx + 6 * olc, yh - mh)], fill=255)
             x += bw + rnd.uniform(0, 30) * olc
+        d.rectangle([0, yh - 4, w, h], fill=255)
+    elif tur == 'piramit':
+        pts = [(0, h)]
+        for x in range(0, w + 8, 8):
+            pts.append((x, yh - 14 * olc - 40 * olc * (math.sin(x / w * 6.0 + 1) * 0.5 + 0.5 * math.sin(x / w * 15))))
+        pts.append((w, h))
+        d.polygon(pts, fill=255)
+        for cx, hw in ((0.28, 150), (0.62, 230), (0.86, 100)):
+            cx *= w; hw *= olc
+            d.polygon([(cx - hw, yh), (cx, yh - hw * 0.95), (cx + hw, yh)], fill=255)
         d.rectangle([0, yh - 4, w, h], fill=255)
     elif tur == 'sur':
         d.rectangle([0, yh - 40 * olc, w, h], fill=255)

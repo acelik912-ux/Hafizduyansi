@@ -120,7 +120,7 @@ class Bahce3B extends StatefulWidget {
   final List<Sayfa> pages;
   final String? Function(int) agac;
   final String Function(int) ad; // ağaç / maden adı
-  final String sahne; // 'bahce' | 'magara' | 'kus' | 'cayir' | 'orman' | 'gok' | 'otlak' | 'col' | 'ova' | 'sahil' | 'vadi' | 'nahl' | 'dag' | 'avlu' | 'kale' | 'cennet' (bkz. _ayarlar)
+  final String sahne; // 'bahce' | 'magara' | 'kus' | 'cayir' | 'orman' | 'gok' | 'otlak' | 'col' | 'ova' | 'sahil' | 'vadi' | 'nahl' | 'dag' | 'avlu' | 'kale' | 'cennet' | 'misir' (bkz. _ayarlar)
   final String birim; // 'ağaç' | 'maden'
   final double W, H;
   final EdgeInsets pad;
@@ -548,7 +548,7 @@ class _Levha extends StatelessWidget {
 class _Ayar {
   final Color gokUst, gokAlt, uzak, orta, koruA, koruB, sis, zeminTon, cimTon;
   final double bulut, cimOran, golge;
-  final bool yildiz, deniz, tarh, kir, dere, cim;
+  final bool yildiz, deniz, tarh, kir, dere, cim, piramit;
   final String cit; // 'cit' (beyaz çit) | 'ahsap' (kırsal ahşap çit) | 'tas' (alçak taş duvar) | 'yok'
   const _Ayar({
     this.gokUst = const Color(0xFF5FA6DE),
@@ -569,6 +569,7 @@ class _Ayar {
     this.kir = false,
     this.dere = false,
     this.cim = true,
+    this.piramit = false,
     this.cit = 'cit',
   });
 }
@@ -594,6 +595,8 @@ const _ayarlar = <String, _Ayar>{
   'nahl': _Ayar(gokUst: Color(0xFF69B0E4), gokAlt: Color(0xFFFFEFC8), uzak: Color(0xFFC6CFA6), orta: Color(0xFFA6BF7E), koruA: Color(0xFF86A85E), koruB: Color(0xFF5F8A42), sis: Color(0xFFD8DDB0), zeminTon: Color(0xFFFFF3CC), kir: true),
   // 15. cüz: Kehf ve İsrâ — dağ eteği, şafak
   'dag': _Ayar(gokUst: Color(0xFF7C9DC8), gokAlt: Color(0xFFF3D8C4), uzak: Color(0xFFA9A3B5), orta: Color(0xFF8A8590), koruA: Color(0xFF6D6F6A), koruB: Color(0xFF55584F), sis: Color(0xFFBEB9C8), zeminTon: Color(0xFFCFC9B4), cimTon: Color(0xFF9A9A7A), cimOran: 0.5, tarh: false, cit: 'tas'),
+  // 12. cüz: Yûsuf'un Mısır'ı — piramitler, dikilitaş, hurma ve kum tepeleri (hepsi sabit)
+  'misir': _Ayar(gokUst: Color(0xFF6FB0E4), gokAlt: Color(0xFFFBE6BC), uzak: Color(0xFFE2C79A), orta: Color(0xFFD2AA72), koruA: Color(0xFFC79B62), koruB: Color(0xFFAE814B), sis: Color(0xFFEBD0A0), zeminTon: Color(0xFFEBCF9C), cimTon: Color(0xFFD2AE70), cimOran: 0.75, bulut: 0.3, tarh: false, piramit: true, cit: 'tas'),
   // 16–30. cüzler: avlu (cami/medeniyet), kale (sur ve kuleler), cennet (bahçe, sular)
   'avlu': _Ayar(gokUst: Color(0xFF6FA6D6), gokAlt: Color(0xFFFBEBCB), uzak: Color(0xFFD9C9A6), orta: Color(0xFFC9B68E), koruA: Color(0xFFB09F78), koruB: Color(0xFF8E7E5C), sis: Color(0xFFE6D6B0), zeminTon: Color(0xFFE4D6B4), cimTon: Color(0xFFD8C9A0), cimOran: 0.8, bulut: 0.4, tarh: false, cit: 'tas'),
   'kale': _Ayar(gokUst: Color(0xFF7592BC), gokAlt: Color(0xFFF0DEC2), uzak: Color(0xFFB4A89A), orta: Color(0xFF9A8D7E), koruA: Color(0xFF7E715F), koruB: Color(0xFF5F5445), sis: Color(0xFFD2C5B0), zeminTon: Color(0xFFD9CDB2), cimTon: Color(0xFF8F8466), cimOran: 0.7, bulut: 0.5, tarh: false, cit: 'tas'),
@@ -815,6 +818,27 @@ class _Dunya extends CustomPainter {
         ufukCiz((t) => 3.5, ay.orta);
       } else {
         ufukCiz((t) => 34 + 16 * math.sin(3 * t) + 9 * math.sin(7 * t + 1) + 4 * math.sin(13 * t + 2), ay.uzak);
+        if (ay.piramit) {
+          // uzakta sabit piramitler ve dikilitaş: gökte sabit yönlerde, yalnızca bakış yönüyle kayar
+          void piramit(double az, double yarim, Color aydin, Color golge) {
+            final da = _aci(az - k.yaw);
+            if (da.abs() > 1.4) return;
+            final cx = W / 2 + f * math.tan(da), hw = f * math.tan(yarim), taban = yH - 8 * olc, tepe = taban - hw * 0.95;
+            c.drawPath(Path()..moveTo(cx - hw, taban)..lineTo(cx, tepe)..lineTo(cx, taban)..close(), Paint()..color = aydin);
+            c.drawPath(Path()..moveTo(cx, tepe)..lineTo(cx + hw, taban)..lineTo(cx, taban)..close(), Paint()..color = golge);
+          }
+
+          const aydin = Color(0xFFEBCB92), golge = Color(0xFFC9A06A);
+          for (final q in const [(0.45, 0.17), (0.95, 0.11), (0.12, 0.075), (-1.7, 0.14), (2.45, 0.16), (-2.75, 0.09), (1.9, 0.06)]) {
+            piramit(q.$1, q.$2, aydin, golge);
+          }
+          final dd = _aci(-0.85 - k.yaw);
+          if (dd.abs() < 1.4) {
+            // dikilitaş
+            final cx = W / 2 + f * math.tan(dd), hw = f * 0.012, taban = yH - 8 * olc, tepe = taban - f * 0.22;
+            c.drawPath(Path()..moveTo(cx - hw, taban)..lineTo(cx - hw * 0.7, tepe + hw * 2.2)..lineTo(cx, tepe)..lineTo(cx + hw * 0.7, tepe + hw * 2.2)..lineTo(cx + hw, taban)..close(), Paint()..color = const Color(0xFFD8B27A));
+          }
+        }
         ufukCiz((t) => 20 + 10 * math.sin(2 * t + 2) + 6 * math.sin(9 * t), ay.orta);
       }
       double koru(double t, int a, int b, double ph) {
@@ -823,7 +847,23 @@ class _Dunya extends CustomPainter {
       }
 
       // çitin ötesi: iki kat sık koru (uzaktaki açık, yakındaki koyu)
-      if (!ay.deniz) {
+      if (!ay.deniz && ay.piramit) {
+        // çitin ötesi: alçak kum tepeleri ve sabit hurma ağaçları
+        ufukCiz((t) => 12 + 7 * math.sin(4 * t + 0.5) + 4 * math.sin(11 * t), ay.koruA);
+        for (var i = 0; i < 26; i++) {
+          final az = (i / 26) * 2 * math.pi - math.pi + 0.07 * math.sin(i * 7.0), da = _aci(az - k.yaw);
+          if (da.abs() > 1.4) continue;
+          final cx = W / 2 + f * math.tan(da), boy = (46 + 22 * _h(i, 1, 411)) * olc, taban = yH - 3 * olc, tepe = taban - boy;
+          final yaprak = Paint()..color = const Color(0xFF4E6B33)..style = PaintingStyle.stroke..strokeWidth = 2.2 * olc..strokeCap = StrokeCap.round;
+          c.drawLine(Offset(cx, taban), Offset(cx + 2 * olc, tepe), Paint()..color = const Color(0xFF6B4A2B)..strokeWidth = 3 * olc);
+          for (var j = 0; j < 7; j++) {
+            final an = -math.pi + (j + 0.5) * math.pi / 7, ux = math.cos(an), uy = math.sin(an);
+            final uc = Offset(cx + 2 * olc, tepe);
+            c.drawPath(Path()..moveTo(uc.dx, uc.dy)..quadraticBezierTo(uc.dx + ux * 14 * olc, uc.dy + uy * 16 * olc - 4 * olc, uc.dx + ux * 24 * olc, uc.dy + uy * 10 * olc + 12 * olc), yaprak);
+          }
+        }
+        ufukCiz((t) => 6 + 4 * math.sin(6 * t + 1.3), ay.koruB);
+      } else if (!ay.deniz) {
         ufukCiz((t) => koru(t, 37, 61, 0.5) + 14, ay.koruA);
         ufukCiz((t) => koru(t, 53, 89, 1.3), ay.koruB);
       }

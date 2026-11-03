@@ -39,7 +39,14 @@ def main():
     eski = b''.join(open(f, 'rb').read() for f in sorted(glob.glob(os.path.join(bundle, 'theme12.p*'))))
     ez = zipfile.ZipFile(io.BytesIO(eski))
     proje = json.loads(ez.read('project.json'))
-    bgler = {n: ez.read(n) for n in ez.namelist() if n.startswith('bg/')}
+    # arka planlar: tools/sahne_bg.py misir (piramitli çöl) -> bg/misir_sayfa.jpg, bg/misir_kemer.jpg
+    import subprocess, tempfile
+    gecici = tempfile.mkdtemp()
+    subprocess.check_call([sys.executable, os.path.join(KOK, 'tools', 'sahne_bg.py'), gecici, 'misir'])
+    bgler = {'bg/misir_sayfa.jpg': open(os.path.join(gecici, 'misir_sayfa.jpg'), 'rb').read(),
+             'bg/misir_kemer.jpg': open(os.path.join(gecici, 'misir_kemer.jpg'), 'rb').read()}
+    proje['sahne'] = 'misir'
+    proje['ui'] = {'bgGarden': 'misir_sayfa.jpg', 'bgForest': 'misir_sayfa.jpg', 'bgPage': 'misir_sayfa.jpg', 'bgAyet': 'misir_kemer.jpg'}
     proje.update({'name': 'Hûd ve Yûsuf (12. Cüz)', 'tanim': 'Hûd ve Yûsuf kıssaları', 'birim': 'nişan', 'trees': {}})
     resimler, ikonlar = [], []
     for i, (ad, md, yuk) in enumerate(ESYALAR):

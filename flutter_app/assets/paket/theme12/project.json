@@ -3,15 +3,15 @@
  "kind": "theme",
  "cuz": 12,
  "name": "Hûd ve Yûsuf (12. Cüz)",
- "sahne": "col",
+ "sahne": "misir",
  "ek": "",
  "birim": "nişan",
  "tanim": "Hûd ve Yûsuf kıssaları",
  "ui": {
-  "bgGarden": "col_sayfa.jpg",
-  "bgForest": "col_sayfa.jpg",
-  "bgPage": "col_sayfa.jpg",
-  "bgAyet": "col_kemer.jpg"
+  "bgGarden": "misir_sayfa.jpg",
+  "bgForest": "misir_sayfa.jpg",
+  "bgPage": "misir_sayfa.jpg",
+  "bgAyet": "misir_kemer.jpg"
  },
  "trees": {
   "1": {
