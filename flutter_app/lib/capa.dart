@@ -58,7 +58,7 @@ Future<String?> capaSor(BuildContext context, {String mevcut = ''}) {
         decoration: InputDecoration(
           hintText: 'Bir emoji ya da kısa not',
           hintStyle: ts(R.sub, 15, FontWeight.w400),
-          helperText: 'Klavyendeki emojileri kullanabilirsin',
+          helperText: 'Emoji de yazabilirsin',
           helperStyle: ts(R.sub, 12, FontWeight.w400),
         ),
         onSubmitted: (v) => Navigator.pop(c, v.trim()),
