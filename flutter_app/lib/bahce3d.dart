@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import 'capa.dart';
 import 'ortak.dart';
 import 'veri.dart';
 
@@ -162,6 +163,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
   Duration son = Duration.zero;
   double zumBas = 1;
   List<_Cizim> cizim = [];
+  List<Capa> capalar = [];
 
   int get n => widget.pages.length;
   double get zSon => 3 + ((n + 1) ~/ 2 - 1) * _aralik;
@@ -173,6 +175,9 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    CapaDeposu.yukle(widget.kimlik).then((l) {
+      if (mounted) setState(() => capalar = l);
+    });
     for (var i = 0; i < n; i++) {
       final p = agacPos(i);
       agaclar.add(_Agac(widget.agac(i), p.dx, p.dy, i));
@@ -304,6 +309,42 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     }
   }
 
+  Future<void> _capaBirak() async {
+    final t = await capaSor(context);
+    if (t == null || t.isEmpty || !mounted) return;
+    // bulunulan yerin biraz önüne, görüş yönünde
+    final x = k.x + math.sin(k.yaw) * 2.2, z = k.z + math.cos(k.yaw) * 2.2;
+    setState(() => capalar = [...capalar, Capa(x, z, t)]);
+    CapaDeposu.kaydet(widget.kimlik, capalar);
+  }
+
+  Future<void> _capaDuzenle(int i) async {
+    final t = await capaSor(context, mevcut: capalar[i].metin);
+    if (t == null || !mounted) return;
+    setState(() {
+      final l = [...capalar];
+      if (t.isEmpty) {
+        l.removeAt(i);
+      } else {
+        l[i] = Capa(l[i].x, l[i].z, t);
+      }
+      capalar = l;
+    });
+    CapaDeposu.kaydet(widget.kimlik, capalar);
+  }
+
+  List<Widget> _capaWidgetleri() {
+    final out = <Widget>[];
+    for (var i = 0; i < capalar.length; i++) {
+      final cp = capalar[i], c = kamera(cp.x, cp.z), d = c.dy;
+      if (d < 0.6 || d > 30) continue;
+      final x = widget.W / 2 + c.dx / d * F, y = ufuk + (_goz - 1.1) / d * F;
+      if (x < -40 || x > widget.W + 40 || y < widget.pad.top + 60 || y > widget.H - widget.pad.bottom - 20) continue;
+      out.add(Positioned(left: x - 60, top: y - 24, width: 120, child: Center(child: CapaDugme(metin: cp.metin, onTap: () => _capaDuzenle(i)))));
+    }
+    return out;
+  }
+
   List<_Cizim> _sahne() {
     final W = widget.W, f = F, yH = ufuk, out = <_Cizim>[];
     for (final s in agaclar) {
@@ -381,7 +422,22 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
           ),
         ),
         ...levhalar,
+        ..._capaWidgetleri(),
         ...ayetler,
+        if (yk < 0)
+          Positioned(
+            left: 12,
+            bottom: pad.bottom + 14,
+            child: Bas(
+              onTap: _capaBirak,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: const Color(0xCC1B2236), shape: BoxShape.circle, border: Border.all(color: R.gold, width: 1.5)),
+                child: const Center(child: Text('📌', style: TextStyle(fontSize: 20))),
+              ),
+            ),
+          ),
         if (!hazir) const Center(child: CircularProgressIndicator(color: Colors.white)),
         Positioned(
           right: 12,
