@@ -828,8 +828,8 @@ class _Dunya extends CustomPainter {
             c.drawPath(Path()..moveTo(cx, tepe)..lineTo(cx + hw, taban)..lineTo(cx, taban)..close(), Paint()..color = golge);
           }
 
-          const aydin = Color(0xFFEBCB92), golge = Color(0xFFC9A06A);
-          for (final q in const [(0.45, 0.17), (0.95, 0.11), (0.12, 0.075), (-1.7, 0.14), (2.45, 0.16), (-2.75, 0.09), (1.9, 0.06)]) {
+          const aydin = Color(0xFFF2D49A), golge = Color(0xFFBB8F5C);
+          for (final q in const [(0.45, 0.27), (1.0, 0.17), (0.1, 0.12), (-1.7, 0.22), (2.45, 0.25), (-2.75, 0.15), (1.9, 0.1)]) {
             piramit(q.$1, q.$2, aydin, golge);
           }
           final dd = _aci(-0.85 - k.yaw);
@@ -925,6 +925,7 @@ class _Dunya extends CustomPainter {
       }
       }
 
+      if (ay.piramit) c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = const Color(0xFFD9B070)..blendMode = BlendMode.color); // çim dokusu kuma döner (parlaklık korunur)
       if (ay.zeminTon.a > 0) c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = ay.zeminTon..blendMode = BlendMode.multiply); // konsepte göre zemin rengi
 
       if (ay.dere) {
