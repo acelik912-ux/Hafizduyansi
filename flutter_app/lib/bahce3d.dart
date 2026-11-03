@@ -1059,8 +1059,12 @@ class _Dunya extends CustomPainter {
       }
       }
 
-      if (ay.zemRenk != null) c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = ay.zemRenk!..blendMode = BlendMode.color); // çim dokusu kum/taşa döner (parlaklık korunur)
-      if (ay.zeminTon.a > 0) c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = ay.zeminTon..blendMode = BlendMode.multiply); // konsepte göre zemin rengi
+      if (ay.zemRenk != null) {
+        // çim dokusu kum/taşa döner: önce renk (doku ayrıntısı korunur), sonra aynı tonla açılır (koyu yeşilin çamurlaşmaması için)
+        c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = ay.zemRenk!..blendMode = BlendMode.color);
+        c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = ay.zemRenk!.withValues(alpha: 0.42));
+      }
+      if (ay.zeminTon.a > 0 && ay.zemRenk == null) c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..color = ay.zeminTon..blendMode = BlendMode.multiply); // konsepte göre zemin rengi
 
       if (ay.dere) {
         // 3. cüz: duvarın önünde iki yanda sabit dere (taş kenarlı); su hareket etmez
