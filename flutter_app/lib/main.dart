@@ -3,6 +3,7 @@
 //  Sekmeler: Bugün · Cüzler · Ayarlar. Cüz okuyucu (bahçe → ağaç → ayet) tam ekran açılır.
 //  Gömülü paketler: assets/paket/<ad>/ (tools/flutter_varlik.py ile bundle/ parçalarından açılır).
 // ============================================================================
+import 'capa.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -121,9 +122,9 @@ class _KokState extends State<Kok> {
     }
 
     final sayfalar = [
-      Bugun(key: ValueKey('bugun$_rev$profilAdi'), depo: d, profilAdi: profilAdi, onOpen: _cuzAc, onProfil: () => setState(() => sekme = 2)),
-      Cuzler(depo: d, onOpen: _cuzAc),
-      Ayarlar(profilAdi: profilAdi, onAd: adKaydet),
+      CapaKatman(anahtar: 'sekme_bugun', child: Bugun(key: ValueKey('bugun$_rev$profilAdi'), depo: d, profilAdi: profilAdi, onOpen: _cuzAc, onProfil: () => setState(() => sekme = 2))),
+      CapaKatman(anahtar: 'sekme_cuzler', child: Cuzler(depo: d, onOpen: _cuzAc)),
+      CapaKatman(anahtar: 'sekme_ayarlar', child: Ayarlar(profilAdi: profilAdi, onAd: adKaydet)),
     ];
     return Scaffold(
       body: IndexedStack(index: sekme, children: sayfalar),
