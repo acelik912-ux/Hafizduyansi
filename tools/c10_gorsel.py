@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""10. cüz (Enfâl 8:41 – Tevbe 9:93) görsellerini kullanıcının görsellerinden kurar (theme10: sahil sahnesi). Yeniden çizmez;
+"""10. cüz (Enfâl 8:41 – Tevbe 9:93) görsellerini kullanıcının görsellerinden kurar (theme10: vadi sahnesi). Yeniden çizmez;
 yalnız beyaz zemini siler, boyutlandırır ve yerleştirir. Arka planlar (bg/) mevcut theme10 paketinden korunur.
 
     python3 tools/c10_gorsel.py [onizleme_klasoru]   # tools/c10_kaynak/NN_ad.png -> bundle/theme10.pNN
@@ -21,26 +21,26 @@ import kus_gorsel as kg
 KAYNAK = os.path.join(KOK, 'tools', 'c10_kaynak')
 # (ad, kip, md, yük)
 ESYALAR = [
-    ('Somon', 'balik', 1000, 90),
-    ('Balina', 'bulut', 1050, 120),
-    ('Yunus', 'bulut', 1000, 130),
-    ('Istakoz', 'bacak', 950, 0),
-    ('Ahtapot', 'bulut', 1000, 40),
-    ('Yengeç', 'bulut', 950, 0),
-    ('Deniz Yıldızı', 'bulut', 800, 0),
-    ('Deniz Kaplumbağası', 'balik', 1000, 80),
-    ('Deniz Atı', 'bulut', 950, 60),
-    ('Denizanası', 'bulut', 900, 90),
-    ('Köpekbalığı', 'balik', 1050, 110),
-    ('Vatoz', 'bulut', 900, 60),
-    ('Palyaço Balığı', 'bulut', 800, 70),
-    ('Deniz Kestanesi', 'kestane', 700, 0),
-    ('Yılan Balığı', 'bulut', 950, 20),
-    ('Penguen', 'bulut', 1000, 0),
-    ('Deniz Aslanı', 'bulut', 950, 0),
-    ('Dövüş Balığı', 'bulut', 750, 80),
-    ('Yelkenli Balık', 'bulut', 1050, 100),
-    ('Fener Balığı', 'bulut', 850, 80),
+    ('Zeytinyağı', 'bacak', 800, 0),
+    ('Kuyu', 'bulut', 1000, 0),
+    ('Arşimet Vidası', 'bulut', 1000, 0),
+    ('Füzyon Reaktörü', 'bulut', 900, 0),
+    ('Kızgın Kömür', 'kor', 750, 0),
+    ('Elektrik Motoru', 'motor', 850, 0),
+    ('Jeneratör', 'bulut', 800, 0),
+    ('Lazer', 'bacak', 950, 60),
+    ('Sarkıt Lamba', 'isik', 950, 140),
+    ('Deniz Feneri', 'bulut', 950, 0),
+    ('Doğalgaz Ocağı', 'bulut', 800, 0),
+    ('Petrol Pompası', 'bulut', 1000, 0),
+    ('Pil', 'bulut', 800, 0),
+    ('Bağdat Pili', 'bulut', 800, 0),
+    ('Tesla Bobini', 'simsek', 1000, 0),
+    ('Güneş Paneli', 'bulut', 1000, 0),
+    ('Orak ve Buğday', 'balik', 950, 0),
+    ('Değirmen Taşı', 'bulut', 950, 0),
+    ('Rüzgâr Türbini', 'buz', 1200, 0),
+    ('Su Değirmeni', 'bulut', 1000, 0),
 ]
 ADLAR = [e[0] for e in ESYALAR]
 
@@ -176,7 +176,31 @@ def kucuk_sil(im):
     return Image.fromarray(a, 'RGBA')
 
 
+def koyu_govde(im):
+    """koyu nesne + açık gri zemin gölgesi: gölge, koyu gövdenin (genişletilmiş, delikleri doldurulmuş) dışında kalan açık gri pikseller olarak silinir"""
+    im = mg.beyaz_sil(im, golge=True)
+    a = np.asarray(im).copy()
+    rgb = a[..., :3].astype(np.float32)
+    mn, mx = rgb.min(axis=2), rgb.max(axis=2)
+    koyu = (mn < 90) & (a[..., 3] > 200)
+    koyu = ndi.binary_dilation(koyu, iterations=4)
+    koyu = ndi.binary_fill_holes(koyu)
+    gol = (mn >= 110) & (mx - mn < 25) & ~koyu
+    a[..., 3] = np.where(gol, 0, a[..., 3])
+    return kucuk_sil(Image.fromarray(a, 'RGBA'))
+
+
 def isle(im, kip):
+    if kip == 'motor':
+        return koyu_govde(im)
+    if kip == 'kor':
+        return parla(im, 1.2, cekirdek=False)
+    if kip == 'isik':
+        r = np.asarray(parla(im, 1.15, cekirdek=False, renk=(255, 246, 215))).copy()
+        r[..., 3] = np.where(r[..., 3] < 30, 0, r[..., 3])  # parıltının zayıf halka izleri
+        return Image.fromarray(r, 'RGBA')
+    if kip == 'simsek':
+        return parla(im, 1.6, cekirdek=True, renk=(245, 235, 255))
     if kip == 'balik':
         return kucuk_sil(mg.beyaz_sil(im, golge=True))
     if kip == 'kestane':
@@ -227,6 +251,8 @@ def main():
     proje = json.loads(ez.read('project.json'))
     bgler = {n: ez.read(n) for n in ez.namelist() if n.startswith('bg/')}
     proje['trees'] = {}
+    proje['name'] = 'Enerji ve Emek (10. Cüz)'
+    proje['tanim'] = 'enerji ve emek'
     resimler, ikonlar = [], []
     for i, (ad, kip, md, yuk) in enumerate(ESYALAR):
         yol = kaynak_yolu(i)
