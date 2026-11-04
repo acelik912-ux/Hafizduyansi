@@ -113,3 +113,10 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 ## 10. ve 11. CÜZ TAKASI (4 Kasım 2026)
 - Kullanıcı: Yûnus sûresi 11. cüzde olduğu için 11. cüz deniz olsun. Bu yüzden temalar takas edildi: **theme10 = Enerji ve Emek** (zeytinyağı, kuyu, pil, değirmen, türbin…; sahne `vadi`), **theme11 = Deniz Canlıları** (sahne `sahil`). Kaynak klasörler/betikler de takas: `tools/c10_kaynak`+`c10_gorsel.py` enerji, `tools/c11_kaynak`+`c11_gorsel.py` deniz. Bilgi kartları ad ile eşleştiği için aynen geçerli.
 - Yedek: `yedek-takas-oncesi` dalı. Gerçek cihazda denenmedi.
+
+
+## 18. CÜZ – CAMİLER, kullanıcı görselleriyle (4 Kasım 2026)
+- Yedek: `yedek-cuz18-oncesi` dalı. Kullanıcının 20 cami görseli `tools/c18_kaynak/NN_ad.jpg` (JPEG, beyaz zeminli) → `python3 tools/c18_gorsel.py [önizleme]` (kip `buz`: yalnız saf beyaz kenardan silinir; beyaz mermer camiler yenmesin) → `python3 tools/flutter_varlik.py`.
+- Sıra: Ayasofya, Sultanahmet Camii, Süleymaniye Camii, Tuğla Cami, Balıklıgöl, Kubbetüssahra, İsfahan Cuma Camii, Delhi Cuma Camii, Diyarbakır Ulu Cami, Divriği Ulu Cami, Bursa Ulu Cami, Emevî Camii, Djenné Camii, Mescid-i Nebevî, Kubâ Mescidi, Mescid-i Harâm, Şadırvanlı Külliye, Samarra Camii, Kurtuba Camii, Selçuklu Ulu Cami. **Emin olunmayan tanımlar:** 04 Tuğla Cami, 05 Balıklıgöl, 07 İsfahan, 17 Şadırvanlı Külliye, 20 Selçuklu Ulu (kullanıcı doğrulasın/adlandırsın; Tuğla ve Şadırvanlı kartları genel metindir).
+- Cami içi 3B (`cami3d.dart`): plan artık `_sira` dizisiyle seçilir (cüzdeki sıra → en yakın mevcut iç mekân planı; birebir iç mekân yalnız Ayasofya, Sultanahmet, Süleymaniye, Kubbetüssahra, Bursa Ulu, Nebevî, Kubâ, Harâm, Kurtuba için). Diğerleri benzer plan kullanır.
+- CI doğrulandı (web derlemesi + `?c=18` ekran görüntüsü). Gerçek cihazda denenmedi, APK alınmadı.
