@@ -27,7 +27,7 @@ jobs:
           git config user.name "ekran-bot"; git config user.email "bot@example.com"
           git checkout --orphan ekran-sonuc
           git rm -rf --cached . >/dev/null 2>&1 || true
-          cp shots/*.png /tmp/ 2>/dev/null || true; cp /tmp/c8_*.png . 2>/dev/null || true
-          git add c8_*.png analiz.txt derleme.txt
+          cp shots/*.png /tmp/ 2>/dev/null || true; cp /tmp/c9_*.png . 2>/dev/null || true
+          git add c9_*.png analiz.txt derleme.txt
           git commit -qm "ekran görüntüleri $GITHUB_RUN_NUMBER"
           git push -f origin ekran-sonuc
