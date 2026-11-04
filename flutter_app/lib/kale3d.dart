@@ -435,11 +435,44 @@ class _KaleIciState extends State<KaleIci> with SingleTickerProviderStateMixin {
     ]);
   }
 
+  // uzaktaki numaralı yuvarlaklar üst üste binmesin: ekranda birbirinden iter (kısa, tek seferlik hesap)
+  Map<int, Offset> _yuvarlakYerleri(Size size) {
+    final ayat = widget.page.ayat, nok = sahne.ayetNok;
+    final idx = <int>[], pos = <Offset>[];
+    for (var j = 0; j < ayat.length; j++) {
+      final p = nok[j % nok.length];
+      final q = j < nok.length ? p : _V(p.x, p.y + 1.6 * (j ~/ nok.length), p.z);
+      final c = _kam(q);
+      if (c.z < 0.8 || c.z > 90) continue;
+      if (math.sqrt(c.x * c.x + c.y * c.y + c.z * c.z) <= 24) continue;
+      idx.add(j);
+      pos.add(_ekran(c, size));
+    }
+    const min = 44.0;
+    for (var it = 0; it < 40; it++) {
+      var degisti = false;
+      for (var a = 0; a < pos.length; a++) {
+        for (var b = a + 1; b < pos.length; b++) {
+          final d = pos[b] - pos[a], l = d.distance;
+          if (l < min) {
+            final u = l < 0.01 ? const Offset(0, 1) : d / l, k = (min - l) / 2;
+            pos[a] -= u * k;
+            pos[b] += u * k;
+            degisti = true;
+          }
+        }
+      }
+      if (!degisti) break;
+    }
+    return {for (var i = 0; i < idx.length; i++) idx[i]: pos[i]};
+  }
+
   List<Widget> _ayetBaslari(Size size) {
     final ayat = widget.page.ayat, out = <Widget>[];
     if (widget.page.kind != 'ayat' || ayat.isEmpty) return out;
     final nok = sahne.ayetNok;
     final cizilen = <Rect>[];
+    final yer = _yuvarlakYerleri(size);
     for (var j = 0; j < ayat.length; j++) {
       final p = nok[j % nok.length];
       final q = j < nok.length ? p : _V(p.x, p.y + 1.6 * (j ~/ nok.length), p.z);
@@ -447,10 +480,11 @@ class _KaleIciState extends State<KaleIci> with SingleTickerProviderStateMixin {
       if (c.z < 0.8 || c.z > 90) continue;
       final o = _ekran(c, size);
       final renk = j % 5, src = widget.meyve(renk);
-      final uzak = c.z > 20; // uzakta yalnızca numaralı yuvarlak: hepsi tek bakışta görünür
+      final mesafe = math.sqrt(c.x * c.x + c.y * c.y + c.z * c.z);
+      final uzak = mesafe > 24; // uzakta yalnızca numaralı yuvarlak: hepsi tek bakışta görünür
       if (uzak) {
         const fd = 38.0;
-        final r = Rect.fromCenter(center: o, width: fd + 6, height: fd + 6);
+        final r = Rect.fromCenter(center: yer[j] ?? o, width: fd + 6, height: fd + 6);
         if (r.right < 0 || r.left > size.width || r.bottom < 0 || r.top > size.height) continue;
         out.add(
           Positioned(
@@ -487,7 +521,7 @@ class _KaleIciState extends State<KaleIci> with SingleTickerProviderStateMixin {
         );
         continue;
       }
-      final olc = (20.0 / c.z).clamp(0.9, 1.6);
+      final olc = (24.0 / mesafe).clamp(0.9, 1.6);
       final w = 150.0 * olc, h = 38.0 * olc;
       final r = Rect.fromCenter(center: o, width: w + h + 30, height: h);
       if (r.right < 0 || r.left > size.width || r.bottom < 0 || r.top > size.height) continue;
