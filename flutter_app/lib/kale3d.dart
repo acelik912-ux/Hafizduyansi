@@ -254,7 +254,6 @@ class _KaleIciState extends State<KaleIci> with SingleTickerProviderStateMixin {
     super.initState();
     zum = _zum0;
   }
-  }
 
   @override
   void dispose() {
