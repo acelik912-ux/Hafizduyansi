@@ -17,29 +17,29 @@ import kus_gorsel as kg
 KAYNAK = os.path.join(KOK, 'tools', 'c05_kaynak')
 # (ad, md, yük)
 ESYALAR = [
-    ('Maydanoz', 950, 0),
-    ('Havuç', 1000, 0),
-    ('Pancar', 1000, 0),
-    ('Pirinç', 950, 0),
-    ('Kabak', 950, 0),
-    ('Böğürtlen', 1000, 0),
     ('Buğday', 950, 0),
     ('Mercimek', 950, 0),
     ('Sarımsak', 900, 0),
     ('Soğan', 900, 0),
-    ('Bezelye', 1000, 0),
+    ('Salatalık', 1000, 0),
     ('Nohut', 1000, 0),
+    ('Fasulye', 1000, 0),
+    ('Pirinç', 950, 0),
+    ('Havuç', 1000, 0),
+    ('Pancar', 1000, 0),
+    ('Patates', 1000, 0),
+    ('Maydanoz', 950, 0),
     ('Hardal', 1000, 0),
+    ('Kabak', 950, 0),
     ('Balkabağı', 950, 0),
-    ('Zencefil', 1000, 0),
     ('Patlıcan', 1000, 0),
     ('Domates', 1000, 0),
-    ('Salatalık', 1000, 0),
     ('Biber', 1000, 0),
-    ('Patates', 1000, 0),
+    ('Zencefil', 1000, 0),
+    ('Böğürtlen', 1000, 0),
 ]
 # açık/beyaz nesneler (pirinç, mercimek, sarımsak, soğan, buğday, zencefil): yalnız kenardan beyaz silinir; bitkilerde yaprak arası boşluklar da silinir
-BEYAZ = {4, 8, 9, 10, 15}
+BEYAZ = {2, 3, 4, 8, 19}
 ADLAR = [e[0] for e in ESYALAR]
 
 
