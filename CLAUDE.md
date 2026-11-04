@@ -108,3 +108,8 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Açık: cüz 19, 27, 29, 30'da bazı sayfalarda ayet çok (20+); 3B'de ayet başları sıkışık. Camiler/kaleler vb. çizimlerinin bir kısmı zayıf; kullanıcı Canva'dan/kendi illüstrasyonuyla değiştirecek (`tools/*_gorsel.py` yolu). Kullanıcı cami içi 3B sahne (mihrap/minber, minarede ayet) istedi: yapılmadı.
 - Kullanıcı Canva Bileşenler'den seçip indirip yükleyecek (Canva MCP'si Bileşenler'e erişemez, dışa aktarımı sandbox'tan indirilemez). Cüz 5 için 20 sayfalık Canva şablonu hazırlandı (DAHZRfmS3O8).
 - 28 Ekim: cüz 5–13'te benzer görseller değiştirildi (Arpa, Harman, yeşil/kuru yedi başak, bulut tipleri, Dolu, kandil) — `benzer-gorseller` dalı.
+
+
+## 10. ve 11. CÜZ TAKASI (4 Kasım 2026)
+- Kullanıcı: Yûnus sûresi 11. cüzde olduğu için 11. cüz deniz olsun. Bu yüzden temalar takas edildi: **theme10 = Enerji ve Emek** (zeytinyağı, kuyu, pil, değirmen, türbin…; sahne `vadi`), **theme11 = Deniz Canlıları** (sahne `sahil`). Kaynak klasörler/betikler de takas: `tools/c10_kaynak`+`c10_gorsel.py` enerji, `tools/c11_kaynak`+`c11_gorsel.py` deniz. Bilgi kartları ad ile eşleştiği için aynen geçerli.
+- Yedek: `yedek-takas-oncesi` dalı. Gerçek cihazda denenmedi.

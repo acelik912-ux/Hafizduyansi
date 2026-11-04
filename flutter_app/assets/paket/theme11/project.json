@@ -2,137 +2,137 @@
  "version": 7,
  "kind": "theme",
  "cuz": 11,
- "name": "Enerji ve Emek (11. Cüz)",
- "sahne": "vadi",
+ "name": "Deniz Canlıları (11. Cüz)",
+ "sahne": "sahil",
  "ek": "",
- "birim": "nimet",
- "tanim": "enerji ve emek",
+ "birim": "canlı",
+ "tanim": "deniz canlıları",
  "ui": {
-  "bgGarden": "vadi_sayfa.jpg",
-  "bgForest": "vadi_sayfa.jpg",
-  "bgPage": "vadi_sayfa.jpg",
-  "bgAyet": "vadi_kemer.jpg"
+  "bgGarden": "sahil_sayfa.jpg",
+  "bgForest": "sahil_sayfa.jpg",
+  "bgPage": "sahil_sayfa.jpg",
+  "bgAyet": "sahil_kemer.jpg"
  },
  "trees": {
   "1": {
    "file": "c11_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Zeytinyağı"
+   "name": "Somon"
   },
   "2": {
    "file": "c11_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kuyu"
+   "name": "Balina"
   },
   "3": {
    "file": "c11_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Arşimet Vidası"
+   "name": "Yunus"
   },
   "4": {
    "file": "c11_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Füzyon Reaktörü"
+   "name": "Istakoz"
   },
   "5": {
    "file": "c11_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kızgın Kömür"
+   "name": "Ahtapot"
   },
   "6": {
    "file": "c11_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Elektrik Motoru"
+   "name": "Yengeç"
   },
   "7": {
    "file": "c11_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Jeneratör"
+   "name": "Deniz Yıldızı"
   },
   "8": {
    "file": "c11_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Lazer"
+   "name": "Deniz Kaplumbağası"
   },
   "9": {
    "file": "c11_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sarkıt Lamba"
+   "name": "Deniz Atı"
   },
   "10": {
    "file": "c11_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Deniz Feneri"
+   "name": "Denizanası"
   },
   "11": {
    "file": "c11_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Doğalgaz Ocağı"
+   "name": "Köpekbalığı"
   },
   "12": {
    "file": "c11_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Petrol Pompası"
+   "name": "Vatoz"
   },
   "13": {
    "file": "c11_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Pil"
+   "name": "Palyaço Balığı"
   },
   "14": {
    "file": "c11_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Bağdat Pili"
+   "name": "Deniz Kestanesi"
   },
   "15": {
    "file": "c11_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Tesla Bobini"
+   "name": "Yılan Balığı"
   },
   "16": {
    "file": "c11_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Güneş Paneli"
+   "name": "Penguen"
   },
   "17": {
    "file": "c11_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Orak ve Buğday"
+   "name": "Deniz Aslanı"
   },
   "18": {
    "file": "c11_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Değirmen Taşı"
+   "name": "Dövüş Balığı"
   },
   "19": {
    "file": "c11_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Rüzgâr Türbini"
+   "name": "Yelkenli Balık"
   },
   "20": {
    "file": "c11_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Su Değirmeni"
+   "name": "Fener Balığı"
   }
  }
 }
