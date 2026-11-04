@@ -4,7 +4,7 @@ out = sys.argv[1]; os.makedirs(out, exist_ok=True)
 URLS = {}
 for ic in [0,4,11]:
     URLS['k%02d_a' % ic] = '?c=15&ic=%d' % ic
-    URLS['k%02d_b' % ic] = '?c=15&ic=%d&x=7&z=7&y=2.3&yw=1' % ic
+    URLS['k%02d_b' % ic] = '?c=15&ic=%d&x=-4&z=-2&y=0&yw=1' % ic
     URLS['k%02d_c' % ic] = '?c=15&ic=%d&x=0&z=3&y=0.3&yw=1' % ic
 with sync_playwright() as p:
     b = p.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl'])

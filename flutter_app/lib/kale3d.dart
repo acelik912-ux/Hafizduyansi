@@ -234,19 +234,19 @@ class KaleIci extends StatefulWidget {
 class _KaleIciState extends State<KaleIci> with SingleTickerProviderStateMixin {
   late final _Sahne sahne = _Sahne(_renkler[widget.index.clamp(0, _renkler.length - 1)]);
   late final Ticker _t = createTicker(_tik);
-  static const double _geriZ = -24; // genel bakış: kapının epey gerisi
-  double kx = 0, kz = _geriZ, yaw = 0, pitch = -0.2, zum = 1.0, zumBas = 1.0;
+  static const double _geriZ = -20; // genel bakış: kapının epey gerisi
+  double kx = 0, kz = _geriZ, yaw = 0, pitch = -0.5, zum = 1.0, zumBas = 1.0;
   final List<Offset> yol = [];
   Duration _son = Duration.zero;
   bool ipucu = false;
   late double F = widget.H * 0.6;
 
-  double get _zum0 => (1.3 * widget.W / widget.H).clamp(0.6, 1.0);
+  double get _zum0 => (1.1 * widget.W / widget.H).clamp(0.5, 1.0);
 
   // yaklaştıkça göz alçalır: uzaktan her şey görünsün, yakında ayrıntı
   double get goz {
-    final t = ((kz - _geriZ) / 28).clamp(0.0, 1.0);
-    return 11.0 - 7.5 * t;
+    final t = ((kz - _geriZ) / 24).clamp(0.0, 1.0);
+    return 15.0 - 11.5 * t;
   }
 
   @override
@@ -296,7 +296,7 @@ class _KaleIciState extends State<KaleIci> with SingleTickerProviderStateMixin {
     final disaridaHedef = tz < -0.5;
     if (disaridaHedef) {
       tx = tx.clamp(-_L - 6, _L + 6);
-      tz = tz.clamp(-26.0, -1.5);
+      tz = tz.clamp(-22.0, -1.5);
     } else {
       tx = tx.clamp(-_L + 1.2, _L - 1.2);
       tz = tz.clamp(1.2, _D - 1.4);
@@ -350,7 +350,7 @@ class _KaleIciState extends State<KaleIci> with SingleTickerProviderStateMixin {
     setState(() {
       _git(0, _geriZ);
       yaw = 0;
-      pitch = -0.2;
+      pitch = -0.5;
       zum = _zum0;
     });
   }
