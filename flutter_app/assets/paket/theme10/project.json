@@ -18,13 +18,13 @@
    "file": "c10_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Balina (Hût)"
+   "name": "Somon"
   },
   "2": {
    "file": "c10_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Balık (Nûn)"
+   "name": "Balina"
   },
   "3": {
    "file": "c10_03.png",
@@ -36,31 +36,31 @@
    "file": "c10_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Karides"
+   "name": "Istakoz"
   },
   "5": {
    "file": "c10_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yengeç"
+   "name": "Ahtapot"
   },
   "6": {
    "file": "c10_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ahtapot"
+   "name": "Yengeç"
   },
   "7": {
    "file": "c10_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Deniz Kaplumbağası"
+   "name": "Deniz Yıldızı"
   },
   "8": {
    "file": "c10_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Deniz Yıldızı"
+   "name": "Deniz Kaplumbağası"
   },
   "9": {
    "file": "c10_09.png",
@@ -84,55 +84,55 @@
    "file": "c10_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "İstiridye"
+   "name": "Vatoz"
   },
   "13": {
    "file": "c10_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Midye"
+   "name": "Palyaço Balığı"
   },
   "14": {
    "file": "c10_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Deniz Kabuğu"
+   "name": "Deniz Kestanesi"
   },
   "15": {
    "file": "c10_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mercan"
+   "name": "Yılan Balığı"
   },
   "16": {
    "file": "c10_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Vatoz"
+   "name": "Penguen"
   },
   "17": {
    "file": "c10_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gemi (Fülk)"
+   "name": "Deniz Aslanı"
   },
   "18": {
    "file": "c10_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Çıpa"
+   "name": "Dövüş Balığı"
   },
   "19": {
    "file": "c10_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Dalga"
+   "name": "Yelkenli Balık"
   },
   "20": {
    "file": "c10_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ada"
+   "name": "Fener Balığı"
   }
  }
 }

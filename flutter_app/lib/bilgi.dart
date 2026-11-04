@@ -262,6 +262,17 @@ const Map<String, List<String>> kBilgi = {
   'çıpa': ['Çıpa, geminin demir atmasını sağlayan ağır araçtır.', 'Denizin dibine tutunarak gemiyi sabit tutar.', 'Fırtınada geminin sürüklenmesini önler.'],
   'dalga': ['Hûd 11/42’de Nûh’un gemisi “dağlar gibi dalgalar arasında” akar; Lokman 31/32’de dalgalar “gölgelikler gibi” sarar.', 'Dalgalar rüzgârın suyu itmesiyle oluşur.', 'Kıyıya vurunca kırılır.'],
   '=ada': ['Ada, dört yanı suyla çevrili kara parçasıdır.', 'Kendine özgü bitki ve hayvanlara ev sahipliği yapar.', 'Denizcilere yön gösteren bir işaret olabilir.'],
+  // ---- 10. cüz (kullanıcı görselleri)
+  'somon': ['Somon, tatlı suda doğar, denizde büyür ve yumurtlamak için doğduğu ırmağa geri döner.', 'Akıntıya karşı yüzüp küçük şelaleleri aşar.', 'Nahl 16/14’te denizden taze et yemeniz için denizin size boyun eğdirildiği bildirilir.'],
+  'ıstakoz': ['Istakoz, sert kabuklu ve kıskaçlı bir deniz canlısıdır.', 'Büyüdükçe eski kabuğunu bırakıp yenisini oluşturur.', 'Nahl 16/14’te denizden taze et yenebileceği hatırlatılır.'],
+  'denizaslanı': ['Deniz aslanı balık değil, deniz memelisidir; hem karada hem suda rahat eder.', 'Kulak kepçesi vardır; fokların aksine ön yüzgeçlerinin üstünde de yürüyebilir.', 'Sürüler hâlinde kayalıklarda dinlenir.'],
+  'penguen': ['Penguen uçamayan bir kuştur; kanatları yüzgeç gibi çalışır.', 'Soğuk güney yarımküre kıyılarında yaşar; yoğun tüyleri onu sıcak tutar.', 'Suda hızlı yüzer, karada ise sürüyle birlikte yürür.'],
+  '=palyaçobalığı': ['Palyaço balığı, deniz anemonlarının dokunaçları arasında yaşar.', 'Anemonla birbirlerine yarar sağlayan bir ortaklık kurarlar.', 'Turuncu gövdesi ve beyaz şeritleriyle tanınır.'],
+  '=denizkestanesi': ['Deniz kestanesi dikenleriyle kayalıklarda ve deniz tabanında yaşayan omurgasız bir canlıdır.', 'Denizyıldızının akrabasıdır.', 'Dikenleri onu avcılardan korur; ayaklarını suyla çalıştırarak yavaşça ilerler.'],
+  'yılanbalığı': ['Yılan balığı, uzun ve ince gövdesiyle yılana benzeyen bir balıktır.', 'Kayalık oyuklarda saklanıp geceleri avlanır.', 'Gövdesini kıvırarak suda ilerler.'],
+  '=dövüşbalığı': ['Dövüş balığı (betta), Güneydoğu Asya’nın sığ sularında yaşar.', 'Erkeklerin uzun, renkli yüzgeçleri vardır; kendi bölgelerini savunurlar.', 'Havayı yüzeyden de soluyabilir.'],
+  'yelkenli': ['Yelkenli balık, sırtındaki yelken gibi geniş yüzgeciyle tanınır.', 'Denizlerin en hızlı yüzen balıklarındandır.', 'Uzun, sivri çenesiyle küçük balık sürülerini dağıtarak avlanır.'],
+  'fenerbalığı': ['Fener balığı, güneş ışığının ulaşmadığı derin denizlerde yaşar.', 'Başındaki ışıklı uzantıyla avını kendine çeker.', 'Nûr 24/40’ta “derin bir denizdeki karanlıklar”dan söz edilir.'],
   // ---- 11. cüz: su ve nimetleri
   'damla': ['Enbiyâ 21/30’da “her canlıyı sudan yarattık” buyrulur.', 'Bir su damlası milyarlarca su molekülünden oluşur.', 'Yağmur damlaları atmosferdeki su buharından doğar.'],
   'pınar': ['Bakara 2/60’ta Hz. Mûsâ’nın asasını taşa vurmasıyla on iki pınar fışkırdığı anlatılır.', 'Pınar, yer altı suyunun yeryüzüne çıktığı yerdir.', 'Pınar suyu yağmur ve kardan beslenir.'],
