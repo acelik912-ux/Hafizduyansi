@@ -18,73 +18,73 @@
    "file": "c05_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Maydanoz"
+   "name": "Buğday"
   },
   "2": {
    "file": "c05_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Havuç"
+   "name": "Mercimek"
   },
   "3": {
    "file": "c05_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Pancar"
+   "name": "Sarımsak"
   },
   "4": {
    "file": "c05_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Pirinç"
+   "name": "Soğan"
   },
   "5": {
    "file": "c05_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kabak"
+   "name": "Salatalık"
   },
   "6": {
    "file": "c05_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Böğürtlen"
+   "name": "Nohut"
   },
   "7": {
    "file": "c05_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Buğday"
+   "name": "Fasulye"
   },
   "8": {
    "file": "c05_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mercimek"
+   "name": "Pirinç"
   },
   "9": {
    "file": "c05_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sarımsak"
+   "name": "Havuç"
   },
   "10": {
    "file": "c05_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Soğan"
+   "name": "Pancar"
   },
   "11": {
    "file": "c05_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Bezelye"
+   "name": "Patates"
   },
   "12": {
    "file": "c05_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Nohut"
+   "name": "Maydanoz"
   },
   "13": {
    "file": "c05_13.png",
@@ -96,13 +96,13 @@
    "file": "c05_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Balkabağı"
+   "name": "Kabak"
   },
   "15": {
    "file": "c05_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Zencefil"
+   "name": "Balkabağı"
   },
   "16": {
    "file": "c05_16.png",
@@ -120,19 +120,19 @@
    "file": "c05_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Salatalık"
+   "name": "Biber"
   },
   "19": {
    "file": "c05_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Biber"
+   "name": "Zencefil"
   },
   "20": {
    "file": "c05_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Patates"
+   "name": "Böğürtlen"
   }
  }
 }
