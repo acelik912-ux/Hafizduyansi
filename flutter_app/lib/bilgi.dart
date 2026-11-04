@@ -162,6 +162,17 @@ const Map<String, List<String>> kBilgi = {
   '=gece': ['Leyl 92/1’de geceye yemin edilir; Yâsîn 36/37’de gecenin gündüzden sıyrılışı bir delil olarak anılır.', 'Gece, Dünya’nın Güneş’e dönük olmayan yüzünde yaşanır.', 'İsrâ 17/1’de Hz. Peygamber’in gece yolculuğu anlatılır.'],
   'kevkeb': ['Nûr 24/35’te nur, “inci gibi parlayan bir yıldız” gibi bir camın içindeki kandile benzetilir.', 'Dürrî, inci gibi parlayan anlamındadır.', 'Parlak yıldızlar gece yön bulmaya yarar.'],
   'yıldız': ['Nahl 16/16’da “yıldızla da yollarını bulurlar” buyrulur.', 'Yıldızlar, çok uzaktaki Güneş’lerdir; kendi ışıklarını üretirler.', 'Kutup Yıldızı kuzeyi gösterdiği için yolcuların rehberidir.'],
+  // ---- 7. cüz (kullanıcı görselleri): gezegenler, gök olayları
+  '=uranüs': ['Güneş’ten yedinci gezegendir; soluk mavi-yeşil bir buz devidir.', 'Yan yatık döner; kutupları sırayla onlarca yıl Güneş’e bakar.', 'İnce, soluk halkaları vardır; Kur’an’da adı geçmez, ama gökyüzünün genişliği üzerinde düşünmeye çağrılırız.'],
+  '=neptün': ['Güneş’ten en uzak gezegendir; derin mavi bir buz devidir.', 'Güneş sisteminin en şiddetli rüzgârları burada eser.', 'Güneşi bir kez dolanması yaklaşık 165 yıl sürer.'],
+  '=plüton': ['1930’da bulunan, Güneş’in çok uzağındaki buzlu bir cüce gezegendir.', 'Yüzeyinde kalp biçiminde açık renkli büyük bir buz ovası vardır.', 'Ay’dan bile küçüktür; 2006’da “cüce gezegen” sayıldı.'],
+  '=merkür': ['Güneş’e en yakın ve en küçük gezegendir.', 'Güneş’in çevresini yaklaşık 88 günde dolanır.', 'Yüzeyi Ay’a benzer; çarpma çukurlarıyla doludur.'],
+  '=galaksi': ['Galaksi; milyarlarca yıldızın, gazın ve tozun çekimle bir arada durduğu dev bir adadır.', 'Zâriyât 51/47’de “Göğü biz kudretimizle bina ettik ve şüphesiz biz onu genişletiriz” buyrulur.', 'Bizim galaksimiz Samanyolu’dur; bu görseldeki gibi sarmal kolları olan galaksiler vardır.'],
+  '=göktaşı': ['Uzaydan gelip atmosfere giren kaya ya da metal parçasıdır.', 'Sürtünmeyle yanıp parlar; gökte uzun bir ışık izi bırakır.', 'Hicr 15/18 ve Sâffât 37/10’da anılan “parlak alev (şihâb)” ile anlamca yakındır.'],
+  '=yağmurbulutu': ['Nûr 24/43’te Allah’ın bulutları sürüp birbirine ekleyip yığın hâline getirdiği, sonra aralarından yağmurun çıktığı anlatılır.', 'Yağmur bulutu, damlacıkları yağacak kadar büyüyüp ağırlaşmış bulutur.', 'Yağmur toprağa can verir; Ra‘d 13/12’de “ağır bulutlar” da anılır.'],
+  '=gökkuşağı': ['Güneş ışığı yağmur damlalarında kırılıp yansıyınca renklerine ayrılır ve gökkuşağı görünür.', 'Yedi renk sıralıdır: kırmızıdan mora.', 'Kur’an’da adı geçmez; bu görsel yağmur sonrası gökyüzü için konmuştur.'],
+  '=hortum': ['Hortum, bulutla yer arasında dönerek uzanan şiddetli bir hava sütunudur.', 'Dar bir şeritte çok güçlü yıkım yapabilir.', 'Kur’an’da adı geçmeyen bu doğa olayı, rüzgârın gücünü hatırlatır.'],
+  '=kartanesi': ['Kar taneleri, bulutlardaki su buharının donup altı kollu kristaller oluşturmasıyla doğar.', 'Her kar tanesinin biçimi birbirinden biraz farklıdır.', 'Kur’an’da kar anılmaz; yağmurla birlikte rahmetin bir hâli olarak düşünülebilir.'],
   // ---- 8. cüz: çiftlik hayvanları
   'deve': ['Gâşiye 88/17’de “develere bakmıyorlar mı, nasıl yaratılmış?” diye sorulur.', 'Hörgüçlerinde yağ depolar; günlerce susuz yürüyebilir.', 'Kalın kirpikleri ve burun kapakçıkları kum fırtınasında korur.'],
   'sığır': ['Bakara sûresinin adı, İsrâiloğulları’na kesmeleri emredilen sığırdan gelir (2/67-71).', 'Sütü, eti ve derisi için beslenir; çiftçinin yardımcısıdır.', 'Geviş getirir; midesi dört bölmelidir.'],

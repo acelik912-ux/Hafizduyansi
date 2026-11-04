@@ -30,37 +30,37 @@
    "file": "c07_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Dolunay"
+   "name": "Mars"
   },
   "4": {
    "file": "c07_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yıldız"
+   "name": "Dünya"
   },
   "5": {
    "file": "c07_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Şi'râ Yıldızı"
+   "name": "Venüs"
   },
   "6": {
    "file": "c07_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Târık Yıldızı"
+   "name": "Neptün"
   },
   "7": {
    "file": "c07_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Şihâb"
+   "name": "Jüpiter"
   },
   "8": {
    "file": "c07_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Dünya"
+   "name": "Uranüs"
   },
   "9": {
    "file": "c07_09.png",
@@ -72,67 +72,67 @@
    "file": "c07_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Jüpiter"
+   "name": "Merkür"
   },
   "11": {
    "file": "c07_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mars"
+   "name": "Plüton"
   },
   "12": {
    "file": "c07_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Venüs"
+   "name": "Galaksi"
   },
   "13": {
    "file": "c07_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Samanyolu"
+   "name": "Yıldız"
   },
   "14": {
    "file": "c07_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ay Tutulması"
+   "name": "Göktaşı"
   },
   "15": {
    "file": "c07_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Güneş Tutulması"
+   "name": "Bulut"
   },
   "16": {
    "file": "c07_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Burçlar"
+   "name": "Yağmur Bulutu"
   },
   "17": {
    "file": "c07_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yedi Kat Gök"
+   "name": "Şimşek"
   },
   "18": {
    "file": "c07_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Şafak"
+   "name": "Gökkuşağı"
   },
   "19": {
    "file": "c07_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gece"
+   "name": "Hortum"
   },
   "20": {
    "file": "c07_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kevkeb-i Dürrî"
+   "name": "Kar Tanesi"
   }
  }
 }
