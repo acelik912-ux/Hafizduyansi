@@ -253,6 +253,14 @@ class _KaleIciState extends State<KaleIci> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     zum = _zum0;
+    final q = Uri.base.queryParameters;
+    if (q['x'] != null) {
+      kx = double.parse(q['x']!);
+      kz = double.parse(q['z']!);
+      yaw = double.parse(q['y']!);
+      pitch = -0.05;
+      zum = 1.0;
+    }
   }
 
   @override
