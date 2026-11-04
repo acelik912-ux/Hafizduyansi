@@ -230,6 +230,17 @@ const Map<String, List<String>> kBilgi = {
   'kızılkayalar': ['Fâtır 35/27’de “dağlarda beyaz, kırmızı çizgiler ve simsiyah olanlar var” buyrulur.', 'Kayaların kırmızı rengi demir oksitten gelir.', 'Aynı dağda farklı renkler bir arada görülebilir.'],
   'zirve': ['Zirve, bir dağın en yüksek noktasıdır; yüksek yerlerde hava soğuk ve seyrektir.', 'Zirvelerde kar yaz boyu kalabilir.', 'Eriyen kar derelere ve ırmaklara kaynaklık eder.'],
   'patika': ['Beled 90/11-12’de insanın “sarp yokuşu” aşmaya çağrıldığı anlatılır.', 'Patika, yürüyerek oluşan dar yoldur.', 'Dağda patikayı izlemek yolcuyu doğru yere götürür.'],
+  // ---- 9. cüz (kullanıcı görselleri)
+  '=kehfmağarası': ['Kehf 18/9-26’da, inançlarını korumak için mağaraya sığınan gençlerin kıssası anlatılır.', 'Allah onları yıllarca uyuttu; uyandıklarında zamanın çok geçtiğini gördüler.', 'Sûre adını bu mağaradan alır.'],
+  '=nemrutdağı': ['Nemrut Dağı, Adıyaman’da yer alır; zirvesinde yapay bir taş yığını (tümülüs) vardır.', 'Eteklerindeki teraslarda büyük heykellerin kalıntıları durur.', 'Yüzyıllar boyu rüzgâr ve soğuk, taşları aşındırmıştır.'],
+  '=everest': ['Everest, deniz seviyesinden yaklaşık 8.850 metreyle yeryüzünün en yüksek zirvesidir.', 'Zirvesinde hava çok seyrektir; kar ve buz yıl boyu kalır.', 'Dağlar, yeryüzünü sarsıntıdan korumak için konmuş direkler gibidir (Nahl 16/15).'],
+  '=buzul': ['Buzullar, yağan karın yıllar içinde sıkışıp buza dönüşmesiyle oluşur.', 'Yeryüzündeki tatlı suyun büyük kısmı buzullarda durur.', 'Yazın eriyen buz, ırmakları besler.'],
+  '=kumtepesi': ['Kum tepeleri, rüzgârın kumu savurup yığmasıyla oluşur.', 'Rüzgâr değişince tepenin biçimi de değişir.', 'Çölde kum, yüzyıllar boyunca yer değiştirir.'],
+  '=peribacaları': ['Peri bacaları, yumuşak volkanik taşın yağmur ve rüzgârla yüzyıllar boyunca aşınmasından doğar.', 'Tepelerindeki sert kaya, altındaki kısmı korur; bu yüzden başlık gibi görünürler.', 'Kapadokya’da insanlar bu kayaları oyup evler yapmıştır.'],
+  '=pamukkale': ['Pamukkale, Denizli’dedir; “pamuk kale” anlamına gelir.', 'Kalsiyum bakımından zengin sıcak su akarken beyaz travertenler oluşturur.', 'Suyun yüzyıllarca bıraktığı kireç, bu havuzları şekillendirmiştir.'],
+  '=höyük': ['Höyük, üst üste kurulan yerleşimlerin yıkıntılarının yüzyıllar içinde yığılmasıyla oluşan yapay tepedir.', 'Arkeologlar katmanları kazarak geçmiş çağlardan haber toplar.', 'Kur’an, geçmiş milletlerin izlerini görmek için yeryüzünde gezmeyi öğütler (Rûm 30/9).'],
+  '=marianaçukuru': ['Mariana Çukuru, Pasifik’te yaklaşık 11 kilometre derinliğiyle bilinen en derin deniz çukurudur.', 'Dibinde basınç çok yüksektir ve ışık hiç ulaşmaz.', 'Okyanusun derinlikleri hâlâ az keşfedilmiştir.'],
+  '=yeryüzü': ['Allah yeri insanlara bir döşek ve dağları da direk kılmıştır (Nebe 78/6-7).', 'Yeryüzü; dağlar, denizler ve çöllerle çok çeşitli bir yaşam alanıdır.', 'Kur’an, insanı bu nimetlere bakıp şükretmeye çağırır.'],
   // ---- 10. cüz: deniz canlıları
   'balina': ['Sâffât 37/139-144’te Hz. Yûnus’un büyük bir balığın karnında kaldığı anlatılır; Enbiyâ 21/87’de “Zünnûn” diye anılır.', 'Balinalar balık değil, memelidir; akciğerle soluyup yavrularını sütle besler.', 'Mavi balina, bilinen en büyük canlıdır.'],
   'balık': ['Kalem 68/48’de Hz. Yûnus “balık sahibi” diye anılır; Kehf 18/61-63’te balığın denize yol aldığı anlatılır.', 'Solungaçlarıyla suyun oksijenini alır.', 'Yüzgeçleri yön ve denge sağlar.'],
