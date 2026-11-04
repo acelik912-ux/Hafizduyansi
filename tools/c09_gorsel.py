@@ -33,7 +33,7 @@ ESYALAR = [
     ('Everest', 'buz', 1050, 0),
     ('Buzul', 'buz', 950, 0),
     ('Dumanlı Volkan', 'dag', 1000, 0),
-    ('Lav Volkanı', 'dag', 950, 0),
+    ('Etna Yanardağı', 'dag', 950, 0),
     ('Kristal Mağarası', 'dag', 900, 0),
     ('Kum Tepesi', 'dag', 1050, 0),
     ('Peri Bacaları', 'dag', 1000, 0),
