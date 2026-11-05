@@ -120,3 +120,10 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Sıra: Ayasofya, Sultanahmet Camii, Süleymaniye Camii, Arap Camii (Galata), Somuncu Baba Camii (Darende), Kubbetüssahra, Kul Şerif Camii (Kazan), Delhi Cuma Camii, Diyarbakır Ulu Cami, Divriği Ulu Cami, Bursa Ulu Cami, Emevî Camii, Djenné Camii, Mescid-i Nebevî, Kubâ Mescidi, Mescid-i Harâm, Gâzi Hüsrev Bey Camii (Saraybosna), Samarra Camii, Kurtuba Camii, Alâeddin Camii (Konya). Kullanıcı 5 adı düzeltti (5 Nov): 04 Arap Camii, 05 Somuncu Baba, 07 Kul Şerif, 17 Gâzi Hüsrev Bey, 20 Alâeddin; kartlar buna göre yazıldı.
 - Cami içi 3B (`cami3d.dart`): plan artık `_sira` dizisiyle seçilir (cüzdeki sıra → en yakın mevcut iç mekân planı; birebir iç mekân yalnız Ayasofya, Sultanahmet, Süleymaniye, Kubbetüssahra, Bursa Ulu, Nebevî, Kubâ, Harâm, Kurtuba için). Diğerleri benzer plan kullanır.
 - CI doğrulandı (web derlemesi + `?c=18` ekran görüntüsü). Gerçek cihazda denenmedi, APK alınmadı.
+
+
+## 19. CÜZ – SARAYLAR, kullanıcı görselleriyle (5 Kasım 2026)
+- Yedek: `yedek-cuz19-oncesi` dalı. Eski 19. cüz (Caminin Parçaları, kodla çizilmiş) yerine geçti. Kullanıcının 20 saray görseli `tools/c19_kaynak/NN_ad.jpg` (JPEG, beyaz zeminli, altlarında kendi numaralı yazıları vardı) → `python3 tools/c19_gorsel.py [önizleme]` (kip `buz` + `kucuk_sil`: alttaki yazı ve kopuk parçalar, örn. Himeji'deki başıboş küçük yapı, silinir) → `python3 tools/flutter_varlik.py`. Sahne `avlu` (eskisi korundu), birim `saray`.
+- Kullanıcının numaraları karışıktı; sırayı ben kurdum: Elhamra, Topkapı, Dolmabahçe, Yıldız, Çırağan, İshak Paşa, Âli Kapı, Çehel Sütun, Şirvanşahlar, Lahor, Bahia, Azem, El Vatan, Yasak Şehir, Himeji, Schönbrunn, Buckingham, Pena, Neuschwanstein, Kremlin. **Yıldız ve Çırağan etiketsiz görsellerdi, görünüşe göre adlandırıldı (kullanıcı doğrulasın).**
+- Bilgi kartları `tools/bilgi_c19.txt` (eski cami parçası kartları kaldı, zararsız). İç mekân 3B sahnesi yok (yalnız 15 kale, 18 cami).
+- CI doğrulandı (web derlemesi + `?c=19` ekran görüntüsü). Gerçek cihazda denenmedi, APK alınmadı.
