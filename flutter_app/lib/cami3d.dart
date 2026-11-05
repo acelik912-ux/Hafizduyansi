@@ -129,9 +129,9 @@ const _planlar = <_Plan>[
   _Plan('Gâzi Hüsrev Bey', nx: 3, nz: 3, bw: 7.0, bd: 7.0, roofY: 9.0, spring: 5.5, yuvarlak: false, pr: 1.0, wallC: Color(0xFFF2E8CF), dadoC: Color(0xFF3F6E8C), pierC: Color(0xFFEADFC4), arcA: Color(0xFFF2E8CF), arcB: Color(0xFFC84A3A), ceilA: Color(0xFFF2E8CF), ceilB: Color(0xFF3F6E8C), cb: 1, hiExtra: 4.5, dh: 3.5, mainH: 0.75, segs: 24, domeA: Color(0xFFF2E8CF), domeB: Color(0xFFC84A3A), carpA: Color(0xFFA32A26), carpB: Color(0xFF7A1F1E), mihrapC: Color(0xFFF2E8CF), kandil: 10),
 ];
 
-// Cüzdeki cami sırası (Ayasofya, Sultanahmet, Süleymaniye, Tuğla Cami, Balıklıgöl, Kubbetüssahra, İsfahan, Delhi, Diyarbakır,
-// Divriği, Bursa Ulu, Emevî, Djenné, Nebevî, Kubâ, Harâm, Şadırvanlı Külliye, Samarra, Kurtuba, Selçuklu Ulu) -> en yakın iç mekân planı.
-const _sira = <int>[5, 8, 6, 9, 19, 3, 14, 17, 11, 15, 10, 2, 18, 1, 4, 0, 7, 13, 12, 16];
+// Cüzdeki cami sırası (Ayasofya, Sultanahmet, Süleymaniye, Arap Camii, Somuncu Baba, Kubbetüssahra, Kul Şerif, Delhi, Diyarbakır,
+// Divriği, Bursa Ulu, Emevî, Djenné, Nebevî, Kubâ, Harâm, Gâzi Hüsrev Bey, Samarra, Kurtuba, Alâeddin) -> en yakın iç mekân planı.
+const _sira = <int>[5, 8, 6, 16, 7, 3, 14, 17, 11, 15, 10, 2, 18, 1, 4, 0, 19, 13, 12, 9];
 _Plan camiPlani(int i) => _planlar[_sira[i.clamp(0, _sira.length - 1)]];
 
 // ---------------------------------------------------------------- salonun geometrisi

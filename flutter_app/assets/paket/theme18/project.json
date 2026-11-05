@@ -36,13 +36,13 @@
    "file": "c18_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Tuğla Cami"
+   "name": "Arap Camii"
   },
   "5": {
    "file": "c18_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Balıklıgöl"
+   "name": "Somuncu Baba Camii"
   },
   "6": {
    "file": "c18_06.png",
@@ -54,7 +54,7 @@
    "file": "c18_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "İsfahan Cuma Camii"
+   "name": "Kul Şerif Camii"
   },
   "8": {
    "file": "c18_08.png",
@@ -114,7 +114,7 @@
    "file": "c18_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Şadırvanlı Külliye"
+   "name": "Gâzi Hüsrev Bey Camii"
   },
   "18": {
    "file": "c18_18.png",
@@ -132,7 +132,7 @@
    "file": "c18_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Selçuklu Ulu Cami"
+   "name": "Alâeddin Camii"
   }
  }
 }

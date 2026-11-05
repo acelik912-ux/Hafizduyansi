@@ -24,10 +24,10 @@ ESYALAR = [
     ('Ayasofya', 'buz', 1000, 0),
     ('Sultanahmet Camii', 'buz', 1000, 0),
     ('Süleymaniye Camii', 'buz', 1000, 0),
-    ('Tuğla Cami', 'buz', 1000, 0),
-    ('Balıklıgöl', 'buz', 1000, 0),
+    ('Arap Camii', 'buz', 1000, 0),
+    ('Somuncu Baba Camii', 'buz', 1000, 0),
     ('Kubbetüssahra', 'buz', 1000, 0),
-    ('İsfahan Cuma Camii', 'buz', 1000, 0),
+    ('Kul Şerif Camii', 'buz', 1000, 0),
     ('Delhi Cuma Camii', 'buz', 1000, 0),
     ('Diyarbakır Ulu Cami', 'buz', 1000, 0),
     ('Divriği Ulu Cami', 'buz', 1000, 0),
@@ -37,10 +37,10 @@ ESYALAR = [
     ('Mescid-i Nebevî', 'buz', 1000, 0),
     ('Kubâ Mescidi', 'buz', 1000, 0),
     ('Mescid-i Harâm', 'buz', 1000, 0),
-    ('Şadırvanlı Külliye', 'buz', 1000, 0),
+    ('Gâzi Hüsrev Bey Camii', 'buz', 1000, 0),
     ('Samarra Camii', 'buz', 1000, 0),
     ('Kurtuba Camii', 'buz', 1000, 0),
-    ('Selçuklu Ulu Cami', 'buz', 1000, 0),
+    ('Alâeddin Camii', 'buz', 1000, 0),
 ]
 ADLAR = [e[0] for e in ESYALAR]
 
