@@ -127,3 +127,10 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Kullanıcının numaraları karışıktı; sırayı ben kurdum: Elhamra, Topkapı, Dolmabahçe, Yıldız, Çırağan, İshak Paşa, Âli Kapı, Çehel Sütun, Şirvanşahlar, Lahor, Bahia, Azem, El Vatan, Yasak Şehir, Himeji, Schönbrunn, Buckingham, Pena, Neuschwanstein, Kremlin. **Yıldız ve Çırağan etiketsiz görsellerdi, görünüşe göre adlandırıldı (kullanıcı doğrulasın).**
 - Bilgi kartları `tools/bilgi_c19.txt` (eski cami parçası kartları kaldı, zararsız). İç mekân 3B sahnesi yok (yalnız 15 kale, 18 cami).
 - CI doğrulandı (web derlemesi + `?c=19` ekran görüntüsü). Gerçek cihazda denenmedi, APK alınmadı.
+
+
+## 14. CÜZ – ÇİÇEKLER, kullanıcı görselleriyle (5 Kasım 2026)
+- Yedek: `yedek-cuz14-oncesi` dalı. Eski 14. cüz (Nahl Nimetleri, kodla çizilmiş) yerine geçti; kullanıcı "14. cüz – Nahl Nimetleri" konumunu seçti, ad "Çiçekler (14. Cüz)", birim `çiçek`, sahne `nahl` aynı. Numarayı kullanıcıya sordum (mesajda yoktu).
+- 20 çiçek görseli (PNG 1080x1920, beyaz zeminli ama bazılarında zemin bantlı/açık gri) `tools/c14_kaynak/NN_ad.png` → `python3 tools/c14_gorsel.py [önizleme]` → `python3 tools/flutter_varlik.py`. Kip `cicek` (kenardan bağlı açık nötr piksel + sap/yaprak arası kapalı DÜZ beyaz boşluklar silinir; dokulu beyaz taç yapraklar korunur), `cicek_tek` (kamelya: yer gölgesi gri renkle silinir).
+- Sıra (ben kurdum): Gül, Lale, Ters Lale, Nergis, Sümbül, Kardelen, Menekşe, Papatya, Ayçiçeği, Krizantem, Kadife Çiçeği, Lavanta, Orkide, Kala, Ortanca, Begonya, Kamelya, Manolya, Nilüfer, Çarkıfelek. Bazıları (Ters Lale, Begonya, Papatya, Kardelen, Krizantem) alttan düz kesik; görsellerin kendi hali.
+- Bilgi kartları `tools/bilgi_c14.txt`. CI doğrulandı (web derlemesi + `?c=14`), gerçek cihazda denenmedi, APK alınmadı.
