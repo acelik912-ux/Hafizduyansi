@@ -1,0 +1,19 @@
+Analyzing flutter_app...                                        
+
+   info • 'translate' is deprecated and shouldn't be used. Use translateByVector3, translateByVector4, or translateByDouble instead. Try replacing the use of the deprecated member with the replacement • lib/bahce3d.dart:96:9 • deprecated_member_use
+   info • 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead. Try replacing the use of the deprecated member with the replacement • lib/bahce3d.dart:97:9 • deprecated_member_use
+   info • 'translate' is deprecated and shouldn't be used. Use translateByVector3, translateByVector4, or translateByDouble instead. Try replacing the use of the deprecated member with the replacement • lib/bahce3d.dart:98:9 • deprecated_member_use
+warning • A value for optional parameter 'cim' isn't ever given. Try removing the unused parameter • lib/bahce3d.dart:663:10 • unused_element_parameter
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/bahce3d.dart:878:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/bahce3d.dart:1151:20 • curly_braces_in_flow_control_structures
+   info • 'red' is deprecated and shouldn't be used. Use (*.r * 255.0).round().clamp(0, 255). Try replacing the use of the deprecated member with the replacement • lib/cami3d.dart:26:57 • deprecated_member_use
+   info • 'green' is deprecated and shouldn't be used. Use (*.g * 255.0).round().clamp(0, 255). Try replacing the use of the deprecated member with the replacement • lib/cami3d.dart:26:92 • deprecated_member_use
+   info • 'blue' is deprecated and shouldn't be used. Use (*.b * 255.0).round().clamp(0, 255). Try replacing the use of the deprecated member with the replacement • lib/cami3d.dart:26:129 • deprecated_member_use
+   info • Invalid use of a private type in a public API. Try making the private type public, or making the API that uses the private type also be private • lib/cami3d.dart:135:1 • library_private_types_in_public_api
+   info • 'red' is deprecated and shouldn't be used. Use (*.r * 255.0).round().clamp(0, 255). Try replacing the use of the deprecated member with the replacement • lib/kale3d.dart:25:57 • deprecated_member_use
+   info • 'green' is deprecated and shouldn't be used. Use (*.g * 255.0).round().clamp(0, 255). Try replacing the use of the deprecated member with the replacement • lib/kale3d.dart:25:92 • deprecated_member_use
+   info • 'blue' is deprecated and shouldn't be used. Use (*.b * 255.0).round().clamp(0, 255). Try replacing the use of the deprecated member with the replacement • lib/kale3d.dart:25:129 • deprecated_member_use
+   info • The constant name '_L' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/kale3d.dart:28:14 • constant_identifier_names
+   info • The constant name '_D' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/kale3d.dart:29:14 • constant_identifier_names
+
+15 issues found. (ran in 12.7s)
