@@ -42,7 +42,7 @@ LISTE = [
     ('a_altin_pota.jpg', 'Eritilen Altınlar'),
     ('b_sutun.jpg', 'Taş Sütun'),
     ('a_cicek_tabak.jpg', 'Solan Süs'),
-    ('a_bos_kaide.jpg', 'Boş Kaide'),
+    ('a_bos_kaide.jpg', 'Dümdüz Ova'),
 ]
 GEVSEK = {'b_sandik.jpg','b_hurma.jpg','a_altin_pota.jpg','b_govde_filiz.jpg','a_cicek_tabak.jpg','b_yol_ayrimi.jpg','b_iki_divan.jpg'}
 ADLAR = [a for _, a in LISTE]

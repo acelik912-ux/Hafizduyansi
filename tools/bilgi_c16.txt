@@ -17,4 +17,4 @@
   '=eritilenaltınlar': ['Kavim, süs eşyalarını atarak bir şekil yapmıştır (Tâhâ 87–88).', 'Allah’tan başkasına yönelmenin boşluğu anlatılır; o şeyin ne zarar ne fayda verdiği bildirilir (Tâhâ 89).', 'Görsel anlatımdır; heykel gösterilmemiştir.'],
   '=taşsütun': ['Bu sembol, Meryem ve Tâhâ sûrelerinin sabit, değişmeyen hakikat vurgusunu hatırlatır.', 'Kalıcı olan Allah’ın vahyidir; dünya zinneti geçicidir.', 'Ayette sütun geçmez; görsel anlatımdır.'],
   '=solansüs': ['“Gözlerini, onlardan bir kısmına verdiğimiz dünya hayatının süsüne dikme” buyrulur (Tâhâ 131).', 'Solan çiçekler, dünya süsünün geçiciliğini anlatır.', 'Rabbinin rızkı ise daha hayırlı ve kalıcıdır.'],
-  '=boşkaide': ['Boş kaide, sembolik bir yer tutucudur.', 'Bu görsel daha sonra yenisiyle değişecektir.', 'Görsel anlatımdır.'],
+  '=dümdüzova': ['Kıyamette yeryüzü dümdüz, bomboş bir ova bırakılır; orada ne eğrilik ne tümsek görülür (Tâhâ 106–107).', 'Düz kum yüzey bu ifadeyi anlatan semboldür.', 'Görsel anlatımdır.'],
