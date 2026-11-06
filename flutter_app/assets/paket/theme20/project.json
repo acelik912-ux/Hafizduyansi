@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 20,
- "name": "Süleymân’ın Mülkü (20. Cüz)",
+ "name": "Neml, Kasas ve Ankebût (20. Cüz)",
  "sahne": "kale",
  "ek": "",
- "birim": "eser",
- "tanim": "Süleymân’ın mülkü",
+ "birim": "sembol",
+ "tanim": "semboller",
  "ui": {
   "bgGarden": "kale_sayfa.jpg",
   "bgForest": "kale_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c20_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Belkıs’ın Tahtı"
+   "name": "İki Deniz Arası Engel"
   },
   "2": {
    "file": "c20_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Cam Saray"
+   "name": "Ayak İzleri"
   },
   "3": {
    "file": "c20_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Belkıs’a Mektup"
+   "name": "Bulut Gibi Geçen Dağ"
   },
   "4": {
    "file": "c20_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mücevher Kutusu"
+   "name": "Güvenli Belde"
   },
   "5": {
    "file": "c20_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Bakır Pınar"
+   "name": "Nil Kıyısı"
   },
   "6": {
    "file": "c20_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Büyük Kazanlar"
+   "name": "Öğle Sessizliği"
   },
   "7": {
    "file": "c20_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sebe Seddi"
+   "name": "Gölge Altı"
   },
   "8": {
    "file": "c20_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Boyun Eğen Rüzgâr"
+   "name": "İki Destek"
   },
   "9": {
    "file": "c20_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Saray Kemerleri"
+   "name": "Kerpiç Kulesi"
   },
   "10": {
    "file": "c20_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Örümcek Evi"
+   "name": "Hevesin Serabı"
   },
   "11": {
    "file": "c20_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kârûn’un Hazine Kapısı"
+   "name": "Ard Arda Taşlar"
   },
   "12": {
    "file": "c20_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yere Batan Köşk"
+   "name": "Seçilmiş Filiz"
   },
   "13": {
    "file": "c20_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Bulut Gibi Geçen Dağlar"
+   "name": "Ağır Anahtarlar"
   },
   "14": {
    "file": "c20_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sûr"
+   "name": "Yutulan Köşk"
   },
   "15": {
    "file": "c20_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gölge Ağacı"
+   "name": "Geriye Kalan Tek Sütun"
   },
   "16": {
    "file": "c20_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kor Ateş"
+   "name": "Elli Eksik Bin Yıl"
   },
   "17": {
    "file": "c20_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Taş Aslanlar"
+   "name": "Dağa Oturan Gemi"
   },
   "18": {
    "file": "c20_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hazine Anahtarları"
+   "name": "Hicret Bohçası"
   },
   "19": {
    "file": "c20_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mektup Mührü"
+   "name": "Kayalara Oyulmuş Evler"
   },
   "20": {
    "file": "c20_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "İki Bahçe"
+   "name": "En Çürük Ev"
   }
  }
 }

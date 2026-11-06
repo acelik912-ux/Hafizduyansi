@@ -18,61 +18,61 @@
    "file": "c18_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mescid-i Harâm"
+   "name": "Ayasofya"
   },
   "2": {
    "file": "c18_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mescid-i Nebevî"
+   "name": "Sultanahmet Camii"
   },
   "3": {
    "file": "c18_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mescid-i Aksâ"
+   "name": "Süleymaniye Camii"
   },
   "4": {
    "file": "c18_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kubbetüssahra"
+   "name": "Arap Camii"
   },
   "5": {
    "file": "c18_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kubâ Mescidi"
+   "name": "Somuncu Baba Camii"
   },
   "6": {
    "file": "c18_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ayasofya"
+   "name": "Kubbetüssahra"
   },
   "7": {
    "file": "c18_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Süleymaniye"
+   "name": "Kul Şerif Camii"
   },
   "8": {
    "file": "c18_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Selimiye"
+   "name": "Delhi Cuma Camii"
   },
   "9": {
    "file": "c18_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sultanahmet"
+   "name": "Diyarbakır Ulu Cami"
   },
   "10": {
    "file": "c18_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Eşrefoğlu"
+   "name": "Divriği Ulu Cami"
   },
   "11": {
    "file": "c18_11.png",
@@ -84,55 +84,55 @@
    "file": "c18_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ezher"
+   "name": "Emevî Camii"
   },
   "13": {
    "file": "c18_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kurtuba"
+   "name": "Djenné Camii"
   },
   "14": {
    "file": "c18_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kayrevan"
+   "name": "Mescid-i Nebevî"
   },
   "15": {
    "file": "c18_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "II. Hasan"
+   "name": "Kubâ Mescidi"
   },
   "16": {
    "file": "c18_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Muhammed Ali Paşa"
+   "name": "Mescid-i Harâm"
   },
   "17": {
    "file": "c18_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Şeyh Zâyed"
+   "name": "Gâzi Hüsrev Bey Camii"
   },
   "18": {
    "file": "c18_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Bâdşâhî"
+   "name": "Samarra Camii"
   },
   "19": {
    "file": "c18_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Djinguereber"
+   "name": "Kurtuba Camii"
   },
   "20": {
    "file": "c18_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gâzi Hüsrev Bey"
+   "name": "Alâeddin Camii"
   }
  }
 }

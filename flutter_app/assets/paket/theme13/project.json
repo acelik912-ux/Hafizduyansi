@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 13,
- "name": "Hava Olayları (13. Cüz)",
+ "name": "Yûsuf, Ra’d ve İbrâhîm (13. Cüz)",
  "sahne": "ova",
  "ek": "",
- "birim": "olay",
- "tanim": "hava olayları",
+ "birim": "sembol",
+ "tanim": "semboller",
  "ui": {
   "bgGarden": "ova_sayfa.jpg",
   "bgForest": "ova_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c13_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Şimşek"
+   "name": "Mühür ve Ferman"
   },
   "2": {
    "file": "c13_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yıldırım"
+   "name": "Ahit Düğümü"
   },
   "3": {
    "file": "c13_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gök Gürültüsü"
+   "name": "Altın Su Kabı"
   },
   "4": {
    "file": "c13_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ağır Bulut"
+   "name": "Kervan Mola Yeri"
   },
   "5": {
    "file": "c13_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kara Bulut"
+   "name": "Yûsuf’un Gömleği"
   },
   "6": {
    "file": "c13_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Rüzgâr"
+   "name": "Taht ve Basamaklar"
   },
   "7": {
    "file": "c13_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kasırga"
+   "name": "Harabeler ve Yol"
   },
   "8": {
    "file": "c13_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Fırtına"
+   "name": "Bitişik Topraklar"
   },
   "9": {
    "file": "c13_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Toz Fırtınası"
+   "name": "Şimşekli Bulut"
   },
   "10": {
    "file": "c13_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Duman"
+   "name": "Sel Köpüğü"
   },
   "11": {
    "file": "c13_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Köpük"
+   "name": "Huzur Gölü"
   },
   "12": {
    "file": "c13_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Savrulan Kül"
+   "name": "Yarılan Yer"
   },
   "13": {
    "file": "c13_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gölge"
+   "name": "Altın Irmaklı Bahçe"
   },
   "14": {
    "file": "c13_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sis"
+   "name": "Karanlıktan Nura"
   },
   "15": {
    "file": "c13_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Güneş Işığı"
+   "name": "Şükürle Artan Nimet"
   },
   "16": {
    "file": "c13_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Esinti"
+   "name": "Savrulan Kül"
   },
   "17": {
    "file": "c13_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kıvılcım"
+   "name": "Güzel Söz Ağacı"
   },
   "18": {
    "file": "c13_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Cevher Potası"
+   "name": "Kökü Sökülmüş Ağaç"
   },
   "19": {
    "file": "c13_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Rahmet Bulutu"
+   "name": "Çorak Vadide Bereket"
   },
   "20": {
    "file": "c13_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sağanak"
+   "name": "Ertelenen Gün"
   }
  }
 }
