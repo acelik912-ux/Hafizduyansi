@@ -23,7 +23,7 @@ OLCEK = 0.60      # kaide ~1650 px -> ~990 px
 ESIK = 14         # zemin rengine uzaklık (en büyük kanal farkı)
 # (dosya, ad) sayfa sırasıyla: Ankebût 1–3, Rûm 4–9, Lokmân 10–13, Secde 14–16, Ahzâb 17–20
 LISTE = [
-    ('01_yazisiz_levha.jpg', 'Yazısız Levha (geçici)'),
+    ('01_yazisiz_levha.jpg', 'Yazısız Levha'),
     ('02_genis_yeryuzu.jpg', 'Geniş Yeryüzü'),
     ('03_oyun_eglence.jpg', 'Oyun ve Eğlence'),
     ('04_belli_sure.jpg', 'Belli Süre'),
@@ -118,6 +118,12 @@ def main():
             sys.exit('eksik görsel: %02d_… (tools/c21_kaynak/) -> %s' % (i + 1, ad))
         src = Image.open(yol).convert('RGB')
         ad_d = LISTE[i][0]
+        if LISTE[i][0].startswith('01_'):   # yer gölgesi soluk mavi-mor: kırmızı kaide ve kumda b<r olduğundan yalnız gölge beyazlanır
+            import numpy as _np
+            _a = _np.asarray(src).astype(int)
+            _g = (_a[..., 2] >= _a[..., 0] - 2) & (_a.min(axis=2) > 140)
+            _a[_g] = 255
+            src = Image.fromarray(_a.astype('uint8'))
         im = diorama(src, gevsek=LISTE[i][0] in GEVSEK, golge=LISTE[i][0] not in GOLGESIZ)
         b = im.getchannel('A').point(lambda v: 255 if v > 8 else 0).getbbox()
         md = round(max(b[2] - b[0], b[3] - b[1]) * OLCEK)

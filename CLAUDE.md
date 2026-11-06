@@ -194,8 +194,8 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 
 ## 21. CÜZ KURULDU – ANKEBÛT, RÛM, LOKMÂN, SECDE, AHZÂB (6 Kasım 2026)
 - Yedek: `yedek-cuz21-gorsel-oncesi`. Kullanıcının 19 Gemini görseli `tools/c21_kaynak/NN_ad.jpg` (NN = sayfa sırası) → `python3 tools/c21_gorsel.py [önizleme]` → `flutter_varlik.py`. Sahne `col` (eskisi), birim `sembol`, OLCEK 0,60, `golge` açık (kaideler renkli). Bilgi kartları `tools/bilgi_c21.txt` (eski kodla çizilmiş 21. cüz kartları kalktı).
-- Sayfa sırası: Ankebût 1–3: Yazısız Levha (**GEÇİCİ: düz kum görseli, kullanıcı yeniden üretecek**), Geniş Yeryüzü, Oyun ve Eğlence · Rûm 4–9: Belli Süre, Renk Çeşitliliği, Parçalanmış Parçalar, Karada ve Denizde Bozulma, Müjdeci Rüzgâr, Sabır Taşı · Lokmân 10–13: Sarsılmaz Kaya, Hardal Tanesi, Yedi Deniz ve Kamış Demeti, Yağmuru İndiren · Secde 14–16: Çamurdan Başlangıç, Örtülü Oyuk, Bekleme Taşı · Ahzâb 17–20: Tek Merkez, Hendek, Müttefik Kampı, Sınır Kazıkları. Eşleme görünüşe göre; kullanıcı doğrulasın.
-- Yazısız Levha gelince `tools/c21_kaynak/01_yazisiz_levha.jpg` yerine koy, LISTE adından "(geçici)"i at, `bilgi_c21.txt` anahtarını `=yazısızlevha` yap (bilgi.dart'ta da), yeniden kur.
+- Sayfa sırası: Ankebût 1–3: Yazısız Levha (kullanıcının gerçek görseli, 6 Kasım; 2000 px geldi, 2048'e büyütüldü; yer gölgesi `c21_gorsel.py`'de özel temizlenir), Geniş Yeryüzü, Oyun ve Eğlence · Rûm 4–9: Belli Süre, Renk Çeşitliliği, Parçalanmış Parçalar, Karada ve Denizde Bozulma, Müjdeci Rüzgâr, Sabır Taşı · Lokmân 10–13: Sarsılmaz Kaya, Hardal Tanesi, Yedi Deniz ve Kamış Demeti, Yağmuru İndiren · Secde 14–16: Çamurdan Başlangıç, Örtülü Oyuk, Bekleme Taşı · Ahzâb 17–20: Tek Merkez, Hendek, Müttefik Kampı, Sınır Kazıkları. Eşleme görünüşe göre; kullanıcı doğrulasın.
+- Yazısız Levha yerleştirildi (kart `=yazısızlevha`). Bu görselde de yan yüzde iki dikey dikiş var.
 - Cüz 16 p20 artık **Dümdüz Ova** (Tâhâ 106–107; `a_bos_kaide.jpg` yerine konuldu, kart `=dümdüzova`).
 - Kaide yan yüzlerinde düz renk blok ve dikey dikiş var (Gemini). CI: web derlemesi + `?c=21`/`?c=16` ekran görüntüsü, analiz 0 hata. Gerçek cihazda denenmedi, APK yok.
 
