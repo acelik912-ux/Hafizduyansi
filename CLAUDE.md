@@ -155,3 +155,6 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Sûre bölümü: Yûsuf 1–7, Ra'd 8–13, İbrâhîm 14–20. Sıra: Mühür ve Ferman, Ahit Düğümü, Altın Su Kabı, Kervan Mola Yeri, Yûsuf'un Gömleği, Taht ve Basamaklar, Harabeler ve Yol, Bitişik Topraklar, Şimşekli Bulut, Sel Köpüğü, Huzur Gölü, Yarılan Yer, Altın Irmaklı Bahçe, Karanlıktan Nura (yarı gece), Şükürle Artan Nimet, Savrulan Kül, Güzel Söz Ağacı, Kökü Sökülmüş Ağaç, Çorak Vadide Bereket, Ertelenen Gün.
 - Dikkat: 14–19 kaidelerinde yan yüzde sol yarı koyu/sağ parlak dikiş var (14'te bilinçli); gerçek cihazda bakılmalı. **16. cüz promptundaki 5. sahne (Hurma ve Dere) 13'teki 19 ile çakışıyor → 16'yı kurarken değiştir.** 16. cüz promptu (Kehf 3, Meryem 7, Tâhâ 10) kullanıcıya verildi, görseller bekleniyor.
 - CI doğrulandı (web derlemesi, `?c=13` ekran görüntüsü, analiz 0 hata). Gerçek cihazda denenmedi, APK alınmadı.
+
+## İNSAN FİGÜRÜ KURALI (6 Kasım 2026, kullanıcı)
+- Gemini promptlarında insan gerekirse yüzü görünmeyen, arkası dönük (veya yüzü gölgede/kumaşla örtülü) figür kullanılabilir. Peygamber/yüz/ön cephe insan hâlâ YOK; hayvan figürü, yazı, başka dinlerin sembolleri ve müzik aleti de yasak (önceki kurallar geçerli). Cüz 16 ve sonrası promptlarda bu serbestlik kullanılabilir.
