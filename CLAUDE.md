@@ -198,3 +198,9 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Yazısız Levha gelince `tools/c21_kaynak/01_yazisiz_levha.jpg` yerine koy, LISTE adından "(geçici)"i at, `bilgi_c21.txt` anahtarını `=yazısızlevha` yap (bilgi.dart'ta da), yeniden kur.
 - Cüz 16 p20 artık **Dümdüz Ova** (Tâhâ 106–107; `a_bos_kaide.jpg` yerine konuldu, kart `=dümdüzova`).
 - Kaide yan yüzlerinde düz renk blok ve dikey dikiş var (Gemini). CI: web derlemesi + `?c=21`/`?c=16` ekran görüntüsü, analiz 0 hata. Gerçek cihazda denenmedi, APK yok.
+
+## 22. CÜZ – AHZÂB, SEBE', FÂTIR, YÂSÎN PLANI (6 Kasım 2026, Gemini ile)
+- Prompt verildi, görseller bekleniyor. Sayfa-sûre (ilk ayete göre): Ahzâb p1–6 (31–73), Sebe' p7–13 (Sebe' 1–Fâtır 3), Fâtır p14–19 (Fâtır 4–Yâsîn 12), Yâsîn p20 (13–27). Eski 22. cüz (kodla çizilmiş "Medine Yılları", sahne `dag`) yerine geçecek; görsel gelince `tools/c22_gorsel.py` (c21_gorsel.py'den), `tools/bilgi_c22.txt`, theme22.
+- Kaide renkleri: Ahzâb koyu sarı-amber, Sebe' erik-mor, Fâtır kobalt-gök mavisi, Yâsîn kömür-fildişi. Yeni kural promptta: yan yüzlerde dikey dikiş/tahta/tuğla derzi YOK (21'deki hata).
+- Sahneler: Ahzâb: İki Kat Karşılık (31, iki özdeş buğday kâsesi), Son Tuğla (40), Basamaklı Bereket Tarlası (47), Alçak Sofra (53), Cilbâb (59, katlı örtü), Emanet Küresi (72) · Sebe': Toprak Kesiti (2), Sabit Kazanlar (13), İki Bahçe (15), Rızık Ambarı (24), Taşan Zenginlik Terası (34–39), İkişer ve Teker (46), Uzak Yerden (52–53) · Fâtır: Süslü Görünüş (8), Çekirdek Zarı (13), Dağ Damarları (27), Üç Şerit (32), Tutulan Denge (41), Önü ve Ardı Kapalı (Yâsîn 8–9) · Yâsîn: Uzak Uçtaki Yol (13–27, evler kapısız).
+- Dikkat: Sabit Kazanlar/Süleymân (17 ile), Emanet Küresi/Tek Merkez benzerliği; bilgi kartında Kur'an göndermeleri yalnızca emin olunanlardan.
