@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 23,
- "name": "İslâm’ın Kaleleri (23. Cüz)",
+ "name": "Yâsîn, Sâffât, Sâd ve Zümer (23. Cüz)",
  "sahne": "kale",
  "ek": "",
- "birim": "kale",
- "tanim": "kaleler",
+ "birim": "sembol",
+ "tanim": "semboller",
  "ui": {
   "bgGarden": "kale_sayfa.jpg",
   "bgForest": "kale_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c23_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hayber Kalesi"
+   "name": "Eski Hurma Dalı"
   },
   "2": {
    "file": "c23_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Halep Kalesi"
+   "name": "Bölünmüş Ekmek"
   },
   "3": {
    "file": "c23_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kerek Kalesi"
+   "name": "Gölgelik ve Minderler"
   },
   "4": {
    "file": "c23_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Selâhaddîn Kalesi"
+   "name": "Yeşil Ağaçtan Kor"
   },
   "5": {
    "file": "c23_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kudüs Surları"
+   "name": "Saf Saf Taşlar"
   },
   "6": {
    "file": "c23_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Rumeli Hisarı"
+   "name": "Karşılıklı Sedirler"
   },
   "7": {
    "file": "c23_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Anadolu Hisarı"
+   "name": "Zakkûm Ağacı"
   },
   "8": {
    "file": "c23_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Diyarbakır Surları"
+   "name": "Kusursuz Taş"
   },
   "9": {
    "file": "c23_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Alanya Kalesi"
+   "name": "Kaldırılan Yük"
   },
   "10": {
    "file": "c23_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ankara Kalesi"
+   "name": "Kabak Sarmaşığı"
   },
   "11": {
    "file": "c23_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Elhamra"
+   "name": "Her Birinin Yeri"
   },
   "12": {
    "file": "c23_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mardin Kalesi"
+   "name": "Eyke Çalılığı"
   },
   "13": {
    "file": "c23_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Topkapı Sarayı Kapısı"
+   "name": "Adalet Çizgisi"
   },
   "14": {
    "file": "c23_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ahlat Kümbetleri"
+   "name": "İki Parsel"
   },
   "15": {
    "file": "c23_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Bursa Surları"
+   "name": "Bir Demet Sap"
   },
   "16": {
    "file": "c23_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kars Kalesi"
+   "name": "Dik Başlı Kaya"
   },
   "17": {
    "file": "c23_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Calahorra Kulesi"
+   "name": "İç İçe Sarılan"
   },
   "18": {
    "file": "c23_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Bodrum Kalesi"
+   "name": "Tek Kökten"
   },
   "19": {
    "file": "c23_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hoşap Kalesi"
+   "name": "Yeşilden Sarıya"
   },
   "20": {
    "file": "c23_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kızkalesi"
+   "name": "Açılmış Geod"
   }
  }
 }
