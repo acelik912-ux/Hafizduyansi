@@ -159,8 +159,8 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 ## İNSAN FİGÜRÜ KURALI (6 Kasım 2026, kullanıcı)
 - Gemini promptlarında insan gerekirse yüzü görünmeyen, arkası dönük (veya yüzü gölgede/kumaşla örtülü) figür kullanılabilir. Peygamber/yüz/ön cephe insan hâlâ YOK; hayvan figürü, yazı, başka dinlerin sembolleri ve müzik aleti de yasak (önceki kurallar geçerli). Cüz 16 ve sonrası promptlarda bu serbestlik kullanılabilir.
 
-## 16. CÜZ – YENİ PLAN (6 Kasım 2026, ChatGPT ile üretilecek)
-- Kullanıcı 16. cüz görsellerini Gemini yerine **ChatGPT** ile üretecek; yeni prompt verildi (eski 16 promptu geçersiz, hurma-pınar çakışması kalktı). Sûre bölümü: Kehf 3 (p1–3), Meryem 7 (p4–10), Tâhâ 10 (p11–20; p11 = Meryem 96–98 + Tâhâ 1–12).
+## 16. CÜZ – YENİ PLAN (6 Kasım 2026, Gemini ile üretiliyor)
+- Kullanıcı ChatGPT'yi denedi (ücretsiz kota 2–3 görsel, yetmedi) ve **Gemini'ye döndü**: 1–14. sahneleri üretti, kota dolunca kalanları sonra üretip topluca yükleyecek. ChatGPT'nin Delinmiş Tekne görseli KULLANILMAYACAK (silindi); 1. sahne de Gemini'den gelecek. yeni prompt verildi (eski 16 promptu geçersiz, hurma-pınar çakışması kalktı). Sûre bölümü: Kehf 3 (p1–3), Meryem 7 (p4–10), Tâhâ 10 (p11–20; p11 = Meryem 96–98 + Tâhâ 1–12).
 - Sahneler: Kehf: Delinmiş Tekne, Eğik Duvar, Demir Set · Meryem: Perde, Uzak Kulübe, Yol Ayrımı, Tûr Yamacı, Yüce Zirve, Seccade, Çöken Dağ · Tâhâ: Kutsal Vadi Ateşi, Çıkarılmış Sandaletler, Mûsâ'nın Asası (yılansız), Nil'e Bırakılan Sandık, Beşik Yeryüzü, Denizde Kuru Yol, Eritilen Altınlar (buzağısız), Dümdüz Ova, Ebedîlik Ağacı, Daralan Geçit. Görseller gelince `tools/c16_gorsel.py` (c13_gorsel.py'den kopya, `diorama()` kipi; boyut/ölçeği önizlemeyle ayarla: ChatGPT çıktısı 1024–2048 olabilir) → `flutter_varlik.py`; bilgi kartı `tools/bilgi_c16.txt`.
 
 ## HATIRLATMA – 3B STÜDYO ARKA PLANI (6 Kasım 2026, kullanıcı istedi)
