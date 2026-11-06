@@ -177,3 +177,10 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 ## 16. CÜZ KURULDU (6 Kasım 2026)
 - Yedek: `yedek-cuz16-gorsel-oncesi`. 20 Gemini görseli `tools/c16_kaynak/` (adları sahne kodlu: b_=Meryem/Kehf, a_=Tâhâ gibi geçici), `python3 tools/c16_gorsel.py [önizleme]` → `flutter_varlik.py`. `GEVSEK` kümesi: ot/sazlık görsellerinde kalan beyaz benekleri siler. Bilgi kartları `tools/bilgi_c16.txt`.
 - **AÇIK:** sıra/adlar benim tahminim (Tekne, Duvar, Demir Set, Kuru Gövde, Hurma, Beşik, Yol Ayrımı, Yüce Makam, İki Makam, Sayılan Taşlar, Sandaletler, Asa, Sepet, Taş Suluk, İpler, Kuru Yol, Altın, Taş Sütun, Solan Süs, **Boş Kaide**). 20. görsel boş kaide (Gemini başarısız); kullanıcıdan yenisi istenecek. Taş Suluk ve Taş Sütun ne olduğu doğrulanmadı. CI ekran görüntüsü alındı (`?c=16`), gerçek cihazda denenmedi, APK yok.
+
+
+## 20. CÜZ KURULDU – NEML, KASAS VE ANKEBÛT (6 Kasım 2026)
+- Yedek: `yedek-cuz20-gorsel-oncesi`. 20 Gemini görseli `tools/c20_kaynak/NN_ad.jpg` (NN = geliş sırası) → `python3 tools/c20_gorsel.py [önizleme]` → `flutter_varlik.py`. Sahne `kale` (eskisi), birim `sembol`, OLCEK 0,60. Bilgi kartları `tools/bilgi_c20.txt`.
+- Sayfa sırası (LISTE): Neml 1–4: İki Deniz Arası Engel, Ayak İzleri, Bulut Gibi Geçen Dağ, Güvenli Belde · Kasas 5–15: Nil Kıyısı, Öğle Sessizliği, Gölge Altı, İki Destek, Kerpiç Kulesi, Hevesin Serabı, Ard Arda Taşlar, Seçilmiş Filiz, Ağır Anahtarlar, Yutulan Köşk, Geriye Kalan Tek Sütun · Ankebût 16–20: Elli Eksik Bin Yıl, Dağa Oturan Gemi, Hicret Bohçası, Kayalara Oyulmuş Evler, En Çürük Ev. Eşleme görünüşe göre; kullanıcı doğrulasın.
+- Özel işlemler: 01 Kerpiç Kulesi ekran görüntüsüydü (1080 px, gri çerçeveli): kırpılıp 2x büyütüldü, diğerlerinden bulanık olabilir → Gemini'den yeniden istenebilir. 02'de alttaki yazı örtüldü, 05'te gri çerçeve kırpıldı. `golge=True`: Gemini'nin düştüğü açık gri yer gölgesi silinir (mor-beyaz taş kaideli 16–20 ve bulutlu dağda kapalı; onlarda zayıf gölge kalır).
+- CI doğrulandı (web derlemesi, `?c=20`, analiz 0 hata). Gerçek cihazda denenmedi, APK yok.
