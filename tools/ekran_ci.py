@@ -3,7 +3,7 @@ from playwright.sync_api import sync_playwright
 out = sys.argv[1]; os.makedirs(out, exist_ok=True)
 with sync_playwright() as p:
     b = p.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl'])
-    for c in (10, 11):
+    for c in (23,):
         pg = b.new_page(viewport={'width': 412, 'height': 880}, device_scale_factor=1)
         pg.on('console', lambda m: print('console:', m.text[:200]) if 'error' in m.type else None)
         pg.goto('http://localhost:8765/?c=%d' % c)
