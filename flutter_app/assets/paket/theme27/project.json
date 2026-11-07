@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 27,
- "name": "Bilim ve Medeniyet (27. Cüz)",
+ "name": "Zâriyât, Tûr, Necm, Kamer, Rahmân, Vâkıa ve Hadîd (27. Cüz)",
  "sahne": "gok",
  "ek": "",
- "birim": "eser",
- "tanim": "bilim ve medeniyet",
+ "birim": "sembol",
+ "tanim": "semboller",
  "ui": {
   "bgGarden": "gok_sayfa.jpg",
   "bgForest": "gok_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c27_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Usturlap"
+   "name": "Dalga Dalga Kum"
   },
   "2": {
    "file": "c27_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Rasathane"
+   "name": "Taş Kuyu"
   },
   "3": {
    "file": "c27_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gök Küresi"
+   "name": "Basamaklı Yamaç"
   },
   "4": {
    "file": "c27_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Su Saati"
+   "name": "Düşen Bulut"
   },
   "5": {
    "file": "c27_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sekstant"
+   "name": "Zirvedeki Ağaç"
   },
   "6": {
    "file": "c27_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Pusula"
+   "name": "Üç Kese"
   },
   "7": {
    "file": "c27_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mercek"
+   "name": "Yarılan Küre"
   },
   "8": {
    "file": "c27_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "İmbik"
+   "name": "Camlı Işık"
   },
   "9": {
    "file": "c27_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Güneş Saati"
+   "name": "Yarılan Yerden Su"
   },
   "10": {
    "file": "c27_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kitaplık"
+   "name": "Paylaşılan Su"
   },
   "11": {
    "file": "c27_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Harita Tomarı"
+   "name": "Kuru Çamurdan Kap"
   },
   "12": {
    "file": "c27_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Havan ve Şişeler"
+   "name": "İnci ve Mercan"
   },
   "13": {
    "file": "c27_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Geometrik Levha"
+   "name": "İki Kat Bahçe"
   },
   "14": {
    "file": "c27_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Demir Örs"
+   "name": "Toz Olan Dağ"
   },
   "15": {
    "file": "c27_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Saban"
+   "name": "Gölgeli Kemer"
   },
   "16": {
    "file": "c27_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Pergel ve Cetvel"
+   "name": "İki Su"
   },
   "17": {
    "file": "c27_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yerküre"
+   "name": "Kayadan Akan Su"
   },
   "18": {
    "file": "c27_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ay Evreleri"
+   "name": "Duvar ve Kapı"
   },
   "19": {
    "file": "c27_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kervansaray"
+   "name": "Yeşilden Kuruya"
   },
   "20": {
    "file": "c27_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Taş Köprü"
+   "name": "Demir Külçeler"
   }
  }
 }
