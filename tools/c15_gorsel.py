@@ -45,8 +45,8 @@ LISTE = [
     ('20_kayanin_dibi.jpg', 'Kayanın Dibi'),
 ]
 GEVSEK = set()
-GOLGESIZ = {f for f, _ in LISTE if f and f[:2] in ('01','05','11','14','13')}
-NODUZ = {f for f, _ in LISTE if f and f[:2] in ('01','05','11','20')}
+GOLGESIZ = {f for f, _ in LISTE if f and f[:2] in ('06', '11')}
+NODUZ = {f for f, _ in LISTE if f and f[:2] in ('01', '05', '06', '11', '16', '20')}
 ADLAR = [a for _, a in LISTE]
 
 
