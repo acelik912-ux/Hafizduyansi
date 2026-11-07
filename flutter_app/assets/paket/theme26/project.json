@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 26,
- "name": "İslâm Devletleri (26. Cüz)",
+ "name": "Câsiye, Ahkâf, Muhammed, Fetih, Hucurât, Kâf ve Zâriyât (26. Cüz)",
  "sahne": "kale",
  "ek": "",
- "birim": "devlet",
- "tanim": "İslâm devletleri",
+ "birim": "sembol",
+ "tanim": "semboller",
  "ui": {
   "bgGarden": "kale_sayfa.jpg",
   "bgForest": "kale_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c26_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Emevîler"
+   "name": "Büyüklük Göklerde ve Yerde"
   },
   "2": {
    "file": "c26_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Abbâsîler"
+   "name": "Eski ve Yeni Yol"
   },
   "3": {
    "file": "c26_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Endülüs"
+   "name": "Dosdoğru Yol"
   },
   "4": {
    "file": "c26_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Selçuklular"
+   "name": "Kumda Kalan Evler"
   },
   "5": {
    "file": "c26_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Osmanlılar"
+   "name": "Havuz ve Su Yolları"
   },
   "6": {
    "file": "c26_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Eyyûbîler"
+   "name": "Su Üstünde Sütun"
   },
   "7": {
    "file": "c26_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Memlükler"
+   "name": "Üç Ayrı Akış"
   },
   "8": {
    "file": "c26_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Fâtımîler"
+   "name": "Kilitli Kalpler"
   },
   "9": {
    "file": "c26_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gazneliler"
+   "name": "Elek ve Ayıklanan"
   },
   "10": {
    "file": "c26_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Karahanlılar"
+   "name": "Açılan Kapı"
   },
   "11": {
    "file": "c26_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Timurlular"
+   "name": "Ağacın Altında Söz"
   },
   "12": {
    "file": "c26_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Babürlüler"
+   "name": "Yüklü Kağnı"
   },
   "13": {
    "file": "c26_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Safevîler"
+   "name": "Engelden Açılan Yol"
   },
   "14": {
    "file": "c26_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Songhay"
+   "name": "Ekin ve Başak"
   },
   "15": {
    "file": "c26_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Harezmşahlar"
+   "name": "Kardeşlik Halkası"
   },
   "16": {
    "file": "c26_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "İlhanlılar"
+   "name": "Tanışma Meydanı"
   },
   "17": {
    "file": "c26_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Tolunoğulları"
+   "name": "Yeniden Biten Çiçek"
   },
   "18": {
    "file": "c26_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Merînîler"
+   "name": "Meyveli Bahçe"
   },
   "19": {
    "file": "c26_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Delhi Sultanlığı"
+   "name": "Katman Katman Dalga"
   },
   "20": {
    "file": "c26_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Zengîler"
+   "name": "Savrulan Kum"
   }
  }
 }
