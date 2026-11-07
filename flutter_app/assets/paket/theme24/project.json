@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 24,
- "name": "Cennet (24. Cüz)",
+ "name": "Yâsîn, Sâffât, Sâd ve Zümer (23. Cüz)",
  "sahne": "cennet",
  "ek": "",
- "birim": "nimet",
- "tanim": "cennet nimetleri",
+ "birim": "sembol",
+ "tanim": "semboller",
  "ui": {
   "bgGarden": "cennet_sayfa.jpg",
   "bgForest": "cennet_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c24_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Cennet Köşkü"
+   "name": "Çekül ve Düzgün Taş"
   },
   "2": {
    "file": "c24_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sekiz Kapı"
+   "name": "Tutulan ve Bırakılan İplik"
   },
   "3": {
    "file": "c24_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Su Irmağı"
+   "name": "Çatlak Toprakta Filiz"
   },
   "4": {
    "file": "c24_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Süt Irmağı"
+   "name": "Korunan Parsel"
   },
   "5": {
    "file": "c24_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Bal Irmağı"
+   "name": "Vâris Olunan Toprak"
   },
   "6": {
    "file": "c24_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Tûbâ Ağacı"
+   "name": "Arşın Çevresi"
   },
   "7": {
    "file": "c24_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sidretü’l-Müntehâ"
+   "name": "Yükselen Dereceler"
   },
   "8": {
    "file": "c24_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gümüş İbrik"
+   "name": "Boşa Giden Hile"
   },
   "9": {
    "file": "c24_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sedir ve Yastıklar"
+   "name": "Gizli Tohum"
   },
   "10": {
    "file": "c24_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "İnci Çadır"
+   "name": "Geçici ve Kalıcı Zemin"
   },
   "11": {
    "file": "c24_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Nar"
+   "name": "Sabah Akşam Taşı"
   },
   "12": {
    "file": "c24_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Meyve Tepsisi"
+   "name": "Küçük ve Büyük"
   },
   "13": {
    "file": "c24_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yeşil İpek"
+   "name": "Çatı Gibi Gök"
   },
   "14": {
    "file": "c24_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gül Kemeri"
+   "name": "Topraktan Ağaca Evreler"
   },
   "15": {
    "file": "c24_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yasemin Çardağı"
+   "name": "Eski Temeller"
   },
   "16": {
    "file": "c24_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Cennet Kandili"
+   "name": "Duman Hâlindeki Gök"
   },
   "17": {
    "file": "c24_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Altın Taç"
+   "name": "Rüzgârın Oyduğu Kaya"
   },
   "18": {
    "file": "c24_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Nur Merdiveni"
+   "name": "Altta Kalanlar"
   },
   "19": {
    "file": "c24_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Zümrüt Yaprak"
+   "name": "Güzelle Savma"
   },
   "20": {
    "file": "c24_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Firdevs Bahçesi"
+   "name": "Bozulmaz Taş"
   }
  }
 }
