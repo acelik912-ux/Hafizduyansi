@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 15,
- "name": "Kaleler (15. Cüz)",
+ "name": "İsrâ ve Kehf (15. Cüz)",
  "sahne": "kale",
  "ek": "",
- "birim": "kale",
- "tanim": "kaleler",
+ "birim": "sembol",
+ "tanim": "semboller",
  "ui": {
   "bgGarden": "kale_sayfa.jpg",
   "bgForest": "kale_sayfa.jpg",
@@ -18,67 +18,67 @@
    "file": "c15_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kudüs Kalesi"
+   "name": "Işıklı Yolculuk"
   },
   "2": {
    "file": "c15_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kerek Kalesi"
+   "name": "Gece ve Gündüz"
   },
   "3": {
    "file": "c15_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Harput Kalesi"
+   "name": "Savrulan Tane"
   },
   "4": {
    "file": "c15_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Van Kalesi"
+   "name": "Dikili Taşlar"
   },
   "5": {
    "file": "c15_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Elhamra Sarayı"
+   "name": "Örtülü Perde"
   },
   "6": {
    "file": "c15_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kayıtbay Kalesi"
+   "name": "Taş ve Demir"
   },
   "7": {
    "file": "c15_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Buhara Ark Kalesi"
+   "name": "Akan Havuzlar"
   },
   "8": {
    "file": "c15_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Şam Kalesi"
+   "name": "Temiz Rızık"
   },
   "9": {
    "file": "c15_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kız Kulesi"
+   "name": "Şekiller Halkası"
   },
   "10": {
    "file": "c15_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Lahor Kalesi"
+   "name": "Fışkıran Pınar"
   },
   "11": {
    "file": "c15_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Travnik Kalesi"
+   "name": "Göğe Halkalar"
   },
   "12": {
    "file": "c15_12.png",
@@ -90,49 +90,49 @@
    "file": "c15_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Anadolu Hisarı"
+   "name": "Aydınlık Mağara"
   },
   "14": {
    "file": "c15_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "İstanbul Surları"
+   "name": "Karanlık Mağara"
   },
   "15": {
    "file": "c15_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Rumeli Hisarı"
+   "name": "Yarık Kaya"
   },
   "16": {
    "file": "c15_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ahlat Kalesi"
+   "name": "Çamurlu Yamaç"
   },
   "17": {
    "file": "c15_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ani Kalesi"
+   "name": "İki Bağ"
   },
   "18": {
    "file": "c15_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Alamut Kalesi"
+   "name": "Yeşil ve Kuru"
   },
   "19": {
    "file": "c15_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hayber Kalesi"
+   "name": "İki Deniz"
   },
   "20": {
    "file": "c15_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Halep Kalesi"
+   "name": "Kayanın Dibi"
   }
  }
 }
