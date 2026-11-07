@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 25,
- "name": "Mekke ve Hac (25. Cüz)",
+ "name": "Fussilet, Şûrâ, Zuhruf, Duhân ve Câsiye (25. Cüz)",
  "sahne": "col",
  "ek": "",
- "birim": "durak",
- "tanim": "Mekke ve hac",
+ "birim": "sembol",
+ "tanim": "semboller",
  "ui": {
   "bgGarden": "col_sayfa.jpg",
   "bgForest": "col_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c25_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kâbe"
+   "name": "Kabuğundaki Meyve"
   },
   "2": {
    "file": "c25_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hacerülesved"
+   "name": "Çatlayan Kaya"
   },
   "3": {
    "file": "c25_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Makam-ı İbrâhîm"
+   "name": "Bütün Kalan"
   },
   "4": {
    "file": "c25_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Zemzem Kabı"
+   "name": "Ahiret Ekini"
   },
   "5": {
    "file": "c25_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Safâ ve Merve"
+   "name": "Umut Kesilince Gelen Yağmur"
   },
   "6": {
    "file": "c25_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mîzâb"
+   "name": "Danışma Taşları"
   },
   "7": {
    "file": "c25_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Haram Revakı"
+   "name": "Çeşitli Yaratış"
   },
   "8": {
    "file": "c25_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Arafat"
+   "name": "Dosdoğru Basamak Taşları"
   },
   "9": {
    "file": "c25_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Müzdelife"
+   "name": "Dizilmiş Aynı Taşlar"
   },
   "10": {
    "file": "c25_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mina Cemreleri"
+   "name": "Gümüş Merdiven"
   },
   "11": {
    "file": "c25_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "İhram"
+   "name": "Doğu ile Batı Arası"
   },
   "12": {
    "file": "c25_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kurban Yuları"
+   "name": "Altın Bilezikler"
   },
   "13": {
    "file": "c25_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kisve"
+   "name": "Altın Tabaklar ve Kadehler"
   },
   "14": {
    "file": "c25_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hicr-i İsmâil"
+   "name": "Gök, Yer ve Arası"
   },
   "15": {
    "file": "c25_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Nûr Dağı"
+   "name": "Ayrılan İşler"
   },
   "16": {
    "file": "c25_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Tavaf Zemini"
+   "name": "Bırakılıp Gidilen Bahçe"
   },
   "17": {
    "file": "c25_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kâbe Kapısı"
+   "name": "Meyve Sepeti"
   },
   "18": {
    "file": "c25_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mina Çadırları"
+   "name": "Yönlerin Taşı"
   },
   "19": {
    "file": "c25_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Haram Minaresi"
+   "name": "Aynı Sayılmayan"
   },
   "20": {
    "file": "c25_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mikat Kapısı"
+   "name": "Kayıt Katmanları"
   }
  }
 }
