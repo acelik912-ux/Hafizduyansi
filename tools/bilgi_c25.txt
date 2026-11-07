@@ -1,4 +1,4 @@
-  '=kabuğundakimeyve': ['Fussilet 47’de hiçbir meyvenin kabuğundan çıkmadığı ve hiçbir dişinin Allah’ın bilgisi dışında gebe kalıp doğurmadığı bildirilir.', 'Kabuğundaki meyve bu âyeti hatırlatır; bu sayfanın görseli henüz gelmediği için geçici bir resim durur.', 'Görsel anlatımdır.'],
+  '=kabuğundakimeyve': ['Fussilet 47’de hiçbir meyvenin kabuğundan çıkmadığı ve hiçbir dişinin Allah’ın bilgisi dışında gebe kalıp doğurmadığı bildirilir.', 'Kabuğunun içindeki meyve bu âyeti hatırlatır.', 'Görsel anlatımdır.'],
   '=çatlayankaya': ['Şûrâ 5’te göklerin üstlerinden çatlayacak gibi olduğu, meleklerin Rablerini överek tesbih ettiği bildirilir.', 'Çatlayan taştan sızan ışık, bu ürpertiyi hatırlatmak için seçilmiştir.', 'Görsel anlatımdır.'],
   '=bütünkalan': ['Şûrâ 13’te dini dosdoğru tutmanın ve onda ayrılığa düşmemenin emredildiği bildirilir.', 'Ortadaki taşı bütün hâlde saran halka bu birliği hatırlatır.', 'Görsel anlatımdır.'],
   '=ahiretekini': ['Şûrâ 20’de kim ahiret ekinini isterse ona ekinini artıracağı bildirilir.', 'Bir yanda boy veren, bir yanda yeni filizlenen ekin bu sürecin sembolüdür.', 'Görsel anlatımdır.'],

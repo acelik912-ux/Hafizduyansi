@@ -23,7 +23,7 @@ OLCEK = 0.60      # kaide ~1650 px -> ~990 px
 ESIK = 14         # zemin rengine uzaklık (en büyük kanal farkı)
 # (dosya, ad) sayfa sırasıyla: Fussilet 1, Şûrâ 2–8, Zuhruf 9–14, Duhân 15–17, Câsiye 18–20
 LISTE = [
-    (None, 'Kabuğundaki Meyve'),   # görsel gelmedi: eski kodla çizilmiş sayfa korunur
+    ('01_kabugundaki_meyve.jpg', 'Kabuğundaki Meyve'),
     ('02_catlayan_kaya.jpg', 'Çatlayan Kaya'),
     ('03_butun_kalan.jpg', 'Bütün Kalan'),
     ('04_ahiret_ekini.jpg', 'Ahiret Ekini'),
@@ -120,9 +120,13 @@ def main():
             ikonlar.append(Image.open(io.BytesIO(ez.read('fruits/%02d_0.png' % (i + 1)))).convert('RGBA'))
             continue
         src = Image.open(yol).convert('RGB')
-        if LISTE[i][0].startswith('17_'):   # Gemini üstte soluk bir hayalet kopya üretmiş: yukarısı zemin rengine boyanır
-            a = np.asarray(src).copy(); a[:510] = np.median(a[:8, :].reshape(-1, 3), axis=0); src = Image.fromarray(a)
+        if LISTE[i][0][:2] in ('01', '17'):   # Gemini üstte soluk bir hayalet kopya üretmiş: yukarısı zemin rengine boyanır
+            a = np.asarray(src).copy(); a[:{'01': 455, '17': 510}[LISTE[i][0][:2]]] = np.median(a[:8, :].reshape(-1, 3), axis=0); src = Image.fromarray(a)
         im = diorama(src, gevsek=LISTE[i][0] in GEVSEK, golge=LISTE[i][0] not in GOLGESIZ, duzsil=LISTE[i][0] not in NODUZ)
+        if LISTE[i][0][:2] == '01':   # hayalet kopyadan kalan kopuk şeritler: yalnız en büyük parça tutulur
+            al = np.asarray(im).copy(); lab, n = ndi.label(al[..., 3] > 8)
+            en = 1 + int(np.argmax(ndi.sum(al[..., 3] > 8, lab, range(1, n + 1))))
+            al[..., 3] = np.where(ndi.binary_dilation(lab == en, iterations=3), al[..., 3], 0); im = Image.fromarray(al, 'RGBA')
         b = im.getchannel('A').point(lambda v: 255 if v > 8 else 0).getbbox()
         md = round(max(b[2] - b[0], b[3] - b[1]) * OLCEK)
         resimler.append(kg.yerlestir(im, 'tek', md, 0))

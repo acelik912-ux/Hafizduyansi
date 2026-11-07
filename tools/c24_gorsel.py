@@ -23,7 +23,7 @@ OLCEK = 0.60      # kaide ~1650 px -> ~990 px
 ESIK = 14         # zemin rengine uzaklık (en büyük kanal farkı)
 # (dosya, ad) sayfa sırasıyla: Zümer 1–6, Mü'min 7–15, Fussilet 16–20
 LISTE = [
-    (None, 'Çekül ve Düzgün Taş'),   # görsel gelmedi: eski kodla çizilmiş sayfa korunur (c24_01.png)
+    ('01_cekul_ve_duzgun_tas.jpg', 'Çekül ve Düzgün Taş'),
     ('02_tutulan_ve_birakilan_iplik.jpg', 'Tutulan ve Bırakılan İplik'),
     ('03_catlak_toprakta_filiz.jpg', 'Çatlak Toprakta Filiz'),
     ('04_korunan_parsel.jpg', 'Korunan Parsel'),
