@@ -89,6 +89,26 @@ class _Zemin {
   }
 }
 
+// ---- duvarın ötesindeki seyrek orman: Gemini ağaç görselleri (otlak_agac_N.png, saydam arka planlı), dünyaya sabit yerleştirilir
+class _Orman {
+  static final agaclar = <ui.Image>[];
+  static bool _deniyor = false;
+
+  static Future<void> yukle(String ad) async {
+    if (ad.isEmpty || agaclar.isNotEmpty || _deniyor) return;
+    _deniyor = true;
+    for (var i = 0; i < 12; i++) {
+      try {
+        final b = await rootBundle.load('assets/doku/${ad}_agac_$i.png');
+        final codec = await ui.instantiateImageCodec(b.buffer.asUint8List());
+        agaclar.add((await codec.getNextFrame()).image);
+      } catch (e) {
+        break; // görsel yoksa orman çizilmez
+      }
+    }
+  }
+}
+
 // ---- taş duvar dokusu (Gemini): yatayda tekrarlanır, bahçe duvarına kaplanır
 class _Duvar {
   static ui.Image? im;
@@ -286,7 +306,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     });
     if (widget.sahne != 'magara') {
       final ay0 = _ayarOf(widget.sahne);
-      Future.wait([_Zemin.yukle(), _Zemin.yukleSet(ay0.doku), _Pano.yukle(ay0.pano), _Duvar.yukle(ay0.doku)]).whenComplete(() {
+      Future.wait([_Zemin.yukle(), _Zemin.yukleSet(ay0.doku), _Pano.yukle(ay0.pano), _Duvar.yukle(ay0.doku), _Orman.yukle(ay0.doku)]).whenComplete(() {
         if (mounted) setState(() {});
       });
     }
@@ -1281,6 +1301,41 @@ class _Dunya extends CustomPainter {
             c.drawOval(Rect.fromCenter(center: e.translate(0, r * 0.9), width: r * 2.6, height: r * 1.4), p..color = const Color(0xFF2F6B28));
             c.drawCircle(e, r, p..color = const [Color(0xFFE53935), Color(0xFFFFD54F), Color(0xFFF8F8F8), Color(0xFFEC77AB), Color(0xFF7E57C2)][(_h(i, j, 34) * 5).floor() % 5]);
           }
+        }
+      }
+
+      if (ay.pano.isNotEmpty && _Orman.agaclar.isNotEmpty) {
+        // duvarın ötesindeki seyrek orman: sabit konumlar (hücre karması), uzakta sis; duvar bunların önünde çizilir
+        const hucre = 6.5, yaricap = 48.0;
+        final liste = <(double, double, double, int, double)>[]; // derinlik, ekran x, ekran taban y, ağaç no, boy
+        final i0 = ((k.x - yaricap) / hucre).floor(), i1 = ((k.x + yaricap) / hucre).ceil(), j0 = ((k.z - yaricap) / hucre).floor(), j1 = ((k.z + yaricap) / hucre).ceil();
+        for (var i = i0; i <= i1; i++) {
+          for (var j = j0; j <= j1; j++) {
+            if (_h(i, j, 611) > 0.5) continue; // seyrek
+            final x = (i + 0.15 + 0.7 * _h(i, j, 612)) * hucre, z = (j + 0.15 + 0.7 * _h(i, j, 613)) * hucre;
+            if (x.abs() < _citX + 1.6 && z > z0 - 1.6 && z < z1 + 1.6) continue; // bahçenin ve duvarın içine girme
+            final q = s.kamera(x, z);
+            if (q.dy < 1.0 || q.dy > yaricap) continue;
+            final no = (_h(i, j, 614) * _Orman.agaclar.length).floor() % _Orman.agaclar.length;
+            final boy = 6.5 + 3.5 * _h(i, j, 615);
+            final e = ekran(q);
+            if (e.dx < -300 || e.dx > W + 300) continue;
+            liste.add((q.dy, e.dx, ekran(q).dy, no, boy));
+          }
+        }
+        liste.sort((a, b) => b.$1.compareTo(a.$1)); // uzaktan yakına
+        for (final t in liste) {
+          final im = _Orman.agaclar[t.$4];
+          final alt = t.$3, ust = yH + (_goz - t.$5) / t.$1 * f, yuk = alt - ust, gen = yuk * im.width / im.height;
+          final sisA = (1 - math.exp(-t.$1 * 0.03)).clamp(0.0, 0.85);
+          c.drawImageRect(
+            im,
+            Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble()),
+            Rect.fromLTRB(t.$2 - gen / 2, ust, t.$2 + gen / 2, alt),
+            Paint()
+              ..filterQuality = FilterQuality.medium
+              ..colorFilter = ColorFilter.mode(Color.fromRGBO(204, 198, 158, sisA), BlendMode.srcATop),
+          );
         }
       }
 
