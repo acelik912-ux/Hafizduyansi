@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 19,
- "name": "Cami ve Mihrap (19. Cüz)",
+ "name": "Saraylar (19. Cüz)",
  "sahne": "avlu",
  "ek": "",
- "birim": "parça",
- "tanim": "caminin parçaları",
+ "birim": "saray",
+ "tanim": "saraylar",
  "ui": {
   "bgGarden": "avlu_sayfa.jpg",
   "bgForest": "avlu_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c19_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Minare"
+   "name": "Elhamra Sarayı"
   },
   "2": {
    "file": "c19_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mihrap"
+   "name": "Topkapı Sarayı"
   },
   "3": {
    "file": "c19_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Minber"
+   "name": "Dolmabahçe Sarayı"
   },
   "4": {
    "file": "c19_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Vaaz Kürsüsü"
+   "name": "Yıldız Sarayı"
   },
   "5": {
    "file": "c19_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kubbenin İçi"
+   "name": "Çırağan Sarayı"
   },
   "6": {
    "file": "c19_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kandil"
+   "name": "İshak Paşa Sarayı"
   },
   "7": {
    "file": "c19_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sütunlar"
+   "name": "Âli Kapı Sarayı"
   },
   "8": {
    "file": "c19_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Şadırvan"
+   "name": "Çehel Sütun Sarayı"
   },
   "9": {
    "file": "c19_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Seccade"
+   "name": "Şirvanşahlar Sarayı"
   },
   "10": {
    "file": "c19_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Rahle ve Mushaf"
+   "name": "Lahor Kalesi ve Sarayı"
   },
   "11": {
    "file": "c19_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Tespih"
+   "name": "Bahia Sarayı"
   },
   "12": {
    "file": "c19_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kıble Levhası"
+   "name": "Azem Sarayı"
   },
   "13": {
    "file": "c19_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hat Levha"
+   "name": "El Vatan Sarayı"
   },
   "14": {
    "file": "c19_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Cami Halısı"
+   "name": "Yasak Şehir"
   },
   "15": {
    "file": "c19_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Müezzin Mahfili"
+   "name": "Himeji Kalesi ve Sarayı"
   },
   "16": {
    "file": "c19_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Avlu Kapısı"
+   "name": "Schönbrunn Sarayı"
   },
   "17": {
    "file": "c19_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Revak"
+   "name": "Buckingham Sarayı"
   },
   "18": {
    "file": "c19_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mahya"
+   "name": "Pena Sarayı"
   },
   "19": {
    "file": "c19_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Minare Külahı"
+   "name": "Neuschwanstein Sarayı"
   },
   "20": {
    "file": "c19_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Vitray Pencere"
+   "name": "Kremlin Sarayı"
   }
  }
 }

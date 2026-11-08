@@ -28,7 +28,7 @@ def kaynak_yolu(i):
     return None
 
 
-def beyaz_sil(im, golge=False):
+def beyaz_sil(im, golge=False, delik=False):
     """kenardan bağlı, neredeyse beyaz pikselleri sil; kenarı yumuşat, kenar rengini içeriden al"""
     a = np.asarray(im.convert('RGB')).astype(np.float32)
     mn = a.min(axis=2)
@@ -39,6 +39,9 @@ def beyaz_sil(im, golge=False):
     lab, n = ndi.label(aday)
     kenar = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
     zemin = np.isin(lab, list(kenar))
+    if delik:  # nesnenin içinde kalan büyük beyaz boşluklar (tesbih halkası) da silinir
+        boy0 = ndi.sum(aday, lab, range(1, n + 1))
+        zemin |= np.isin(lab, [k + 1 for k, b in enumerate(boy0) if b >= 1500])
     on = ~zemin
     on = ndi.binary_opening(on, iterations=1)
     lab2, n2 = ndi.label(on)
@@ -57,11 +60,11 @@ def beyaz_sil(im, golge=False):
     return Image.fromarray(out, 'RGBA')
 
 
-def yerlestir(im):
+def yerlestir(im, buyut=False):
     b = im.getchannel('A').point(lambda v: 255 if v > 8 else 0).getbbox()
     im = im.crop(b)
     s = min(MAXW / im.width, MAXH / im.height)
-    if s < 1 or max(im.width, im.height) < 700:
+    if s < 1 or max(im.width, im.height) < 700 or buyut:
         im = im.resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.LANCZOS)
     tuval = Image.new('RGBA', (CW, CH), (0, 0, 0, 0))
     tuval.alpha_composite(im, ((CW - im.width) // 2, TABAN - im.height))
@@ -84,10 +87,10 @@ def main():
     for i in range(20):
         yol = kaynak_yolu(i)
         if yol:
-            im = beyaz_sil(Image.open(yol), golge=(i == 19))
+            im = beyaz_sil(Image.open(yol), golge=(i == 19), delik=(i == 8))
         else:
             im = maden_ekstra.ciz(ADLAR[i])
-        resimler.append(yerlestir(im))
+        resimler.append(yerlestir(im, buyut=(i == 8)))
     bundle = os.path.join(KOK, 'bundle')
     parcalar = sorted(f for f in os.listdir(bundle) if f.startswith('theme2.p'))
     eski = zipfile.ZipFile(io.BytesIO(b''.join(open(os.path.join(bundle, f), 'rb').read() for f in parcalar)))

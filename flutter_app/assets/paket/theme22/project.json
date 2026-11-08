@@ -2,11 +2,11 @@
  "version": 7,
  "kind": "theme",
  "cuz": 22,
- "name": "Medine Yılları (22. Cüz)",
+ "name": "Ahzâb, Sebe’, Fâtır ve Yâsîn (22. Cüz)",
  "sahne": "dag",
  "ek": "",
- "birim": "mekân",
- "tanim": "Medine yılları",
+ "birim": "sembol",
+ "tanim": "semboller",
  "ui": {
   "bgGarden": "dag_sayfa.jpg",
   "bgForest": "dag_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c22_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hendek"
+   "name": "İki Kat Karşılık"
   },
   "2": {
    "file": "c22_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mescid-i Nebevî"
+   "name": "Son Tuğla"
   },
   "3": {
    "file": "c22_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Uhud Dağı"
+   "name": "Basamaklı Bereket Tarlası"
   },
   "4": {
    "file": "c22_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Bedir Vadisi"
+   "name": "Alçak Sofra"
   },
   "5": {
    "file": "c22_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kuba Mescidi"
+   "name": "Cilbâb"
   },
   "6": {
    "file": "c22_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sevr Mağarası"
+   "name": "Emanet Küresi"
   },
   "7": {
    "file": "c22_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hudeybiye Ağacı"
+   "name": "Toprak Kesiti"
   },
   "8": {
    "file": "c22_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mescid-i Kıbleteyn"
+   "name": "Sabit Kazanlar"
   },
   "9": {
    "file": "c22_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Suffe Sofası"
+   "name": "İki Bahçe"
   },
   "10": {
    "file": "c22_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hurma Bahçesi"
+   "name": "Rızık Ambarı"
   },
   "11": {
    "file": "c22_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hücreler"
+   "name": "Taşan Zenginlik Terası"
   },
   "12": {
    "file": "c22_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ahzâb Çadırları"
+   "name": "İkişer ve Teker"
   },
   "13": {
    "file": "c22_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Minber"
+   "name": "Uzak Yerden"
   },
   "14": {
    "file": "c22_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kılıç ve Kalkan"
+   "name": "Süslü Görünüş"
   },
   "15": {
    "file": "c22_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Medine Çarşısı"
+   "name": "Çekirdek Zarı"
   },
   "16": {
    "file": "c22_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kardeşlik Sofrası"
+   "name": "Dağ Damarları"
   },
   "17": {
    "file": "c22_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hicret Devesi"
+   "name": "Üç Şerit"
   },
   "18": {
    "file": "c22_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Ezan Damı"
+   "name": "Tutulan Denge"
   },
   "19": {
    "file": "c22_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hannâne Direği"
+   "name": "Önü ve Ardı Kapalı"
   },
   "20": {
    "file": "c22_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Harre Kayalığı"
+   "name": "Uzak Uçtaki Yol"
   }
  }
 }

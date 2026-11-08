@@ -2,7 +2,7 @@
  "version": 7,
  "kind": "theme",
  "cuz": 17,
- "name": "Peygamberler (17. Cüz)",
+ "name": "Peygamberlerin İzleri (17. Cüz)",
  "sahne": "nahl",
  "ek": "",
  "birim": "iz",
@@ -18,121 +18,121 @@
    "file": "c17_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Nûh’un Gemisi"
+   "name": "Kırık Putlar ve Balta"
   },
   "2": {
    "file": "c17_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "İbrâhîm’in Ateşi"
+   "name": "Ateş ve Gül Bahçesi"
   },
   "3": {
    "file": "c17_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Eyyûb’un Pınarı"
+   "name": "Dâvûd’un Zırhı ve Örsü"
   },
   "4": {
    "file": "c17_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Balığın Karnı"
+   "name": "Tesbih Eden Dağlar"
   },
   "5": {
    "file": "c17_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Dâvûd’un Zırhı"
+   "name": "Hüküm Tarlası"
   },
   "6": {
    "file": "c17_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Zekeriyyâ’nın Mihrabı"
+   "name": "Süleymân’ın Rüzgârı"
   },
   "7": {
    "file": "c17_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Meryem’in Hurması"
+   "name": "Eyyûb’un Şifa Pınarı"
   },
   "8": {
    "file": "c17_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kurbanlık Odun ve Bıçak"
+   "name": "Rahmetin Kapısı"
   },
   "9": {
    "file": "c17_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Üzüm Bağı"
+   "name": "Üç Karanlık"
   },
   "10": {
    "file": "c17_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yahyâ’nın Kitabı"
+   "name": "Zekeriyyâ’nın Mihrabı"
   },
   "11": {
    "file": "c17_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Çamurdan Kuş"
+   "name": "Meryem’in Bahçesi"
   },
   "12": {
    "file": "c17_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "İbrâhîm’in Baltası"
+   "name": "Furkan"
   },
   "13": {
    "file": "c17_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Dirilen Toprak"
+   "name": "Sudan Her Canlı"
   },
   "14": {
    "file": "c17_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yumuşayan Demir"
+   "name": "Adalet Terazisi"
   },
   "15": {
    "file": "c17_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "İdrîs’in Yüksek Makamı"
+   "name": "Dürülen Gök"
   },
   "16": {
    "file": "c17_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Tennûr’dan Fışkıran Su"
+   "name": "Beyt’in Temeli"
   },
   "17": {
    "file": "c17_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Dağların Kökleri"
+   "name": "Hac Yolu Çeşmesi"
   },
   "18": {
    "file": "c17_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sudan Yaratılan Canlılar"
+   "name": "Kuru Toprağın Yeşermesi"
   },
   "19": {
    "file": "c17_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Dürülen Gök Tomarı"
+   "name": "Secde Eden Kâinat"
   },
   "20": {
    "file": "c17_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "İhram"
+   "name": "Şeâir Yuları"
   }
  }
 }
