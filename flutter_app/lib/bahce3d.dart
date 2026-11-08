@@ -32,16 +32,38 @@ class _Kam {
 
 final _kameralar = <int, _Kam>{}; // cüz -> son konum (ağaçtan dönünce aynı yerde durulur)
 // ---- zemin: gerçek doku + gölgelendirici (assets/doku, shaders/zemin.frag). Yüklenemezse eski çokgen zemin kullanılır.
+class _ZSet {
+  final ui.Image gI, gK, pI, pK;
+  _ZSet(this.gI, this.gK, this.pI, this.pK);
+}
+
 class _Zemin {
   static ui.FragmentProgram? prog;
   static ui.Image? gI, gK, pI, pK;
   static bool deniyor = false;
+  static final setler = <String, _ZSet>{}; // sahneye özel dokular (assets/doku/<ad>_cim_i.png ...)
+  static final _setDeniyor = <String>{};
   static bool get hazir => prog != null && gI != null && gK != null && pI != null && pK != null;
 
   static Future<ui.Image> _img(String yol) async {
     final b = await rootBundle.load(yol);
     final codec = await ui.instantiateImageCodec(b.buffer.asUint8List());
     return (await codec.getNextFrame()).image;
+  }
+
+  static Future<void> yukleSet(String ad) async {
+    if (ad.isEmpty || setler.containsKey(ad) || !_setDeniyor.add(ad)) return;
+    try {
+      final r = await Future.wait([
+        _img('assets/doku/${ad}_cim_i.png'),
+        _img('assets/doku/${ad}_cim_k.png'),
+        _img('assets/doku/${ad}_yol_i.png'),
+        _img('assets/doku/${ad}_yol_k.png'),
+      ]);
+      setler[ad] = _ZSet(r[0], r[1], r[2], r[3]);
+    } catch (e) {
+      debugPrint('$ad zemin dokusu yüklenemedi: $e');
+    }
   }
 
   static Future<void> yukle() async {
@@ -67,6 +89,48 @@ class _Zemin {
   }
 }
 
+// ---- ufuk panoraması (Gemini): yarım turu (180°) kaplar, ikinci yarı aynalanır → 360° dikişsiz. Her şey sabit; yalnızca bakışla kayar.
+class _Pano {
+  static final resimler = <String, ui.Image>{};
+  static final _deniyor = <String>{};
+  static const ufukSatir = 840.0; // panoramada ufuk (sis bandının başladığı) satırı, kaynak pikseli
+  static const ustRenk = Color(0xFF78B1DE); // görüntünün üstünün üzerindeki gökyüzü
+
+  static Future<void> yukle(String ad) async {
+    if (ad.isEmpty || resimler.containsKey(ad) || !_deniyor.add(ad)) return;
+    try {
+      final b = await rootBundle.load('assets/doku/${ad}_pano.jpg');
+      final codec = await ui.instantiateImageCodec(b.buffer.asUint8List());
+      resimler[ad] = (await codec.getNextFrame()).image;
+    } catch (e) {
+      debugPrint('$ad panoraması yüklenemedi: $e');
+    }
+  }
+
+  static void ciz(Canvas c, ui.Image im, double W, double yH, double f, double yaw) {
+    final pw = im.width.toDouble(), ph = im.height.toDouble();
+    final olc = f / (pw / math.pi); // ekran pikseli / kaynak pikseli
+    final ust = yH - ufukSatir * olc, alt = yH + (ph - ufukSatir) * olc;
+    if (ust > 0) c.drawRect(Rect.fromLTRB(0, 0, W, ust + 1), Paint()..color = ustRenk);
+    const adim = 6.0;
+    final n = (W / adim).ceil() + 1;
+    final pos = Float32List(n * 4), tex = Float32List(n * 4);
+    for (var i = 0; i < n; i++) {
+      final x = math.min(W, i * adim), a = yaw + math.atan((x - W / 2) / f);
+      var t = (a / math.pi) % 2.0; // 0..2: ilk yarı düz, ikinci yarı ayna
+      if (t < 0) t += 2;
+      final u = (t <= 1 ? t : 2 - t) * pw;
+      pos[i * 4] = x; pos[i * 4 + 1] = ust;
+      pos[i * 4 + 2] = x; pos[i * 4 + 3] = alt;
+      tex[i * 4] = u.clamp(0.0, pw - 1); tex[i * 4 + 1] = 0;
+      tex[i * 4 + 2] = u.clamp(0.0, pw - 1); tex[i * 4 + 3] = ph;
+    }
+    final v = ui.Vertices.raw(ui.VertexMode.triangleStrip, pos, textureCoordinates: tex);
+    c.drawVertices(v, BlendMode.src, Paint()..shader = ui.ImageShader(im, TileMode.clamp, TileMode.clamp, Matrix4.identity().storage, filterQuality: FilterQuality.medium));
+  }
+}
+
+final bool _eski = Uri.base.queryParameters['eski'] == '1'; // geçici (yalnız ekran dalı): eski görünümle karşılaştırma
 final _resimler = <String, ui.Image>{};
 bool _ipucuGoruldu = false;
 
@@ -189,7 +253,8 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
       if (mounted) setState(() => hazir = true);
     });
     if (widget.sahne != 'magara') {
-      _Zemin.yukle().whenComplete(() {
+      final ay0 = _ayarOf(widget.sahne);
+      Future.wait([_Zemin.yukle(), _Zemin.yukleSet(ay0.doku), _Pano.yukle(ay0.pano)]).whenComplete(() {
         if (mounted) setState(() {});
       });
     }
@@ -641,6 +706,7 @@ class _Ayar {
   final String sinir; // çit yerine alan sınırı: '' | 'kaya' | 'agac' | 'kamis' | 'bugday' | 'cali' | 'hurma' | 'sutun'
   final String siluet; // ufuk yapıları: '' | 'cami' | 'kale' | 'dag' | 'mesa' | 'orman'
   final Color? zemRenk; // zemin dokusunun rengini bu tona çevirir (parlaklık korunur): kum, taş...
+  final String doku, pano; // sahneye özel zemin dokusu seti ve ufuk panoraması (assets/doku/<ad>_*); boşsa varsayılan kodla çizim
   final String cit; // 'cit' (beyaz çit) | 'ahsap' (kırsal ahşap çit) | 'tas' (alçak taş duvar) | 'yok'
   const _Ayar({
     this.gokUst = const Color(0xFF5FA6DE),
@@ -666,6 +732,8 @@ class _Ayar {
     this.sinir = '',
     this.zemRenk,
     this.cit = 'cit',
+    this.doku = '',
+    this.pano = '',
   });
 }
 
@@ -677,7 +745,7 @@ const _ayarlar = <String, _Ayar>{
   // 7. cüz: gök cisimleri — gece göğü, sabit yıldızlar ve hilal
   'gok': _Ayar(gokUst: Color(0xFF080C2E), gokAlt: Color(0xFF4A4682), uzak: Color(0xFF2A2E5C), orta: Color(0xFF1F2448), koruA: Color(0xFF161B38), koruB: Color(0xFF0E1228), sis: Color(0xFF28306A), zeminTon: Color(0xFF5C6AA6), cimTon: Color(0xFF1A2448), cimOran: 0.75, bulut: 0, golge: 0.3, yildiz: true, tarh: false, cit: 'yok', sinir: 'kaya'),
   // 8. cüz: sürü hayvanları — sabah otlağı
-  'otlak': _Ayar(gokUst: Color(0xFF6FB1E6), gokAlt: Color(0xFFFCE9C0), uzak: Color(0xFFC9C79F), orta: Color(0xFFA9B97C), koruA: Color(0xFF86A55C), koruB: Color(0xFF5F8A42), sis: Color(0xFFD6D6AA), zeminTon: Color(0xFFFFF0C8), kir: true, tarh: false, cit: 'ahsap'),
+  'otlak': _Ayar(gokUst: Color(0xFF6FB1E6), gokAlt: Color(0xFFFCE9C0), uzak: Color(0xFFC9C79F), orta: Color(0xFFA9B97C), koruA: Color(0xFF86A55C), koruB: Color(0xFF5F8A42), sis: Color(0xFFD6D6AA), zeminTon: Color(0xFFFFF0C8), kir: true, tarh: false, cit: 'ahsap', doku: 'otlak', pano: 'otlak'),
   // 9. ve 12. cüz: mekânlar, Yûsuf — çöl ve kayalık vadi
   'col': _Ayar(gokUst: Color(0xFF7AB6E6), gokAlt: Color(0xFFF6E2BE), uzak: Color(0xFFD8B98F), orta: Color(0xFFC49A6B), koruA: Color(0xFFB07E52), koruB: Color(0xFF93663F), sis: Color(0xFFE8C896), zeminTon: Color(0xFFE8C99A), cimTon: Color(0xFFC9A56A), cimOran: 0.75, bulut: 0.5, tarh: false, cit: 'yok', siluet: 'mesa', zemRenk: Color(0xFFD9B070), sinir: 'kaya'),
   // 10. cüz: atlar — altın başaklı ova
@@ -863,6 +931,10 @@ class _Dunya extends CustomPainter {
       }
     } else {
       // gökyüzü, uzak tepeler ve çitin ötesindeki koru (sonsuz uzakta: yalnızca bakış yönüyle kayar)
+      final panoIm = (_eski || ay.pano.isEmpty) ? null : _Pano.resimler[ay.pano];
+      if (panoIm != null) {
+        _Pano.ciz(c, panoIm, W, yH, f, k.yaw);
+      } else {
       c.drawRect(Rect.fromLTRB(0, 0, W, yH + 1), Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, yH), [ay.gokUst, ay.gokAlt]));
       // yumuşak bulutlar: gökte sabit yönlerde; yalnızca bakış yönüyle kayar (kendi başına hareket etmez)
       void bulut(double az, double el, double gen, double al) {
@@ -1003,8 +1075,11 @@ class _Dunya extends CustomPainter {
         ufukCiz((t) => koru(t, 37, 61, 0.5) + 14, ay.koruA);
         ufukCiz((t) => koru(t, 53, 89, 1.3), ay.koruB);
       }
+      }
 
       if (_Zemin.hazir) {
+        final zs = _eski ? null : _Zemin.setler[ay.doku];
+        final otlak = zs != null && ay.pano.isNotEmpty;
         // gerçek doku: çim + taş yol + toprak tarh, perspektif doğru (gölgelendirici)
         final sh = _Zemin.prog!.fragmentShader()
           ..setFloat(0, W)
@@ -1020,10 +1095,23 @@ class _Dunya extends CustomPainter {
           ..setFloat(10, z0)
           ..setFloat(11, z1)
           ..setFloat(12, _yolW)
-          ..setImageSampler(0, _Zemin.gI!)
-          ..setImageSampler(1, _Zemin.gK!)
-          ..setImageSampler(2, _Zemin.pI!)
-          ..setImageSampler(3, _Zemin.pK!);
+          ..setFloat(13, zs != null ? 0.6028 : 0.2170)
+          ..setFloat(14, zs != null ? 0.6898 : 0.4078)
+          ..setFloat(15, zs != null ? 0.3347 : 0.1253)
+          ..setFloat(16, zs != null ? 0.8214 : 0.5974)
+          ..setFloat(17, zs != null ? 0.6923 : 0.5554)
+          ..setFloat(18, zs != null ? 0.5210 : 0.4720)
+          ..setFloat(19, otlak ? 0.835 : 0.60)
+          ..setFloat(20, otlak ? 0.820 : 0.78)
+          ..setFloat(21, otlak ? 0.640 : 0.50)
+          ..setFloat(22, otlak ? 0.97 : 0.9)
+          ..setFloat(23, zs != null ? 1.0 : 1.12)
+          ..setFloat(24, zs != null ? 1.0 : 1.1)
+          ..setFloat(25, zs != null ? 0.96 : 0.82)
+          ..setImageSampler(0, zs?.gI ?? _Zemin.gI!)
+          ..setImageSampler(1, zs?.gK ?? _Zemin.gK!)
+          ..setImageSampler(2, zs?.pI ?? _Zemin.pI!)
+          ..setImageSampler(3, zs?.pK ?? _Zemin.pK!);
         c.drawRect(Rect.fromLTRB(0, yH, W, H), Paint()..shader = sh);
       } else {
       // çitin dışındaki çayır
