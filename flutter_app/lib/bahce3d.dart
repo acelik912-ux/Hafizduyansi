@@ -89,12 +89,30 @@ class _Zemin {
   }
 }
 
+// ---- taş duvar dokusu (Gemini): yatayda tekrarlanır, bahçe duvarına kaplanır
+class _Duvar {
+  static ui.Image? im;
+  static bool _deniyor = false;
+  static const boy = 4.43; // dokunun metre karşılığı (yükseklik 1,1 m)
+
+  static Future<void> yukle(String ad) async {
+    if (ad.isEmpty || im != null || _deniyor) return;
+    _deniyor = true;
+    try {
+      final b = await rootBundle.load('assets/doku/${ad}_duvar.jpg');
+      final codec = await ui.instantiateImageCodec(b.buffer.asUint8List());
+      im = (await codec.getNextFrame()).image;
+    } catch (e) {
+      debugPrint('$ad duvar dokusu yüklenemedi: $e');
+    }
+  }
+}
+
 // ---- ufuk panoraması (Gemini): yarım turu (180°) kaplar, ikinci yarı aynalanır → 360° dikişsiz. Her şey sabit; yalnızca bakışla kayar.
 class _Pano {
   static final resimler = <String, ui.Image>{};
   static final _deniyor = <String>{};
-  static const ufukSatir = 840.0; // panoramada ufuk (sis bandının başladığı) satırı, kaynak pikseli
-  static const ustRenk = Color(0xFF78B1DE); // görüntünün üstünün üzerindeki gökyüzü
+  static const ufukSatir = 900.0; // panoramada ufuk (sis bandının başladığı) satırı, kaynak pikseli
 
   static Future<void> yukle(String ad) async {
     if (ad.isEmpty || resimler.containsKey(ad) || !_deniyor.add(ad)) return;
@@ -268,7 +286,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     });
     if (widget.sahne != 'magara') {
       final ay0 = _ayarOf(widget.sahne);
-      Future.wait([_Zemin.yukle(), _Zemin.yukleSet(ay0.doku), _Pano.yukle(ay0.pano)]).whenComplete(() {
+      Future.wait([_Zemin.yukle(), _Zemin.yukleSet(ay0.doku), _Pano.yukle(ay0.pano), _Duvar.yukle(ay0.doku)]).whenComplete(() {
         if (mounted) setState(() {});
       });
     }
@@ -1115,9 +1133,9 @@ class _Dunya extends CustomPainter {
           ..setFloat(16, zs != null ? 0.8214 : 0.5974)
           ..setFloat(17, zs != null ? 0.6923 : 0.5554)
           ..setFloat(18, zs != null ? 0.5210 : 0.4720)
-          ..setFloat(19, otlak ? 0.835 : 0.60)
-          ..setFloat(20, otlak ? 0.820 : 0.78)
-          ..setFloat(21, otlak ? 0.640 : 0.50)
+          ..setFloat(19, otlak ? 0.80 : 0.60)
+          ..setFloat(20, otlak ? 0.775 : 0.78)
+          ..setFloat(21, otlak ? 0.62 : 0.50)
           ..setFloat(22, otlak ? 0.97 : 0.9)
           ..setFloat(23, otlak ? 0.5 : 0.0)
           ..setFloat(24, zs != null ? 1.0 : 1.12)
@@ -1268,6 +1286,7 @@ class _Dunya extends CustomPainter {
 
       // çit: kazıklar, iki kuşak ve sivri uçlu tahtalar (ağaçlar hep çitin içinde: önce çit, sonra ağaçlar)
       final cit = _Ucgen();
+      final dP = <double>[], dT = <double>[], dC = <int>[], sP = <double>[], sC = <int>[]; // doku kaplı duvar: konum, doku koordinatı, ton; sis katmanı
       void kenar(Offset a, Offset b) {
         final l = (b - a).distance, yon = (b - a) / l, adim = 0.3, tw = 0.11;
         final golge = yon.dx.abs() > 0.5 ? 0.0 : 0.08; // yan çitler biraz koyu
@@ -1276,6 +1295,29 @@ class _Dunya extends CustomPainter {
         if (ay.cit == 'tas') {
           final bahce = ay.pano.isNotEmpty; // bahçe duvarı: daha yüksek, harçlı, sıralı (kaymalı) taş sıraları
           final hw = bahce ? 1.1 : 0.62, sira = bahce ? 4 : 2, bl = bahce ? 0.62 : 0.55;
+          final dim = bahce ? _Duvar.im : null;
+          if (dim != null) {
+            // gerçek taş dokusu: 0,4 m'lik dilimler (perspektif hatası küçük kalsın), uzakta sis katmanı
+            final tw = dim.width.toDouble(), th = dim.height.toDouble();
+            final ton = yon.dx.abs() > 0.5 ? 0xFFFFFFFF : 0xFFE4E0D6;
+            for (var t = 0.0; t < l - 0.01; t += 0.4) {
+              final tt = math.min(t + 0.4, l), p0 = a + yon * t, p1 = a + yon * tt;
+              final q0 = s.kamera(p0.dx, p0.dy), q1 = s.kamera(p1.dx, p1.dy);
+              if (q0.dy < _yakin || q1.dy < _yakin || math.min(q0.dy, q1.dy) > _gorus) continue;
+              final ex = ekran(q0).dx;
+              if (ex < -80 || ex > W + 80) continue;
+              final A = ekran(q0), B = ekran(q1), C = ekran(q1, hw), D = ekran(q0, hw);
+              final u0 = t / _Duvar.boy * tw, u1 = tt / _Duvar.boy * tw;
+              dP.addAll([A.dx, A.dy, B.dx, B.dy, C.dx, C.dy, A.dx, A.dy, C.dx, C.dy, D.dx, D.dy]);
+              dT.addAll([u0, th, u1, th, u1, 0, u0, th, u1, 0, u0, 0]);
+              dC.addAll([ton, ton, ton, ton, ton, ton]);
+              int sis(double d) => Color.fromRGBO(204, 198, 158, (1 - math.exp(-d * 0.03)).clamp(0.0, 0.92)).toARGB32();
+              final s0 = sis(q0.dy), s1 = sis(q1.dy);
+              sP.addAll([A.dx, A.dy, B.dx, B.dy, C.dx, C.dy, A.dx, A.dy, C.dx, C.dy, D.dx, D.dy]);
+              sC.addAll([s0, s1, s1, s0, s1, s0]);
+            }
+            return;
+          }
           for (var t = 0.0; t < l - 0.01; t += bl) {
             final p0 = a + yon * t, p1 = a + yon * math.min(t + bl, l);
             final q0 = s.kamera(p0.dx, p0.dy), q1 = s.kamera(p1.dx, p1.dy);
@@ -1424,6 +1466,15 @@ class _Dunya extends CustomPainter {
         kenar(Offset(_citX, z1), Offset(-_citX, z1));
         kenar(Offset(-_citX, z1), Offset(-_citX, z0));
         cit.ciz(c);
+        if (dP.isNotEmpty) {
+          final dim = _Duvar.im!;
+          c.drawVertices(
+            ui.Vertices.raw(VertexMode.triangles, Float32List.fromList(dP), textureCoordinates: Float32List.fromList(dT), colors: Int32List.fromList(dC)),
+            BlendMode.modulate,
+            Paint()..shader = ui.ImageShader(dim, TileMode.repeated, TileMode.clamp, Matrix4.identity().storage, filterQuality: FilterQuality.medium),
+          );
+          c.drawVertices(ui.Vertices.raw(VertexMode.triangles, Float32List.fromList(sP), colors: Int32List.fromList(sC)), BlendMode.dst, Paint());
+        }
       }
     }
 

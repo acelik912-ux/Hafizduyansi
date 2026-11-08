@@ -49,8 +49,6 @@ def main():
     yaz('otlak_yol', yol, 4, 1)
     # panorama
     p = Image.open(os.path.join(KAYNAK, 'pano.jpg')).convert('RGB')
-    if p.width > 2400:
-        p = p.resize((2400, round(p.height * 2400 / p.width)), Image.LANCZOS)
     p.save(os.path.join(CIKIS, 'otlak_pano.jpg'), quality=95)
     a = np.asarray(p).astype(np.float32)
     print('pano', p.size, 'üst renk', a[:6].reshape(-1, 3).mean(0).round(1), 'alt renk', a[-6:].reshape(-1, 3).mean(0).round(1))
@@ -58,4 +56,17 @@ def main():
         print(' satır', y, a[y].mean(0).round(0))
 
 
+def duvar():
+    # taş duvar: yatay döşenebilir (yalnız yatay çapraz geçiş), 2048x512
+    im = Image.open(os.path.join(KAYNAK, 'duvar.jpg')).convert('RGB').resize((2048, 508), Image.LANCZOS)
+    a = np.asarray(im).astype(np.float32)
+    w = a.shape[1]
+    kay = np.roll(a, w // 2, axis=1)
+    m = (np.sin(np.pi * (np.arange(w) + 0.5) / w) ** 2)[None, :, None]
+    o = a * m + kay * (1 - m)
+    Image.fromarray(o.clip(0, 255).astype(np.uint8)).save(os.path.join(CIKIS, 'otlak_duvar.jpg'), quality=94)
+    print('duvar', im.size)
+
+
 main()
+duvar()
