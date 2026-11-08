@@ -1311,23 +1311,31 @@ class _Dunya extends CustomPainter {
         final i0 = ((k.x - yaricap) / hucre).floor(), i1 = ((k.x + yaricap) / hucre).ceil(), j0 = ((k.z - yaricap) / hucre).floor(), j1 = ((k.z + yaricap) / hucre).ceil();
         for (var i = i0; i <= i1; i++) {
           for (var j = j0; j <= j1; j++) {
-            if (_h(i, j, 611) > 0.5) continue; // seyrek
+            // doğal orman: iri ölçekli gürültü ile öbekler ve boşluklar (aynı sıklıkta dizilmez)
+            final grup = 0.5 * _h(i ~/ 3, j ~/ 3, 621) + 0.5 * _h((i + 1) ~/ 2, (j + 1) ~/ 2, 622);
+            if (_h(i, j, 611) > 0.18 + 0.5 * grup) continue;
             final x = (i + 0.15 + 0.7 * _h(i, j, 612)) * hucre, z = (j + 0.15 + 0.7 * _h(i, j, 613)) * hucre;
             if (x.abs() < _citX + 1.6 && z > z0 - 1.6 && z < z1 + 1.6) continue; // bahçenin ve duvarın içine girme
             final q = s.kamera(x, z);
             if (q.dy < 1.0 || q.dy > yaricap) continue;
             final no = (_h(i, j, 614) * _Orman.agaclar.length).floor() % _Orman.agaclar.length;
-            final boy = 6.5 + 3.5 * _h(i, j, 615);
+            final boy = 5.0 + 6.5 * _h(i, j, 615) * _h(i, j, 616);
             final e = ekran(q);
             if (e.dx < -300 || e.dx > W + 300) continue;
-            liste.add((q.dy, e.dx, ekran(q).dy, no, boy));
+            liste.add((q.dy, e.dx, ekran(q).dy, no, boy + (_h(i, j, 617) > 0.5 ? 1000 : 0)));
           }
         }
         liste.sort((a, b) => b.$1.compareTo(a.$1)); // uzaktan yakına
         for (final t in liste) {
-          final im = _Orman.agaclar[t.$4];
-          final alt = t.$3, ust = yH + (_goz - t.$5) / t.$1 * f, yuk = alt - ust, gen = yuk * im.width / im.height;
+          final im = _Orman.agaclar[t.$4], ayna = t.$5 >= 1000, bo = t.$5 % 1000;
+          final alt = t.$3, ust = yH + (_goz - bo) / t.$1 * f, yuk = alt - ust, gen = yuk * im.width / im.height;
           final sisA = (1 - math.exp(-t.$1 * 0.03)).clamp(0.0, 0.85);
+          c.save();
+          if (ayna) {
+            c.translate(t.$2, 0);
+            c.scale(-1, 1);
+            c.translate(-t.$2, 0);
+          }
           c.drawImageRect(
             im,
             Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble()),
@@ -1336,6 +1344,7 @@ class _Dunya extends CustomPainter {
               ..filterQuality = FilterQuality.medium
               ..colorFilter = ColorFilter.mode(Color.fromRGBO(204, 198, 158, sisA), BlendMode.srcATop),
           );
+          c.restore();
         }
       }
 
