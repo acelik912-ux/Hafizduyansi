@@ -20,6 +20,7 @@ uniform vec3 uCimOrt;   // çim dokusunun ortalama rengi
 uniform vec3 uYolOrt;   // yol dokusunun ortalama rengi
 uniform vec3 uSisRengi; // ufukta zeminin karıştığı sis rengi
 uniform float uSisMax;  // en fazla sis oranı
+uniform float uKivrim; // yolun yana salınım genliği (m); 0 = düz yol
 uniform vec3 uDisTon;   // çitin dışındaki çayırın rengi çarpanı
 
 uniform sampler2D uGI;  // çim (ince)
@@ -95,9 +96,10 @@ void main() {
     col = mix(col, soil, tarh);
 
     // taş yol
-    float e = uYol - ax + (vn(vec2(wz * 3.1, ax * 2.3)) - 0.5) * 0.06;
+    float yx = wx - uKivrim * sin(wz * 0.22); // yol ekseninden yanal uzaklık (kıvrımlı yol)
+    float e = uYol - abs(yx) + (vn(vec2(wz * 3.1, abs(yx) * 2.3)) - 0.5) * 0.06;
     float m = smoothstep(0.0, 0.012, e);
-    vec2 pw = vec2((wx + uYol) / YOL_M.x, wz / YOL_M.y);
+    vec2 pw = vec2((yx + uYol) / YOL_M.x, wz / YOL_M.y);
     float tp = fpv / (YOL_M.x / PI_N.x);
     vec3 pI = texture(uPI, pay(pw, PI_N, 4.0)).rgb;
     vec3 pK = texture(uPK, pay(pw, PK_N, 1.0)).rgb;

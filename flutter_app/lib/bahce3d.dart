@@ -1119,9 +1119,10 @@ class _Dunya extends CustomPainter {
           ..setFloat(20, otlak ? 0.820 : 0.78)
           ..setFloat(21, otlak ? 0.640 : 0.50)
           ..setFloat(22, otlak ? 0.97 : 0.9)
-          ..setFloat(23, zs != null ? 1.0 : 1.12)
-          ..setFloat(24, zs != null ? 1.0 : 1.1)
-          ..setFloat(25, zs != null ? 0.96 : 0.82)
+          ..setFloat(23, otlak ? 0.5 : 0.0)
+          ..setFloat(24, zs != null ? 1.0 : 1.12)
+          ..setFloat(25, zs != null ? 1.0 : 1.1)
+          ..setFloat(26, zs != null ? 0.96 : 0.82)
           ..setImageSampler(0, zs?.gI ?? _Zemin.gI!)
           ..setImageSampler(1, zs?.gK ?? _Zemin.gK!)
           ..setImageSampler(2, zs?.pI ?? _Zemin.pI!)
@@ -1478,6 +1479,11 @@ class _Dunya extends CustomPainter {
       if (magara) {
         c.drawOval(Rect.fromCenter(center: taban, width: bw, height: bw * 0.18), p..color = const Color(0x40000000));
       } else {
+        if (ay.pano.isNotEmpty) {
+          // bahçe düzeni: ağacın dibinde yuvarlak toprak/malç halkası
+          final mc = taban.translate(0, bw * 0.02), mr = bw * 0.46;
+          c.drawOval(Rect.fromCenter(center: mc, width: mr * 2, height: mr * 0.56), Paint()..shader = ui.Gradient.radial(mc, mr, const [Color(0xD0553D24), Color(0xA0553D24), Color(0x00553D24)], const [0.0, 0.62, 1.0], TileMode.clamp, _elips(mc, 0.28), null));
+        }
         // yumuşak çevresel gölge + koyu temas çekirdeği: ağaç yere oturur
         c.drawOval(
           Rect.fromCenter(center: taban.translate(0, bw * 0.025), width: bw * 1.16, height: bw * 0.34),
