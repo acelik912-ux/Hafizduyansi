@@ -12,7 +12,7 @@ def cek(mod, ad):
         b = p.chromium.launch(args=ARGS)
         pg = b.new_page(viewport={'width': 412, 'height': 880}, device_scale_factor=2)
         pg.on('console', lambda m: print('console:', m.text[:200]) if 'error' in m.type else None)
-        pg.goto('http://localhost:8765/?c=8' + ('&eski=1' if mod == 'eski' else ''))
+        pg.goto('http://localhost:8765/?c=' + os.environ.get('CUZ','8') + ('&eski=1' if mod == 'eski' else ''))
         time.sleep(16)
 
         def kaydet(bekle=0.35):

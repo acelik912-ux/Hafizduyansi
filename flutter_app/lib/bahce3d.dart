@@ -790,6 +790,8 @@ class _Ayar {
 }
 
 const _ayarlar = <String, _Ayar>{
+  // 1. cüz: meyve bahçesi — otlak ile aynı Gemini panorama/zemin/taş duvar/orman seti
+  'bahce': _Ayar(tarh: false, cit: 'tas', doku: 'otlak', pano: 'otlak'),
   'kus': _Ayar(cit: 'tas', dere: true),
   'cayir': _Ayar(kir: true, cit: 'yok', sinir: 'cali'),
   // 6. cüz: kıssalardaki hayvanlar — gür orman
