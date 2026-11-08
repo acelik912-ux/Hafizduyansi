@@ -273,3 +273,7 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 ## 2. CÜZ LÜLE TAŞI GELDİ (8 Kasım 2026)
 - Dal `cuz2-lule`. Artık cüz 2'de kodla çizilmiş görsel kalmadı. Gerçek cihazda denenmedi, APK yok; mağarada ekran görüntüsü alınmadı.
 - Kullanıcı 3B stüdyo kodunu (bahce3d.dart, zemin.frag, sahne_bg.py, cami3d.dart) ChatGPT'ye değerlendirtecek; sonucu bekleniyor. Olmazsa Gemini panorama planı.
+
+
+## 1. CÜZ KAYISI AĞACI DEĞİŞTİ (8 Kasım 2026)
+- Yedek: `yedek-kayisi-oncesi` dalı. Kullanıcının meyveli (gerçek kayısılı) ağaç görseli `tools/kayisi_kaynak/kayisi.png` → `python3 tools/kayisi_yeni.py` → `flutter_app/assets/ozel/tree01_temiz.png` (artık 1080x1440, eskisi 720x960 meyvesizdi; aynı oran). Yalnızca 1. cüz 1. sayfa (`ozelSayfa`) kullanır; ağaçta kendi kayısıları var, üstüne ayet başı kayısıları (sarı) yine konur. Ekran görüntüsüyle doğrulanmadı, gerçek cihazda denenmedi.
