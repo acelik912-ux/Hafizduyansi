@@ -21,7 +21,8 @@ uniform vec3 uYolOrt;   // yol dokusunun ortalama rengi
 uniform vec3 uSisRengi; // ufukta zeminin karıştığı sis rengi
 uniform float uSisMax;  // en fazla sis oranı
 uniform float uKivrim; // yolun yana salınım genliği (m); 0 = düz yol
-uniform vec3 uDisTon;   // çitin dışındaki çayırın rengi çarpanı
+uniform vec3 uDisTon;
+uniform float uTarh;    // 1: duvar/çit dibinde toprak çiçek tarhı şeridi var, 0: yok (yalnız çim)   // çitin dışındaki çayırın rengi çarpanı
 
 uniform sampler2D uGI;  // çim (ince)
 uniform sampler2D uGK;  // çim (1/8)
@@ -89,7 +90,7 @@ void main() {
     col *= mix(1.0, serit, step(uYol, ax) * (1.0 - smoothstep(6.0, 12.0, d)));
 
     // çiçek tarhı (toprak)
-    float tarh = step(uCitX - 1.0, ax) * step(ax, uCitX - 0.15) * step(uZ0 + 1.0, wz) * step(wz, uZ1 - 1.0);
+    float tarh = uTarh * step(uCitX - 1.0, ax) * step(ax, uCitX - 0.15) * step(uZ0 + 1.0, wz) * step(wz, uZ1 - 1.0);
     float inc = 1.0 - smoothstep(0.012, 0.05, fpv);
     float toprak = 0.78 + 0.28 * (vn(vec2(wx, wz) * 38.0) - 0.5) * inc + 0.35 * (vn(vec2(wx, wz) * 6.0) - 0.5);
     vec3 soil = vec3(0.37, 0.25, 0.17) * toprak;

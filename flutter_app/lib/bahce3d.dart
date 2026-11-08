@@ -1161,6 +1161,7 @@ class _Dunya extends CustomPainter {
           ..setFloat(24, zs != null ? 1.0 : 1.12)
           ..setFloat(25, zs != null ? 1.0 : 1.1)
           ..setFloat(26, zs != null ? 0.96 : 0.82)
+          ..setFloat(27, zs != null ? 0.0 : 1.0)
           ..setImageSampler(0, zs?.gI ?? _Zemin.gI!)
           ..setImageSampler(1, zs?.gK ?? _Zemin.gK!)
           ..setImageSampler(2, zs?.pI ?? _Zemin.pI!)
