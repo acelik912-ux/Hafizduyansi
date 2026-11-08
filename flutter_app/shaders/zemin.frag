@@ -16,6 +16,13 @@ uniform float uCitX;    // çit yarı genişliği
 uniform float uZ0;      // çit başı
 uniform float uZ1;      // çit sonu
 uniform float uYol;     // yol yarı genişliği
+uniform vec3 uCimOrt;   // çim dokusunun ortalama rengi
+uniform vec3 uYolOrt;   // yol dokusunun ortalama rengi
+uniform vec3 uSisRengi; // ufukta zeminin karıştığı sis rengi
+uniform float uSisMax;  // en fazla sis oranı
+uniform float uKivrim; // yolun yana salınım genliği (m); 0 = düz yol
+uniform vec3 uDisTon;
+uniform float uTarh;    // 1: duvar/çit dibinde toprak çiçek tarhı şeridi var, 0: yok (yalnız çim)   // çitin dışındaki çayırın rengi çarpanı
 
 uniform sampler2D uGI;  // çim (ince)
 uniform sampler2D uGK;  // çim (1/8)
@@ -24,8 +31,6 @@ uniform sampler2D uPK;  // yol (1/8)
 
 layout(location = 0) out vec4 fragColor;
 
-const vec3 CIM_ORT = vec3(0.2170, 0.4078, 0.1253);
-const vec3 YOL_ORT = vec3(0.5974, 0.5554, 0.4720);
 const float CIM_M = 3.2;      // çim dokusunun metre karşılığı
 const vec2 YOL_M = vec2(1.7, 3.4);
 // doku payları (tools/zemin_doku.py): ince 4 px, küçük 1 px
@@ -69,7 +74,7 @@ void main() {
   vec3 gI = texture(uGI, pay(gw, vec2(GI_N), 4.0)).rgb;
   vec3 gK = texture(uGK, pay(gw, vec2(GK_N), 1.0)).rgb;
   vec3 cim = mix(gI, gK, smoothstep(1.0, 3.0, tg));
-  cim = mix(cim, CIM_ORT, smoothstep(9.0, 36.0, tg));
+  cim = mix(cim, uCimOrt, smoothstep(9.0, 36.0, tg));
   // geniş ölçekli doğal renk değişimi (açık/koyu, hafif sararmış yamalar)
   float b1 = vn(vec2(wx, wz) * 0.23), b2 = vn(vec2(wx, wz) * 0.7 + 17.0);
   cim *= 0.86 + 0.3 * b1 + 0.1 * (b2 - 0.5);
@@ -85,21 +90,22 @@ void main() {
     col *= mix(1.0, serit, step(uYol, ax) * (1.0 - smoothstep(6.0, 12.0, d)));
 
     // çiçek tarhı (toprak)
-    float tarh = step(uCitX - 1.0, ax) * step(ax, uCitX - 0.15) * step(uZ0 + 1.0, wz) * step(wz, uZ1 - 1.0);
+    float tarh = uTarh * step(uCitX - 1.0, ax) * step(ax, uCitX - 0.15) * step(uZ0 + 1.0, wz) * step(wz, uZ1 - 1.0);
     float inc = 1.0 - smoothstep(0.012, 0.05, fpv);
     float toprak = 0.78 + 0.28 * (vn(vec2(wx, wz) * 38.0) - 0.5) * inc + 0.35 * (vn(vec2(wx, wz) * 6.0) - 0.5);
     vec3 soil = vec3(0.37, 0.25, 0.17) * toprak;
     col = mix(col, soil, tarh);
 
     // taş yol
-    float e = uYol - ax + (vn(vec2(wz * 3.1, ax * 2.3)) - 0.5) * 0.06;
+    float yx = wx - uKivrim * sin(wz * 0.22); // yol ekseninden yanal uzaklık (kıvrımlı yol)
+    float e = uYol - abs(yx) + (vn(vec2(wz * 3.1, abs(yx) * 2.3)) - 0.5) * 0.06;
     float m = smoothstep(0.0, 0.012, e);
-    vec2 pw = vec2((wx + uYol) / YOL_M.x, wz / YOL_M.y);
+    vec2 pw = vec2((yx + uYol) / YOL_M.x, wz / YOL_M.y);
     float tp = fpv / (YOL_M.x / PI_N.x);
     vec3 pI = texture(uPI, pay(pw, PI_N, 4.0)).rgb;
     vec3 pK = texture(uPK, pay(pw, PK_N, 1.0)).rgb;
     vec3 yol = mix(pI, pK, smoothstep(1.0, 3.0, tp));
-    yol = mix(yol, YOL_ORT, smoothstep(9.0, 36.0, tp));
+    yol = mix(yol, uYolOrt, smoothstep(9.0, 36.0, tp));
     yol *= 0.9 + 0.2 * vn(vec2(wx, wz) * 0.9);
     // yolun kenarındaki toprak şerit
     float kenar = smoothstep(-0.09, 0.0, e) * (1.0 - m);
@@ -108,14 +114,13 @@ void main() {
     col = mix(col, yol, m);
   } else {
     // çitin dışı: açık, hafif sararmış çayır
-    col *= vec3(1.12, 1.1, 0.82);
+    col *= uDisTon;
   }
 
   // yakında çok az koyu, hava perspektifi: uzakta açık yeşil sis
   col *= mix(0.9, 1.0, smoothstep(0.8, 5.0, d));
   float sis = 1.0 - exp(-d * (icerde ? 0.018 : 0.03));
-  vec3 sisRengi = vec3(0.60, 0.78, 0.50);
-  col = mix(col, sisRengi, clamp(sis, 0.0, 0.9));
+  col = mix(col, uSisRengi, clamp(sis, 0.0, uSisMax));
   col *= vec3(1.03, 1.02, 0.97);
   fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }

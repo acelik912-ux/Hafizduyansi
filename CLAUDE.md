@@ -277,3 +277,12 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 
 ## 1. CÜZ KAYISI AĞACI DEĞİŞTİ (8 Kasım 2026)
 - Yedek: `yedek-kayisi-oncesi` dalı. Kullanıcının meyveli (gerçek kayısılı) ağaç görseli `tools/kayisi_kaynak/kayisi.png` → `python3 tools/kayisi_yeni.py` → `flutter_app/assets/ozel/tree01_temiz.png` (artık 1080x1440, eskisi 720x960 meyvesizdi; aynı oran). Yalnızca 1. cüz 1. sayfa (`ozelSayfa`) kullanır; ağaçta kendi kayısıları var, üstüne ayet başı kayısıları (sarı) yine konur. Ekran görüntüsüyle doğrulanmadı, gerçek cihazda denenmedi.
+
+
+## GEMİNİ GÖRSELLİ 3B SAHNE (8 Kasım 2026) – cüz 1 (`bahce`) ve cüz 8 (`otlak`)
+- Yedek: `yedek-gorsel-sahne-oncesi` dalı. Kullanıcı onayı: otlak (8. cüz) görünümünü beğendi ("güzel"), 1. cüze de uygulandı. Dal `gorsel-sahne`.
+- `_Ayar.doku/pano = 'otlak'`: `assets/doku/otlak_*` → `otlak_pano.jpg` (ufuk panoraması, 360° için aynalanır, kamera yaw'ıyla kayar), `otlak_cim_i/_k.png` + `otlak_yol_i/_k.png` (`zemin.frag` örnekler; kıvrımlı yol `uKivrim`, sis `uSisRengi/uSisMax`, `uTarh`), `otlak_duvar.jpg` (taş duvar, ImageShader), `otlak_agac_0..3.png` (duvar ardındaki seyrek doğal orman, çam yok). Üretim: `tools/otlak_doku.py`, `tools/otlak_orman.py` (kaynaklar `tools/otlak_kaynak/`). Çim ve yol dikişsiz yapılır (yarım kaydırılmış kopyayla sin² geçiş).
+- Yeni sahne tipine uygulamak için `_ayarlar` girdisine `doku:'otlak', pano:'otlak', cit:'tas', tarh:false` ekle (ya da kendi Gemini setini `assets/doku/<ad>_*` olarak koy). Mağara (`magara`) etkilenmez; kullanıcı mevcut mağarayı beğendi, değiştirmeyin (isterse Gemini mağara panoraması/zemin/kaya dokusu hazırlanır).
+- Ekran/video doğrulaması: geçici dal `otlak-ekran` (`?c=N` yaması + `tools/ekran_video.py` + `otlak_ekran.yml`), sonuç `ekran-sonuc` dalı. Ana dala ALINMAZ.
+- Gerçek cihazda denenmedi, APK yok. Dağdaki ince açık ufuk çizgisi, uzak ağaçlarda hafif sis ve yeşil çim tutamları (kodla) açık küçük konular.
+- 1. cüz: kayısı kullanıcının meyveli görseliyle (`tools/kayisi_yeni.py`).
