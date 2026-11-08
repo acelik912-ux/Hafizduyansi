@@ -17,3 +17,4 @@
   '=yeşilvekuru': ['Kehf 45’te dünya hayatı, gökten inen suyla yeşerip sonra rüzgârın savurduğu çerçöpe dönen bitkiye benzetilir.', 'Yarısı yeşil, yarısı kurumuş toprak bu benzetmeyi hatırlatır.', 'Görsel anlatımdır.'],
   '=ikideniz': ['Kehf 60’ta Mûsâ’nın “iki denizin birleştiği yere varıncaya kadar yürüyeceğim” dediği anlatılır.', 'Birleşen mavi ve yeşil akış bu yeri hatırlatır.', 'Görsel anlatımdır.'],
   '=kayanındibi': ['Kehf 63’te kayanın yanında dinlenirken balığın unutulduğu anlatılır.', 'Kıyıdaki kaya bu sahneyi hatırlatır.', 'Görsel anlatımdır.'],
+  '=parçaparçaokunuş': ['İsrâ 106’da Kur’ân’ın insanlara ağır ağır okunsun diye bölüm bölüm ayrıldığı bildirilir.', 'Aralıklı ve ölçülü dizilmiş taş bloklar bu bölümlere ayrılmış yolu hatırlatır.', 'Görsel anlatımdır.'],

@@ -34,7 +34,7 @@ LISTE = [
     ('09_sekiller_halkasi.jpg', 'Şekiller Halkası'),
     ('10_fiskiran_pinar.jpg', 'Fışkıran Pınar'),
     ('11_goge_halkalar.jpg', 'Göğe Halkalar'),
-    (None, 'Diyarbakır Surları'),
+    ('12_parca_parca_okunus.jpg', 'Parça Parça Okunuş'),
     ('13_aydinlik_magara.jpg', 'Aydınlık Mağara'),
     ('14_karanlik_magara.jpg', 'Karanlık Mağara'),
     ('15_yarik_kaya.jpg', 'Yarık Kaya'),
@@ -45,8 +45,8 @@ LISTE = [
     ('20_kayanin_dibi.jpg', 'Kayanın Dibi'),
 ]
 GEVSEK = set()
-GOLGESIZ = {f for f, _ in LISTE if f and f[:2] in ('06', '11')}
-NODUZ = {f for f, _ in LISTE if f and f[:2] in ('01', '05', '06', '11', '16', '20')}
+GOLGESIZ = {f for f, _ in LISTE if f and f[:2] in ('06', '11', '12')}
+NODUZ = {f for f, _ in LISTE if f and f[:2] in ('01', '05', '06', '11', '12', '16', '20')}
 ADLAR = [a for _, a in LISTE]
 
 

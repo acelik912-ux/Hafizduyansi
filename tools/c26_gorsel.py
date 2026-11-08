@@ -23,7 +23,7 @@ OLCEK = 0.60      # kaide ~1650 px -> ~990 px
 ESIK = 14         # zemin rengine uzaklık (en büyük kanal farkı)
 # (dosya, ad) sayfa sırasıyla: Câsiye 1, Ahkâf 2–5, Muhammed 6–9, Fetih 10–14, Hucurât 15–16, Kâf 17–19, Zâriyât 20
 LISTE = [
-    (None, 'Büyüklük Göklerde ve Yerde'),
+    ('01_yuce_basamaklar.jpg', 'Yüce Basamaklar'),
     ('02_ahkaf_ciftyol.jpg', 'Eski ve Yeni Yol'),
     ('03_ahkaf_tepe.jpg', 'Dosdoğru Yol'),
     ('04_ahkaf_cati.jpg', 'Kumda Kalan Evler'),
@@ -45,8 +45,8 @@ LISTE = [
     ('20_zariyat_kum.jpg', 'Savrulan Kum'),
 ]
 GEVSEK = set()
-GOLGESIZ = {f for f, _ in LISTE if f and f[:2] in ('19',)}
-NODUZ = {f for f, _ in LISTE if f and f[:2] in ('07', '09', '19')}
+GOLGESIZ = {f for f, _ in LISTE if f and f[:2] in ('01', '19')}
+NODUZ = {f for f, _ in LISTE if f and f[:2] in ('01', '07', '09', '19')}
 ADLAR = [a for _, a in LISTE]
 
 

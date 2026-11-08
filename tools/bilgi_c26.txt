@@ -18,3 +18,4 @@
   '=meyvelibahçe': ['Kâf 9’da gökten bereketli su indirilip onunla bahçeler ve biçilen taneler bitirildiği bildirilir.', 'Meyveli bahçe bu nimeti hatırlatır.', 'Görsel anlatımdır.'],
   '=katmankatmandalga': ['Bu sayfa Kâf’tan; katmanlı dalgalar, yaratılışın kat kat düzenini hatırlatan bir semboldür.', 'Görsel anlatımdır.'],
   '=savrulankum': ['Zâriyât 1’de savurup dağıtan rüzgârlara yemin edilir.', 'Rüzgârın savurduğu ince kum bu yemini hatırlatır.', 'Görsel anlatımdır.'],
+  '=yücebasamaklar': ['Câsiye 37’de göklerde ve yerde büyüklüğün yalnızca Allah’a ait olduğu bildirilir.', 'Kat kat yükselen halkalar ve en üstteki boş tepe bu yüceliği sade biçimde gösterir.', 'Görsel anlatımdır.'],
