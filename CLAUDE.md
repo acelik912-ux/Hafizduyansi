@@ -35,7 +35,7 @@ Asıl uygulama **Flutter** (`flutter_app/`). Kökteki `App.js` (React Native / E
 
 ## Paketler ve araçlar
 - Kaynak gerçek: `bundle/<ad>.pNN` (8 MB'lık zip parçaları). `python3 tools/flutter_varlik.py` hepsini `flutter_app/assets/paket/<ad>/` altına açar ve pubspec assets listesini yazar. Paket değiştirirken bundle'ı değiştir, sonra bu aracı çalıştır.
-- 2. cüz madenleri kullanıcının görselleridir: `tools/maden_kaynak/NN_ad.png` (beyaz zeminli) → `python3 tools/maden_gorsel.py` (zemini siler, yerleştirir, `bundle/theme2.pNN` günceller; sonra `flutter_varlik.py`). 09 Oltu Taşı artık kullanıcının siyah oltu tesbihi görselidir (8 Kasım 2026, `tools/maden_kaynak/09_oltu_tasi.png`; `maden_gorsel.py` `delik`+`buyut` ile halka içindeki beyazı siler, genişliğe büyütür). 13 Lüle Taşı hâlâ geçici olarak kodla çizilir (`tools/maden_ekstra.py`); kullanıcı görsel verirse `tools/maden_kaynak/13_lule_tasi.png` olarak koy. Ad sırası: Altın, Yakut, Zümrüt, Elmas, İnci, Ametist, Bakır, Gümüş, Oltu Taşı, Kaplan Gözü, Kehribar, Opal, Lüle Taşı, Obsidyen, Kristal, Akik, Firuze, Platin, Demir, Toprak. Eski `maden_paketle.py` (kodla çizilmiş sürüm) artık kullanılmıyor.
+- 2. cüz madenleri kullanıcının görselleridir: `tools/maden_kaynak/NN_ad.png` (beyaz zeminli) → `python3 tools/maden_gorsel.py` (zemini siler, yerleştirir, `bundle/theme2.pNN` günceller; sonra `flutter_varlik.py`). 09 Oltu Taşı artık kullanıcının siyah oltu tesbihi görselidir (8 Kasım 2026, `tools/maden_kaynak/09_oltu_tasi.png`; `maden_gorsel.py` `delik`+`buyut` ile halka içindeki beyazı siler, genişliğe büyütür). 13 Lüle Taşı artık kullanıcının Gemini görselidir (8 Kasım 2026, `tools/maden_kaynak/13_lule_tasi.png`: ham sepiyolit parçaları + lüle gövdesi; gri tonlu zemin olduğu için `maden_gorsel.py` `lule_sil` ile silinir, yer gölgesinin ince şeridi kalabilir). Ad sırası: Altın, Yakut, Zümrüt, Elmas, İnci, Ametist, Bakır, Gümüş, Oltu Taşı, Kaplan Gözü, Kehribar, Opal, Lüle Taşı, Obsidyen, Kristal, Akik, Firuze, Platin, Demir, Toprak. Eski `maden_paketle.py` (kodla çizilmiş sürüm) artık kullanılmıyor.
 - Mevcut paketler: `cuz1`, `theme1` (meyve ağaçları, varsayılan tema), `ses1` (1. cüz sesi), `cuz2` (Bakara 142–252, 111 ayet; `flutter` dalından alındı), `theme2` (2. cüz Değerli Madenler).
 - `tools/maden_paketle.py` → `maden_ciz.py` (20 maden + 5 taş + mağara arka planı, SVG) → `svg_png.mjs` (Chrome ile 1,5× PNG) → `bundle/theme2.pNN`. Madenler kodla çizildi (ressam illüstrasyonu değil); illüstrasyon gelirse `tema_paketle.py` (flutter dalında) ile değiştirilebilir.
 - Uygulama ikonu/açılış: `flutter_app/assets/ikon/` (kökteki `icon.png`, `adaptive-icon.png`, `splash.png` kopyaları) → `dart run flutter_launcher_icons` ve `dart run flutter_native_splash:create` (ayarlar pubspec.yaml sonunda, zemin #0B1020).
@@ -268,3 +268,8 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 
 ## 2. CÜZ OLTU TAŞI = TESBİH (8 Kasım 2026)
 - Dal `cuz2-oltu`. Kullanıcının daha önce koyduğu tesbih görseli geldi ve 09 Oltu Taşı yerine kondu (ad ve bilgi kartı aynı kaldı). Yalnızca Lüle Taşı geçici çizim kaldı. Gerçek cihazda denenmedi, APK yok.
+
+
+## 2. CÜZ LÜLE TAŞI GELDİ (8 Kasım 2026)
+- Dal `cuz2-lule`. Artık cüz 2'de kodla çizilmiş görsel kalmadı. Gerçek cihazda denenmedi, APK yok; mağarada ekran görüntüsü alınmadı.
+- Kullanıcı 3B stüdyo kodunu (bahce3d.dart, zemin.frag, sahne_bg.py, cami3d.dart) ChatGPT'ye değerlendirtecek; sonucu bekleniyor. Olmazsa Gemini panorama planı.

@@ -60,6 +60,28 @@ def beyaz_sil(im, golge=False, delik=False):
     return Image.fromarray(out, 'RGBA')
 
 
+def lule_sil(im):
+    """gri tonlu zeminli (lüle taşı) fotoğraf: zemin + yer gölgesi silinir, en büyük parça kalır"""
+    a = np.asarray(im.convert('RGB')).astype(np.float32)
+    mn = a.min(axis=2); sat = a.max(axis=2) - mn
+    y = np.arange(a.shape[0])[:, None]
+    aday = (sat < 17) & (mn >= 208)
+    aday |= (y > a.shape[0] * 0.58) & (sat < 22) & (mn >= 185)
+    aday = ndi.binary_opening(aday, iterations=1) | ((sat < 8) & (mn >= 200))
+    lab, n = ndi.label(aday)
+    kenar = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    on = ~np.isin(lab, list(kenar))
+    on = ndi.binary_opening(on, iterations=4)
+    l2, n2 = ndi.label(on)
+    boy = ndi.sum(on, l2, range(1, n2 + 1))
+    on = ndi.binary_fill_holes(l2 == 1 + int(np.argmax(boy)))
+    ic = ndi.binary_erosion(on, iterations=3)
+    alfa = np.clip((ndi.gaussian_filter(on.astype(np.float32), 1.2) - 0.25) / 0.6, 0, 1)
+    idx = ndi.distance_transform_edt(~ic, return_distances=False, return_indices=True)
+    rgb = np.where(ic[..., None], a, a[idx[0], idx[1]])
+    return Image.fromarray(np.dstack([rgb, alfa * 255]).clip(0, 255).astype(np.uint8), 'RGBA')
+
+
 def yerlestir(im, buyut=False):
     b = im.getchannel('A').point(lambda v: 255 if v > 8 else 0).getbbox()
     im = im.crop(b)
@@ -87,7 +109,7 @@ def main():
     for i in range(20):
         yol = kaynak_yolu(i)
         if yol:
-            im = beyaz_sil(Image.open(yol), golge=(i == 19), delik=(i == 8))
+            im = lule_sil(Image.open(yol)) if i == 12 else beyaz_sil(Image.open(yol), golge=(i == 19), delik=(i == 8))
         else:
             im = maden_ekstra.ciz(ADLAR[i])
         resimler.append(yerlestir(im, buyut=(i == 8)))
