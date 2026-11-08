@@ -243,9 +243,9 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Kartlar yalnız emin olunan ayetlerle; Üç Kese, Camlı Işık, Yarılan Küre kartları belirsiz/genel. Gerçek cihazda denenmedi, APK yok.
 
 
-## 30. CÜZ – KISA SÛRELER, kullanıcının Gemini diorama görselleriyle (8 Kasım 2026) – KISMEN KURULDU
+## 30. CÜZ – KISA SÛRELER, kullanıcının Gemini diorama görselleriyle (8 Kasım 2026) – KURULDU (24/24)
 - Dal: `cuz30-gorsel`. Kullanıcının 20 görseli (2048², beyaz zeminli; 10 ve 16 aynı görsel, biri kullanılmadı) `tools/c30_kaynak/NN_ad.jpg` (NN = **benim kurduğum sayfa sırası**) → `python3 tools/c30_gorsel.py [önizleme]` → `flutter_varlik.py`; kartlar `tools/bilgi_c30.txt`. Sahne `otlak` (eskisi), birim `sembol`, OLCEK 0,60. `GOLGESIZ` 01, 13, 18, 21, 22; `NODUZ` 01, 06, 08, 18, 21, 22.
-- **Eksik 5 sayfa** (eski kodla çizilmiş görsel duruyor, `LISTE` girdisi `None`): p2 Nebe', p5 Abese, p11 A'lâ, p16 Duhâ, p24 İhlâs. Kullanıcıdan Gemini ile istendi.
+- Eksik 5 sayfa da geldi (8 Kasım, istemimle): p2 Toprak Yığını, p5 Dökülen Taşlar, p11 Kaynayan Pınar, p16 İncir ve Zeytin, p24 Yekpare Küre. Kaide renkleri istemdekinden farklı çıktı (p2 lacivert, p5/p11 turuncu); sorun değil.
 - Eşleme **tahmin** (içerik + kaide rengi), kullanıcı doğrulasın: 1 Taş Diskler, 3 Suyun Teraslı Yolu (Nâziât 31), 4 Yazı Masası (Abese 13–14), 6 Duman ve Işık (Tekvîr), 7 Katlı Kumaşlar (Mutaffifîn 1–3), 8 Paslı Ayna (Mutaffifîn 14), 9 Katman Katman Kaya (İnşikâk 19), 10 Kemerli Bahçe (Burûc 11), 12 Dikenli Kuru Ot (Gâşiye 6), 13 Dikili Taş (Fecr 7), 14 Zincir ve Halka (Beled 13), 15 Kaya ve Kiriş (Leyl), 17 Çömlek ve Taş (Tîn), 18 Gece Levhası (Kadir), 19 Yarılan Yamaç (Zilzâl), 20 Dağ Kütlesi (Kâria 5), 21 Eriyen Buz (Asr), 22 Kış ve Yaz Yolu (Kureyş 2), 23 İki Ayrı Toprak (Kâfirûn 6).
 - Kullanıcı kare renkli kaideleri beğenmediğini söyledi; kaldırılsın mı sorusu açık (karar bekleniyor, hiçbir cüzde değiştirilmedi). Gerçek cihazda denenmedi, APK yok.
 - HATIRLATMA: 3B stüdyo arka planı için Gemini istemleri (yukarıdaki plan) kullanıcıya hatırlatılmalı.

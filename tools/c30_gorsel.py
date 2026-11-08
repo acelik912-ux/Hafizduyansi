@@ -24,21 +24,21 @@ ESIK = 14         # zemin rengine uzaklık (en büyük kanal farkı)
 # (dosya, ad) sayfa sırasıyla (Nebe' 1 … İhlâs 24); görseli gelmeyen sayfalar (None) eski çizimle kalır
 LISTE = [
     ('01_nebe_diskler.jpg', 'Taş Diskler'),
-    (None, 'Dürülen Güneş'),
+    ('02_nebe_toprak.jpg', 'Toprak Yığını'),
     ('03_naziat_teras.jpg', 'Suyun Teraslı Yolu'),
     ('04_abese_masa.jpg', 'Yazı Masası'),
-    (None, 'Burç Kuleleri'),
+    ('05_abese_taslar.jpg', 'Dökülen Taşlar'),
     ('06_tekvir_duman.jpg', 'Duman ve Işık'),
     ('07_mutaffifin_kumas.jpg', 'Katlı Kumaşlar'),
     ('08_mutaffifin_ayna.jpg', 'Paslı Ayna'),
     ('09_insikak_katman.jpg', 'Katman Katman Kaya'),
     ('10_buruc_bahce.jpg', 'Kemerli Bahçe'),
-    (None, 'Hira Mağarası'),
+    ('11_ala_pinar.jpg', 'Kaynayan Pınar'),
     ('12_gasiye_dikenli.jpg', 'Dikenli Kuru Ot'),
     ('13_fecr_dikili_tas.jpg', 'Dikili Taş'),
     ('14_beled_zincir.jpg', 'Zincir ve Halka'),
     ('15_leyl_kaya.jpg', 'Kaya ve Kiriş'),
-    (None, 'Kum Saati'),
+    ('16_duha_incir_zeytin.jpg', 'İncir ve Zeytin'),
     ('17_tin_comlek.jpg', 'Çömlek ve Taş'),
     ('18_kadir_gece.jpg', 'Gece Levhası'),
     ('19_zilzal_yarik.jpg', 'Yarılan Yamaç'),
@@ -46,11 +46,11 @@ LISTE = [
     ('21_asr_buz.jpg', 'Eriyen Buz'),
     ('22_kureys_yol.jpg', 'Kış ve Yaz Yolu'),
     ('23_kafirun_toprak.jpg', 'İki Ayrı Toprak'),
-    (None, 'İki Yol'),
+    ('24_ihlas_kure.jpg', 'Yekpare Küre'),
 ]
 GEVSEK = set()
-GOLGESIZ = {f for f, _ in LISTE if f and f[:2] in ('01', '13', '18', '21', '22')}
-NODUZ = {f for f, _ in LISTE if f and f[:2] in ('01', '06', '08', '18', '21', '22')}
+GOLGESIZ = {f for f, _ in LISTE if f and f[:2] in ('01', '13', '18', '21', '22', '24', '02')}
+NODUZ = {f for f, _ in LISTE if f and f[:2] in ('01', '06', '08', '18', '21', '22', '02', '11', '24')}
 ADLAR = [a for _, a in LISTE]
 
 

@@ -844,6 +844,11 @@ const Map<String, List<String>> kBilgi = {
   '=hiramağarası': ['Alak 1’de “Oku” emriyle başlayan ilk vahiy anlatılır.', 'Bu sayfanın görseli geçici bir çizimdir; yenisi gelecek.', 'Görsel anlatımdır.'],
   '=kumsaati': ['Asr 1’de zamana yemin edilir.', 'Bu sayfanın görseli geçici bir çizimdir; yenisi gelecek.', 'Görsel anlatımdır.'],
   '=ikiyol': ['Beled 10’da insana iki yolun gösterildiği bildirilir.', 'Bu sayfanın görseli geçici bir çizimdir; yenisi gelecek.', 'Görsel anlatımdır.'],
+  '=toprakyığını': ['Nebe 40’ta inkârcının “keşke toprak olsaydım” diyeceği bildirilir.', 'Pürüzsüz toprak yığını bu ayeti hatırlatır.', 'Görsel anlatımdır.'],
+  '=dökülentaşlar': ['Tekvîr 2’de yıldızların döküleceği bildirilir.', 'Karanlık levhaya saçılmış ışıklı taşlar bu dökülmeyi gösterir.', 'Görsel anlatımdır.'],
+  '=kaynayanpınar': ['Gâşiye 5’te cehennemlikler için kaynar bir pınardan söz edilir.', 'Buharı tüten taş havuz bu ayetin görüntüsüdür.', 'Görsel anlatımdır.'],
+  '=incirvezeytin': ['Tîn 1’de incire ve zeytine yemin edilir.', 'Meyveli incir ve zeytin ağacı bu yemini gösterir.', 'Görsel anlatımdır.'],
+  '=yekpareküre': ['İhlâs 2’de Allah’ın Samed olduğu, yani hiçbir şeye muhtaç olmadığı bildirilir.', 'Çatlaksız tek küre bu yekpareliği hatırlatır.', 'Görsel anlatımdır.'],
   // ---- c16-30 sonu
 };
 

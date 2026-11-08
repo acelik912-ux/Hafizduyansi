@@ -24,7 +24,7 @@
    "file": "c30_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Dürülen Güneş"
+   "name": "Toprak Yığını"
   },
   "3": {
    "file": "c30_03.png",
@@ -42,7 +42,7 @@
    "file": "c30_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Burç Kuleleri"
+   "name": "Dökülen Taşlar"
   },
   "6": {
    "file": "c30_06.png",
@@ -78,7 +78,7 @@
    "file": "c30_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hira Mağarası"
+   "name": "Kaynayan Pınar"
   },
   "12": {
    "file": "c30_12.png",
@@ -108,7 +108,7 @@
    "file": "c30_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kum Saati"
+   "name": "İncir ve Zeytin"
   },
   "17": {
    "file": "c30_17.png",
@@ -156,7 +156,7 @@
    "file": "c30_24.png",
    "w": 1080,
    "h": 1440,
-   "name": "İki Yol"
+   "name": "Yekpare Küre"
   }
  }
 }
