@@ -5,8 +5,8 @@
  "name": "Kalem ve Levh (29. Cüz)",
  "sahne": "vadi",
  "ek": "",
- "birim": "nesne",
- "tanim": "kalem ve levh",
+ "birim": "sembol",
+ "tanim": "semboller",
  "ui": {
   "bgGarden": "vadi_sayfa.jpg",
   "bgForest": "vadi_sayfa.jpg",
@@ -18,121 +18,121 @@
    "file": "c29_01.png",
    "w": 1080,
    "h": 1440,
-   "name": "Kalem"
+   "name": "Cam Mercek"
   },
   "2": {
    "file": "c29_02.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hokka ve Divit"
+   "name": "Yarılan Zemin"
   },
   "3": {
    "file": "c29_03.png",
    "w": 1080,
    "h": 1440,
-   "name": "Levh-i Mahfûz"
+   "name": "Çekilen Su"
   },
   "4": {
    "file": "c29_04.png",
    "w": 1080,
    "h": 1440,
-   "name": "Nûn"
+   "name": "Yanmış Bağ"
   },
   "5": {
    "file": "c29_05.png",
    "w": 1080,
    "h": 1440,
-   "name": "Hat Levhası"
+   "name": "Taşlı Fidanlar"
   },
   "6": {
    "file": "c29_06.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gök Kandilleri"
+   "name": "Meyveli Yüce Bahçe"
   },
   "7": {
    "file": "c29_07.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sıra Sıra Kuşlar"
+   "name": "Boş Gövdeler"
   },
   "8": {
    "file": "c29_08.png",
    "w": 1080,
    "h": 1440,
-   "name": "Amel Defteri"
+   "name": "Çuvallar"
   },
   "9": {
    "file": "c29_09.png",
    "w": 1080,
    "h": 1440,
-   "name": "Tufan Dalgası"
+   "name": "Atılmış Yün"
   },
   "10": {
    "file": "c29_10.png",
    "w": 1080,
    "h": 1440,
-   "name": "Parmak İzi"
+   "name": "Geniş Yol"
   },
   "11": {
    "file": "c29_11.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mum ve Şamdan"
+   "name": "Dinleme Sıraları"
   },
   "12": {
    "file": "c29_12.png",
    "w": 1080,
    "h": 1440,
-   "name": "Örtü"
+   "name": "Bol Su"
   },
   "13": {
    "file": "c29_13.png",
    "w": 1080,
    "h": 1440,
-   "name": "Saçılmış İnciler"
+   "name": "Gece ve Gündüz"
   },
   "14": {
    "file": "c29_14.png",
    "w": 1080,
    "h": 1440,
-   "name": "Gümüş Sürahi"
+   "name": "Ölçü Kapları"
   },
   "15": {
    "file": "c29_15.png",
    "w": 1080,
    "h": 1440,
-   "name": "Yeşil İpek"
+   "name": "Taş Yığınları"
   },
   "16": {
    "file": "c29_16.png",
    "w": 1080,
    "h": 1440,
-   "name": "Seccade"
+   "name": "Parmak İzi"
   },
   "17": {
    "file": "c29_17.png",
    "w": 1080,
    "h": 1440,
-   "name": "Meâric Merdiveni"
+   "name": "Damla"
   },
   "18": {
    "file": "c29_18.png",
    "w": 1080,
    "h": 1440,
-   "name": "Tespih"
+   "name": "Dört Yöne Akan Su"
   },
   "19": {
    "file": "c29_19.png",
    "w": 1080,
    "h": 1440,
-   "name": "Mushaf ve Rahle"
+   "name": "Taş Kemer"
   },
   "20": {
    "file": "c29_20.png",
    "w": 1080,
    "h": 1440,
-   "name": "Sûr"
+   "name": "Dağ ve Tatlı Su"
   }
  }
 }
