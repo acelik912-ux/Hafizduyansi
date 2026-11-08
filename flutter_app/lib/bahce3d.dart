@@ -111,12 +111,11 @@ class _Pano {
     final pw = im.width.toDouble(), ph = im.height.toDouble();
     final olc = f / (pw / math.pi); // ekran pikseli / kaynak pikseli
     final ust = yH - ufukSatir * olc, alt = yH + (ph - ufukSatir) * olc;
-    if (ust > 0) c.drawRect(Rect.fromLTRB(0, 0, W, ust + 1), Paint()..color = ustRenk);
     const adim = 6.0;
     final n = (W / adim).ceil() + 1;
     final pos = Float32List(n * 4), tex = Float32List(n * 4);
     for (var i = 0; i < n; i++) {
-      final x = math.min(W, i * adim), a = yaw + math.atan((x - W / 2) / f);
+      final x = math.min(W, i * adim), a = yaw + 0.9 + math.atan((x - W / 2) / f); // +0.9: ayna çizgisi başlangıç bakışının dışında
       var t = (a / math.pi) % 2.0; // 0..2: ilk yarı düz, ikinci yarı ayna
       if (t < 0) t += 2;
       final u = (t <= 1 ? t : 2 - t) * pw;
@@ -125,8 +124,17 @@ class _Pano {
       tex[i * 4] = u.clamp(0.0, pw - 1); tex[i * 4 + 1] = 0;
       tex[i * 4 + 2] = u.clamp(0.0, pw - 1); tex[i * 4 + 3] = ph;
     }
-    final v = ui.Vertices.raw(ui.VertexMode.triangleStrip, pos, textureCoordinates: tex);
-    c.drawVertices(v, BlendMode.src, Paint()..shader = ui.ImageShader(im, TileMode.clamp, TileMode.clamp, Matrix4.identity().storage, filterQuality: FilterQuality.medium));
+    final sh = ui.ImageShader(im, TileMode.clamp, TileMode.clamp, Matrix4.identity().storage, filterQuality: FilterQuality.medium);
+    if (ust > 0) {
+      // görüntünün üstünde kalan gökyüzü: üst satır yukarı doğru uzatılır (sert şerit olmasın)
+      final p2 = Float32List.fromList(pos), t2 = Float32List.fromList(tex);
+      for (var i = 0; i < n; i++) {
+        p2[i * 4 + 1] = -2; p2[i * 4 + 3] = ust + 1;
+        t2[i * 4 + 3] = 0;
+      }
+      c.drawVertices(ui.Vertices.raw(ui.VertexMode.triangleStrip, p2, textureCoordinates: t2), BlendMode.src, Paint()..shader = sh);
+    }
+    c.drawVertices(ui.Vertices.raw(ui.VertexMode.triangleStrip, pos, textureCoordinates: tex), BlendMode.src, Paint()..shader = sh);
   }
 }
 
@@ -236,7 +244,13 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
   double get citZ1 => zSon + 4.5;
   double get F => widget.W * 0.5 / math.tan(28 * math.pi / 180) * k.zum; // ~56° görüş açısı: ağaçlar yakın planda
   double get ufuk => widget.H * 0.58; // ufuk aşağıda: hafifçe yukarı bakar gibi, ağaç tacı ekranın ortasında
-  Offset agacPos(int i) => Offset((i % 2 == 0 ? -1 : 1) * _yanX, 3 + (i ~/ 2) * _aralik);
+  bool get _bahceDuzen => _ayarOf(widget.sahne).pano.isNotEmpty; // Gemini panoramalı sahnelerde ağaçlar bahçe düzeninde (yoldan dışarı kayık, hafif ileri-geri)
+  Offset agacPos(int i) {
+    final yan = i % 2 == 0 ? -1 : 1;
+    if (!_bahceDuzen) return Offset(yan * _yanX, 3 + (i ~/ 2) * _aralik);
+    final dx = _h(i, 3, 501) * 0.9, dz = (_h(i, 4, 502) * 2 - 1) * 0.55;
+    return Offset(yan * (_yanX + dx), 3 + (i ~/ 2) * _aralik + dz);
+  }
 
   @override
   void initState() {
@@ -745,7 +759,7 @@ const _ayarlar = <String, _Ayar>{
   // 7. cüz: gök cisimleri — gece göğü, sabit yıldızlar ve hilal
   'gok': _Ayar(gokUst: Color(0xFF080C2E), gokAlt: Color(0xFF4A4682), uzak: Color(0xFF2A2E5C), orta: Color(0xFF1F2448), koruA: Color(0xFF161B38), koruB: Color(0xFF0E1228), sis: Color(0xFF28306A), zeminTon: Color(0xFF5C6AA6), cimTon: Color(0xFF1A2448), cimOran: 0.75, bulut: 0, golge: 0.3, yildiz: true, tarh: false, cit: 'yok', sinir: 'kaya'),
   // 8. cüz: sürü hayvanları — sabah otlağı
-  'otlak': _Ayar(gokUst: Color(0xFF6FB1E6), gokAlt: Color(0xFFFCE9C0), uzak: Color(0xFFC9C79F), orta: Color(0xFFA9B97C), koruA: Color(0xFF86A55C), koruB: Color(0xFF5F8A42), sis: Color(0xFFD6D6AA), zeminTon: Color(0xFFFFF0C8), kir: true, tarh: false, cit: 'ahsap', doku: 'otlak', pano: 'otlak'),
+  'otlak': _Ayar(gokUst: Color(0xFF6FB1E6), gokAlt: Color(0xFFFCE9C0), uzak: Color(0xFFC9C79F), orta: Color(0xFFA9B97C), koruA: Color(0xFF86A55C), koruB: Color(0xFF5F8A42), sis: Color(0xFFD6D6AA), zeminTon: Color(0xFFFFF0C8), tarh: false, cit: 'tas', doku: 'otlak', pano: 'otlak'),
   // 9. ve 12. cüz: mekânlar, Yûsuf — çöl ve kayalık vadi
   'col': _Ayar(gokUst: Color(0xFF7AB6E6), gokAlt: Color(0xFFF6E2BE), uzak: Color(0xFFD8B98F), orta: Color(0xFFC49A6B), koruA: Color(0xFFB07E52), koruB: Color(0xFF93663F), sis: Color(0xFFE8C896), zeminTon: Color(0xFFE8C99A), cimTon: Color(0xFFC9A56A), cimOran: 0.75, bulut: 0.5, tarh: false, cit: 'yok', siluet: 'mesa', zemRenk: Color(0xFFD9B070), sinir: 'kaya'),
   // 10. cüz: atlar — altın başaklı ova
@@ -1259,20 +1273,35 @@ class _Dunya extends CustomPainter {
         final ahsap = ay.cit == 'ahsap';
         final tahta = Color.lerp(ahsap ? const Color(0xFF8B6B47) : const Color(0xFFF1EBDD), const Color(0xFF8A8577), golge)!, tahtaUst = Color.lerp(ahsap ? const Color(0xFFA9835A) : const Color(0xFFFFFCF4), const Color(0xFF8A8577), golge)!;
         if (ay.cit == 'tas') {
-          // alçak taş duvar: her taş bloğu biraz farklı tonda
-          const hw = 0.62;
-          for (var t = 0.0; t < l - 0.01; t += 0.55) {
-            final p0 = a + yon * t, p1 = a + yon * math.min(t + 0.55, l);
+          final bahce = ay.pano.isNotEmpty; // bahçe duvarı: daha yüksek, harçlı, sıralı (kaymalı) taş sıraları
+          final hw = bahce ? 1.1 : 0.62, sira = bahce ? 4 : 2, bl = bahce ? 0.62 : 0.55;
+          for (var t = 0.0; t < l - 0.01; t += bl) {
+            final p0 = a + yon * t, p1 = a + yon * math.min(t + bl, l);
             final q0 = s.kamera(p0.dx, p0.dy), q1 = s.kamera(p1.dx, p1.dy);
             if (q0.dy < _yakin || q1.dy < _yakin || math.min(q0.dy, q1.dy) > _gorus) continue;
             final ex = ekran(q0).dx;
             if (ex < -80 || ex > W + 80) continue;
             final ti = ((p0.dx + p0.dy) * 5).round();
-            for (var r = 0; r < 2; r++) {
-              final ton = Color.lerp(const Color(0xFFA89E8A), const Color(0xFFD2C8B2), _h(ti, r, 91))!;
-              cit.dortgen(ekran(q0, hw * r / 2), ekran(q1, hw * r / 2), ekran(q1, hw * (r + 1) / 2), ekran(q0, hw * (r + 1) / 2), Color.lerp(ton, Colors.black, 0.16 + golge)!, ton);
+            if (bahce) {
+              // harç: duvarın tamamı koyu, üstüne taşlar
+              cit.dortgen(ekran(q0), ekran(q1), ekran(q1, hw), ekran(q0, hw), const Color(0xFF6E665A), const Color(0xFF857D6E));
+              for (var r = 0; r < sira; r++) {
+                final kay = (r % 2) * 0.5, u0 = (t - kay * bl).clamp(0.0, l), u1 = (t - kay * bl + bl).clamp(0.0, l);
+                final y0 = hw * r / sira + 0.015, y1 = hw * (r + 1) / sira - 0.015;
+                if (u1 - u0 < 0.1) continue;
+                final b0 = a + yon * (u0 + 0.02), b1 = a + yon * (u1 - 0.02);
+                final w0 = s.kamera(b0.dx, b0.dy), w1 = s.kamera(b1.dx, b1.dy);
+                if (w0.dy < _yakin || w1.dy < _yakin) continue;
+                final ton = Color.lerp(const Color(0xFFB4A98F), const Color(0xFFDCD2BA), _h(ti + (kay * 3).round(), r, 91))!;
+                cit.dortgen(ekran(w0, y0), ekran(w1, y0), ekran(w1, y1), ekran(w0, y1), Color.lerp(ton, Colors.black, 0.14 + golge)!, ton);
+              }
+            } else {
+              for (var r = 0; r < sira; r++) {
+                final ton = Color.lerp(const Color(0xFFA89E8A), const Color(0xFFD2C8B2), _h(ti, r, 91))!;
+                cit.dortgen(ekran(q0, hw * r / sira), ekran(q1, hw * r / sira), ekran(q1, hw * (r + 1) / sira), ekran(q0, hw * (r + 1) / sira), Color.lerp(ton, Colors.black, 0.16 + golge)!, ton);
+              }
             }
-            cit.dortgen(ekran(q0, hw), ekran(q1, hw), ekran(q1, hw + 0.07), ekran(q0, hw + 0.07), const Color(0xFFDCD3BF), const Color(0xFFE8E0CD));
+            cit.dortgen(ekran(q0, hw), ekran(q1, hw), ekran(q1, hw + 0.08), ekran(q0, hw + 0.08), const Color(0xFFDCD3BF), const Color(0xFFE8E0CD));
           }
           return;
         }
