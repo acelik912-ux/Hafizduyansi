@@ -1,7 +1,7 @@
 name: Otlak ekran videosu (geçici, yalnızca otlak-ekran dalı)
 on:
   push:
-    branches: [otlak-ekran]
+    branches: [ekran3]
 permissions:
   contents: write
 jobs:
