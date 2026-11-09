@@ -1170,6 +1170,7 @@ class _Dunya extends CustomPainter {
           ..setFloat(25, zs != null ? 1.0 : 1.1)
           ..setFloat(26, zs != null ? 0.96 : 0.82)
           ..setFloat(27, zs != null ? 0.0 : 1.0)
+          ..setFloat(28, ay.doku == 'uzay' ? 0.0 : 1.0)
           ..setImageSampler(0, zs?.gI ?? _Zemin.gI!)
           ..setImageSampler(1, zs?.gK ?? _Zemin.gK!)
           ..setImageSampler(2, zs?.pI ?? _Zemin.pI!)
@@ -1239,6 +1240,7 @@ class _Dunya extends CustomPainter {
       // çim yaprakları: yakında sık ve uzun, uzaklaştıkça seyrek; ufka doğru kaybolur
       final ot = _Ucgen();
       void cimler(double hucre, double r0, double r1, int tohum) {
+        if (ay.doku == 'uzay') return; // uzayda çim yaprağı yok
         final i0 = ((k.x - r1) / hucre).floor(), i1 = ((k.x + r1) / hucre).ceil(), j0 = ((k.z - r1) / hucre).floor(), j1 = ((k.z + r1) / hucre).ceil();
         for (var i = i0; i <= i1; i++) {
           for (var j = j0; j <= j1; j++) {

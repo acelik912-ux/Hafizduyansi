@@ -1,0 +1,36 @@
+name: Otlak ekran videosu (geçici, yalnızca otlak-ekran dalı)
+on:
+  push:
+    branches: [ekran-uzay]
+permissions:
+  contents: write
+jobs:
+  ekran:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: cd flutter_app && flutter pub get && (flutter analyze > ../analiz.txt 2>&1 || true)
+      - run: cd flutter_app && (flutter build web --release > ../derleme.txt 2>&1 || echo FAIL >> ../derleme.txt)
+      - name: Video
+        run: |
+          sudo apt-get install -y ffmpeg >/dev/null 2>&1 || true
+          pip install playwright
+          playwright install --with-deps chromium
+          (cd flutter_app/build/web && python3 -m http.server 8765 >/dev/null 2>&1 &)
+          sleep 3
+          CUZ=7 python3 tools/ekran_video.py sonuc || true
+          ls -la sonuc || true
+      - name: Dala yaz
+        run: |
+          git config user.name "ekran-bot"; git config user.email "bot@example.com"
+          mkdir -p /tmp/o; cp sonuc/*.mp4 sonuc/*.png /tmp/o/ 2>/dev/null || true; cp analiz.txt derleme.txt /tmp/o/
+          git checkout --orphan ekran-sonuc
+          git rm -rf --cached . >/dev/null 2>&1 || true
+          cp /tmp/o/* . 
+          git add -f analiz.txt derleme.txt; git add -f *.mp4 2>/dev/null || true; git add -f *.png 2>/dev/null || true
+          git commit -qm "otlak ekran $GITHUB_RUN_NUMBER"
+          git push -f origin ekran-sonuc

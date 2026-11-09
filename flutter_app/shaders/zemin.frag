@@ -24,6 +24,7 @@ uniform float uKivrim; // yolun yana salınım genliği (m); 0 = düz yol
 uniform vec3 uDisTon;
 uniform float uTarh;    // 1: duvar/çit dibinde toprak çiçek tarhı şeridi var, 0: yok (yalnız çim)   // çitin dışındaki çayırın rengi çarpanı
 
+uniform float uKenar;   // yol kenarı toprak şeridi şiddeti (0 = yok)
 uniform sampler2D uGI;  // çim (ince)
 uniform sampler2D uGK;  // çim (1/8)
 uniform sampler2D uPI;  // yol (ince)
@@ -110,7 +111,7 @@ void main() {
     // yolun kenarındaki toprak şerit
     float kenar = smoothstep(-0.09, 0.0, e) * (1.0 - m);
     vec3 topr = vec3(0.45, 0.36, 0.24) * (0.85 + 0.3 * vn(vec2(wx, wz) * 25.0));
-    col = mix(col, topr, kenar * 0.85);
+    col = mix(col, topr, kenar * 0.85 * uKenar);
     col = mix(col, yol, m);
   } else {
     // çitin dışı: açık, hafif sararmış çayır
