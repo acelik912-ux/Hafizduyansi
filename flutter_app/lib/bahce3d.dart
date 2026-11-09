@@ -822,9 +822,9 @@ const _ayarlar = <String, _Ayar>{
   // 12. cüz: Yûsuf'un Mısır'ı — piramitler, dikilitaş, hurma ve kum tepeleri (hepsi sabit)
   'misir': _Ayar(gokUst: Color(0xFF6FB0E4), gokAlt: Color(0xFFFBE6BC), uzak: Color(0xFFE2C79A), orta: Color(0xFFD2AA72), koruA: Color(0xFFC79B62), koruB: Color(0xFFAE814B), sis: Color(0xFFEBD0A0), zeminTon: Color(0xFFEBCF9C), cimTon: Color(0xFFD2AE70), cimOran: 0.75, bulut: 0.3, tarh: false, piramit: true, cit: 'yok', zemRenk: Color(0xFFD9B070), sinir: 'hurma'),
   // 16–30. cüzler: avlu (cami/medeniyet), kale (sur ve kuleler), cennet (bahçe, sular)
-  'avlu': _Ayar(gokUst: Color(0xFF6FA6D6), gokAlt: Color(0xFFFBEBCB), uzak: Color(0xFFD9C9A6), orta: Color(0xFFC9B68E), koruA: Color(0xFFB09F78), koruB: Color(0xFF8E7E5C), sis: Color(0xFFE6D6B0), zeminTon: Color(0xFFE4D6B4), cimTon: Color(0xFFD8C9A0), cimOran: 0.8, bulut: 0.4, tarh: false, cit: 'yok', siluet: 'cami', zemRenk: Color(0xFFD2C4A0), sinir: 'sutun'),
-  'kale': _Ayar(gokUst: Color(0xFF7592BC), gokAlt: Color(0xFFF0DEC2), uzak: Color(0xFFB4A89A), orta: Color(0xFF9A8D7E), koruA: Color(0xFF7E715F), koruB: Color(0xFF5F5445), sis: Color(0xFFD2C5B0), zeminTon: Color(0xFFD9CDB2), cimTon: Color(0xFF8F8466), cimOran: 0.7, bulut: 0.5, tarh: false, cit: 'tas', siluet: 'kale', zemRenk: Color(0xFFB8AC96)),
-  'cennet': _Ayar(gokUst: Color(0xFF58B4EA), gokAlt: Color(0xFFFFF6D6), uzak: Color(0xFFBFE0B8), orta: Color(0xFF8FD08A), koruA: Color(0xFF5FB86A), koruB: Color(0xFF3C9A52), sis: Color(0xFFD2EFC4), zeminTon: Color(0xFFD8F4C0), kir: true, dere: true, tarh: false, cit: 'yok', sinir: 'cali'),
+  'avlu': _Ayar(doku: 'avlu', pano: 'avlu', cit: 'tas', tarh: false),
+  'kale': _Ayar(doku: 'kale', pano: 'kale', cit: 'tas', tarh: false),
+  'cennet': _Ayar(doku: 'cennet', pano: 'cennet', cit: 'tas', tarh: false),
 };
 
 _Ayar _ayarOf(String sahne) => _ayarlar[sahne] ?? const _Ayar();
@@ -1171,7 +1171,7 @@ class _Dunya extends CustomPainter {
           ..setFloat(25, zs != null ? 1.0 : 1.1)
           ..setFloat(26, zs != null ? 0.96 : 0.82)
           ..setFloat(27, zs != null ? 0.0 : 1.0)
-          ..setFloat(28, (ay.doku == 'uzay' || ay.doku == 'buzul') ? 0.0 : 1.0)
+          ..setFloat(28, (ay.doku == 'uzay' || ay.doku == 'buzul' || ay.doku == 'avlu' || ay.doku == 'kale') ? 0.0 : 1.0)
           ..setImageSampler(0, zs?.gI ?? _Zemin.gI!)
           ..setImageSampler(1, zs?.gK ?? _Zemin.gK!)
           ..setImageSampler(2, zs?.pI ?? _Zemin.pI!)
@@ -1241,7 +1241,7 @@ class _Dunya extends CustomPainter {
       // çim yaprakları: yakında sık ve uzun, uzaklaştıkça seyrek; ufka doğru kaybolur
       final ot = _Ucgen();
       void cimler(double hucre, double r0, double r1, int tohum) {
-        if (ay.doku == 'uzay' || ay.doku == 'buzul') return; // uzayda/buzulda çim yaprağı yok
+        if (ay.doku == 'uzay' || ay.doku == 'buzul' || ay.doku == 'avlu' || ay.doku == 'kale') return; // uzayda/buzulda çim yaprağı yok
         final i0 = ((k.x - r1) / hucre).floor(), i1 = ((k.x + r1) / hucre).ceil(), j0 = ((k.z - r1) / hucre).floor(), j1 = ((k.z + r1) / hucre).ceil();
         for (var i = i0; i <= i1; i++) {
           for (var j = j0; j <= j1; j++) {
