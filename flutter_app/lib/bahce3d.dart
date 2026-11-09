@@ -803,7 +803,7 @@ const _ayarlar = <String, _Ayar>{
   // 6. cüz: kıssalardaki hayvanlar — gür orman
   'orman': _Ayar(doku: 'orman', pano: 'orman', cit: 'tas', tarh: false),
   // 7. cüz: gök cisimleri — gece göğü, sabit yıldızlar ve hilal
-  'gok': _Ayar(doku: 'gok', pano: 'gok', cit: 'tas', tarh: false),
+  'gok': _Ayar(doku: 'uzay', pano: 'uzay', cit: 'yok', tarh: false),
   // 8. cüz: sürü hayvanları — sabah otlağı
   'otlak': _Ayar(gokUst: Color(0xFF6FB1E6), gokAlt: Color(0xFFFCE9C0), uzak: Color(0xFFC9C79F), orta: Color(0xFFA9B97C), koruA: Color(0xFF86A55C), koruB: Color(0xFF5F8A42), sis: Color(0xFFD6D6AA), zeminTon: Color(0xFFFFF0C8), tarh: false, cit: 'tas', doku: 'otlak', pano: 'otlak'),
   // 9. ve 12. cüz: mekânlar, Yûsuf — çöl ve kayalık vadi
