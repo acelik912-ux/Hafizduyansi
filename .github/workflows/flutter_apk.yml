@@ -1,8 +1,11 @@
 name: Flutter APK (telefona kurulur)
-# Elle çalıştır: GitHub > Actions > "Flutter APK" > Run workflow. Bitince "HafizDunyasi-apk" artifact'ini indir.
+# Elle çalıştır: GitHub > Actions > "Flutter APK" > Run workflow. Bitince GitHub > Releases > en yeni "APK" sürümünden app-release.apk'yı indir
+# (artifact kotası özel depoda küçük olduğu için APK artık Release eki olarak yayımlanır; Release ekleri Actions kotasına girmez, dosya başına 2 GB sınırı var).
 # Sabit imza anahtarı ve artan sürüm numarası sayesinde yeni APK eskisinin üstüne kurulur.
 on:
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -22,7 +25,10 @@ jobs:
       - run: flutter pub get
       - name: APK derle
         run: flutter build apk --release --build-number=$((1000 + GITHUB_RUN_NUMBER))
-      - uses: actions/upload-artifact@v4
-        with:
-          name: HafizDunyasi-apk
-          path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
+      - name: APK'yı Release olarak yayımla
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la build/app/outputs/flutter-apk/
+          gh release create "apk-${GITHUB_RUN_NUMBER}" build/app/outputs/flutter-apk/app-release.apk \
+            --repo "$GITHUB_REPOSITORY" --title "APK ${GITHUB_RUN_NUMBER}" --notes "Elle derlendi (sürüm no $((1000 + GITHUB_RUN_NUMBER)))." --prerelease

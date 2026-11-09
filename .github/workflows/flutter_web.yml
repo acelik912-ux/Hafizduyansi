@@ -25,7 +25,7 @@ jobs:
           ! grep -qE "^ *error" analyze.txt
       - name: Web derle
         run: flutter build web --release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: HafizDunyasi-web
-          path: flutter_app/build/web
+      # Not: Web paketi (GB'larca varlık) özel depodaki Actions artifact kotasını (≈500 MB) aştığı için
+      # artık yüklenmiyor; bu iş yalnızca "analiz + derleme geçiyor mu" kontrolüdür.
+      - name: Derleme boyutu
+        run: du -sh build/web
