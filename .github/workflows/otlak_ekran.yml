@@ -22,7 +22,7 @@ jobs:
           playwright install --with-deps chromium
           (cd flutter_app/build/web && python3 -m http.server 8765 >/dev/null 2>&1 &)
           sleep 3
-          CUZ=20,24,18,19 python3 tools/ekran_video.py sonuc || true
+          CUZ=1,2,3,7,18,24 python3 tools/tanitim_cek.py sonuc || true
           ls -la sonuc || true
       - name: Dala yaz
         run: |
