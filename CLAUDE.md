@@ -286,3 +286,4 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Ekran/video doğrulaması: geçici dal `otlak-ekran` (`?c=N` yaması + `tools/ekran_video.py` + `otlak_ekran.yml`), sonuç `ekran-sonuc` dalı. Ana dala ALINMAZ.
 - Gerçek cihazda denenmedi, APK yok. Dağdaki ince açık ufuk çizgisi, uzak ağaçlarda hafif sis ve yeşil çim tutamları (kodla) açık küçük konular.
 - 1. cüz: kayısı kullanıcının meyveli görseliyle (`tools/kayisi_yeni.py`).
+- 3. cüz (`kus`) de aynı seti kullanır (`doku/pano: 'otlak'`, `tarh:false`, taş duvar + dere). CI videosuyla (`?c=3`) açıldığı doğrulandı, analiz yeni sorun yok; gerçek cihazda denenmedi. Dere taşları/çimle uyumu videoda ayrıca bakılmadı.
