@@ -305,3 +305,8 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 ## DAĞ / BUZUL / VADİ / NAHL SETLERİ (9 Kasım 2026)
 - Kullanıcının Gemini setleri `tools/{dag,buzul,vadi,nahl}_set_kaynak/` → `set_kur.py` (dag 863, buzul 890, vadi 850, nahl 950; pano 2576 px genişlikte, ufuk satırı tahmin, pad 0). `_ayarlar`: `dag` (cüz 9, 15, 22), `vadi` (cüz 10, 29), `nahl` (cüz 14, 17), `buzul` (YENİ sahne adı; şu an hiçbir cüz kullanmıyor, bir cüzün temasında `sahne: 'buzul'` yazılınca devreye girer). Hepsi `cit:'tas'`, `tarh:false`. Buzulda çim yaprağı ve yol kenarı toprak şeridi kapalı (kar üstünde yeşil görünmesin).
 - CI videosu (`?c=9,10,14`, cüz 24 geçici buzul ile) iyi göründü; buzul'daki çim/kenar kapatma değişikliği sonradan yapıldı, CI'da yeniden denenmedi. Gerçek cihazda denenmedi, APK yok.
+
+## AVLU / KALE / CENNET SETLERİ (9 Kasım 2026)
+- Kullanıcının Gemini setleri `tools/{avlu,kale,cennet}_set_kaynak/` → `set_kur.py` (avlu 960 pad0, kale 750 pad400, cennet 800 pad300; ufuk satırları tahmin). `_ayarlar`: avlu (cüz 18, 19, 28), kale (20, 23, 26), cennet (24) artık `doku/pano` setli, `cit:'tas'`. Avlu ve kalede çim yaprağı ve yol kenarı toprak şeridi kapalı (kaldırım/kuru zemin). Avlu: bej tuğla zemin = cim, çakıl = yol; kale: kuru ot = cim, koyu taş = yol.
+- CI videosuyla (`?c=18,19,20,24`) açıldığı görüldü; avlu ve cennet iyi, kale panoramasında üstte dikey gök şeritleri vardı → pad 400/300 eklendi, bu düzeltme CI'da yeniden denenmedi. 19. cüzün ilk karesinde zemin dokusu yüklenene kadar eski çokgen zemin görünüyor (diğer setlerde de var). Eski kodla çizilmiş `siluet`/`sinir` ayarları kalktı. Gerçek cihazda denenmedi, APK yok.
+- Kalan kodla çizilen sahneler: col (çöl), sahil, magara (kullanıcı beğendi), kus deresi, misir.
