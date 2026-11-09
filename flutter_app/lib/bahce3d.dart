@@ -792,7 +792,7 @@ class _Ayar {
 const _ayarlar = <String, _Ayar>{
   // 1. cüz: meyve bahçesi — otlak ile aynı Gemini panorama/zemin/taş duvar/orman seti
   'bahce': _Ayar(tarh: false, cit: 'tas', doku: 'otlak', pano: 'otlak'),
-  'kus': _Ayar(cit: 'tas', dere: true),
+  'kus': _Ayar(cit: 'tas', dere: true, tarh: false, doku: 'otlak', pano: 'otlak'),
   'cayir': _Ayar(kir: true, cit: 'yok', sinir: 'cali'),
   // 6. cüz: kıssalardaki hayvanlar — gür orman
   'orman': _Ayar(gokUst: Color(0xFF7FB3A6), gokAlt: Color(0xFFDCEBD0), uzak: Color(0xFF9DBBA0), orta: Color(0xFF6E9873), koruA: Color(0xFF4F7F55), koruB: Color(0xFF2F5E3C), sis: Color(0xFF96BEA0), zeminTon: Color(0xFFB4D6A6), bulut: 0.6, cit: 'yok', tarh: false, siluet: 'orman', sinir: 'agac'),
