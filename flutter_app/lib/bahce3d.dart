@@ -3,6 +3,7 @@
 // Yere dokununca oraya yürünür, ağaca dokununca önüne gidilir (yakınsa sayfası açılır), yana kaydırınca dönülür,
 // iki parmakla yakınlaşılır / uzaklaşılır.
 // Kendiliğinden kıpırdayan bir şey yok: sahne yalnızca kullanıcı hareket ettirirken değişir.
+import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -34,7 +35,12 @@ final _kameralar = <int, _Kam>{}; // cüz -> son konum (ağaçtan dönünce ayn�
 // ---- zemin: gerçek doku + gölgelendirici (assets/doku, shaders/zemin.frag). Yüklenemezse eski çokgen zemin kullanılır.
 class _ZSet {
   final ui.Image gI, gK, pI, pK;
-  _ZSet(this.gI, this.gK, this.pI, this.pK);
+  final Map<String, dynamic> bilgi; // <ad>_set.json: cimOrt, yolOrt (ortalama renkler), sis, sisMax, kivrim, ufuk
+  _ZSet(this.gI, this.gK, this.pI, this.pK, this.bilgi);
+  double sayi(String k, int i) => ((bilgi[k] as List)[i] as num).toDouble();
+  double get ufuk => (bilgi['ufuk'] as num).toDouble();
+  double get sisMax => (bilgi['sisMax'] as num).toDouble();
+  double get kivrim => (bilgi['kivrim'] as num).toDouble();
 }
 
 class _Zemin {
@@ -60,7 +66,8 @@ class _Zemin {
         _img('assets/doku/${ad}_yol_i.png'),
         _img('assets/doku/${ad}_yol_k.png'),
       ]);
-      setler[ad] = _ZSet(r[0], r[1], r[2], r[3]);
+      final j = jsonDecode(await rootBundle.loadString('assets/doku/${ad}_set.json')) as Map<String, dynamic>;
+      setler[ad] = _ZSet(r[0], r[1], r[2], r[3], j);
     } catch (e) {
       debugPrint('$ad zemin dokusu yüklenemedi: $e');
     }
@@ -91,12 +98,12 @@ class _Zemin {
 
 // ---- duvarın ötesindeki seyrek orman: Gemini ağaç görselleri (otlak_agac_N.png, saydam arka planlı), dünyaya sabit yerleştirilir
 class _Orman {
-  static final agaclar = <ui.Image>[];
-  static bool _deniyor = false;
+  static final setler = <String, List<ui.Image>>{};
+  static final _deniyor = <String>{};
 
   static Future<void> yukle(String ad) async {
-    if (ad.isEmpty || agaclar.isNotEmpty || _deniyor) return;
-    _deniyor = true;
+    if (ad.isEmpty || !_deniyor.add(ad)) return;
+    final agaclar = setler[ad] = <ui.Image>[];
     for (var i = 0; i < 12; i++) {
       try {
         final b = await rootBundle.load('assets/doku/${ad}_agac_$i.png');
@@ -111,17 +118,16 @@ class _Orman {
 
 // ---- taş duvar dokusu (Gemini): yatayda tekrarlanır, bahçe duvarına kaplanır
 class _Duvar {
-  static ui.Image? im;
-  static bool _deniyor = false;
+  static final setler = <String, ui.Image>{};
+  static final _deniyor = <String>{};
   static const boy = 4.43; // dokunun metre karşılığı (yükseklik 1,1 m)
 
   static Future<void> yukle(String ad) async {
-    if (ad.isEmpty || im != null || _deniyor) return;
-    _deniyor = true;
+    if (ad.isEmpty || !_deniyor.add(ad)) return;
     try {
       final b = await rootBundle.load('assets/doku/${ad}_duvar.jpg');
       final codec = await ui.instantiateImageCodec(b.buffer.asUint8List());
-      im = (await codec.getNextFrame()).image;
+      setler[ad] = (await codec.getNextFrame()).image;
     } catch (e) {
       debugPrint('$ad duvar dokusu yüklenemedi: $e');
     }
@@ -132,7 +138,6 @@ class _Duvar {
 class _Pano {
   static final resimler = <String, ui.Image>{};
   static final _deniyor = <String>{};
-  static const ufukSatir = 900.0; // panoramada ufuk (sis bandının başladığı) satırı, kaynak pikseli
 
   static Future<void> yukle(String ad) async {
     if (ad.isEmpty || resimler.containsKey(ad) || !_deniyor.add(ad)) return;
@@ -145,9 +150,10 @@ class _Pano {
     }
   }
 
-  static void ciz(Canvas c, ui.Image im, double W, double yH, double f, double yaw) {
+  static void ciz(Canvas c, ui.Image im, double W, double yH, double f, double yaw, double ufukOran) {
     final pw = im.width.toDouble(), ph = im.height.toDouble();
     final olc = f / (pw / math.pi); // ekran pikseli / kaynak pikseli
+    final ufukSatir = ufukOran * ph; // panoramada ufuk satırı (ağaç diplerinin zemine değdiği yer)
     final ust = yH - ufukSatir * olc, alt = yH + (ph - ufukSatir) * olc;
     const adim = 6.0;
     final n = (W / adim).ceil() + 1;
@@ -792,7 +798,7 @@ class _Ayar {
 const _ayarlar = <String, _Ayar>{
   // 1. cüz: meyve bahçesi — otlak ile aynı Gemini panorama/zemin/taş duvar/orman seti
   'bahce': _Ayar(tarh: false, cit: 'tas', doku: 'otlak', pano: 'otlak'),
-  'kus': _Ayar(cit: 'tas', dere: true, tarh: false, doku: 'otlak', pano: 'otlak'),
+  'kus': _Ayar(cit: 'tas', dere: true, tarh: false, doku: 'kus', pano: 'kus'),
   'cayir': _Ayar(kir: true, cit: 'yok', sinir: 'cali'),
   // 6. cüz: kıssalardaki hayvanlar — gür orman
   'orman': _Ayar(gokUst: Color(0xFF7FB3A6), gokAlt: Color(0xFFDCEBD0), uzak: Color(0xFF9DBBA0), orta: Color(0xFF6E9873), koruA: Color(0xFF4F7F55), koruB: Color(0xFF2F5E3C), sis: Color(0xFF96BEA0), zeminTon: Color(0xFFB4D6A6), bulut: 0.6, cit: 'yok', tarh: false, siluet: 'orman', sinir: 'agac'),
@@ -987,7 +993,7 @@ class _Dunya extends CustomPainter {
       // gökyüzü, uzak tepeler ve çitin ötesindeki koru (sonsuz uzakta: yalnızca bakış yönüyle kayar)
       final panoIm = (ay.pano.isEmpty) ? null : _Pano.resimler[ay.pano];
       if (panoIm != null) {
-        _Pano.ciz(c, panoIm, W, yH, f, k.yaw);
+        _Pano.ciz(c, panoIm, W, yH, f, k.yaw, _Zemin.setler[ay.doku]?.ufuk ?? 0.8234);
       } else {
       c.drawRect(Rect.fromLTRB(0, 0, W, yH + 1), Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, yH), [ay.gokUst, ay.gokAlt]));
       // yumuşak bulutlar: gökte sabit yönlerde; yalnızca bakış yönüyle kayar (kendi başına hareket etmez)
@@ -1149,17 +1155,17 @@ class _Dunya extends CustomPainter {
           ..setFloat(10, z0)
           ..setFloat(11, z1)
           ..setFloat(12, _yolW)
-          ..setFloat(13, zs != null ? 0.6028 : 0.2170)
-          ..setFloat(14, zs != null ? 0.6898 : 0.4078)
-          ..setFloat(15, zs != null ? 0.3347 : 0.1253)
-          ..setFloat(16, zs != null ? 0.8214 : 0.5974)
-          ..setFloat(17, zs != null ? 0.6923 : 0.5554)
-          ..setFloat(18, zs != null ? 0.5210 : 0.4720)
-          ..setFloat(19, otlak ? 0.80 : 0.60)
-          ..setFloat(20, otlak ? 0.775 : 0.78)
-          ..setFloat(21, otlak ? 0.62 : 0.50)
-          ..setFloat(22, otlak ? 0.97 : 0.9)
-          ..setFloat(23, otlak ? 0.5 : 0.0)
+          ..setFloat(13, zs != null ? zs.sayi('cimOrt', 0) : 0.2170)
+          ..setFloat(14, zs != null ? zs.sayi('cimOrt', 1) : 0.4078)
+          ..setFloat(15, zs != null ? zs.sayi('cimOrt', 2) : 0.1253)
+          ..setFloat(16, zs != null ? zs.sayi('yolOrt', 0) : 0.5974)
+          ..setFloat(17, zs != null ? zs.sayi('yolOrt', 1) : 0.5554)
+          ..setFloat(18, zs != null ? zs.sayi('yolOrt', 2) : 0.4720)
+          ..setFloat(19, zs != null ? zs.sayi('sis', 0) : 0.60)
+          ..setFloat(20, zs != null ? zs.sayi('sis', 1) : 0.78)
+          ..setFloat(21, zs != null ? zs.sayi('sis', 2) : 0.50)
+          ..setFloat(22, otlak ? zs!.sisMax : 0.9)
+          ..setFloat(23, otlak ? zs!.kivrim : 0.0)
           ..setFloat(24, zs != null ? 1.0 : 1.12)
           ..setFloat(25, zs != null ? 1.0 : 1.1)
           ..setFloat(26, zs != null ? 0.96 : 0.82)
@@ -1307,7 +1313,8 @@ class _Dunya extends CustomPainter {
         }
       }
 
-      if (ay.pano.isNotEmpty && _Orman.agaclar.isNotEmpty) {
+      final ormanL = _Orman.setler[ay.doku] ?? const <ui.Image>[];
+      if (ay.pano.isNotEmpty && ormanL.isNotEmpty && _Zemin.setler[ay.doku] != null) {
         // duvarın ötesindeki seyrek orman: sabit konumlar (hücre karması), uzakta sis; duvar bunların önünde çizilir
         const hucre = 6.5, yaricap = 48.0;
         final liste = <(double, double, double, int, double)>[]; // derinlik, ekran x, ekran taban y, ağaç no, boy
@@ -1321,7 +1328,7 @@ class _Dunya extends CustomPainter {
             if (x.abs() < _citX + 1.6 && z > z0 - 1.6 && z < z1 + 1.6) continue; // bahçenin ve duvarın içine girme
             final q = s.kamera(x, z);
             if (q.dy < 1.0 || q.dy > yaricap) continue;
-            final no = (_h(i, j, 614) * _Orman.agaclar.length).floor() % _Orman.agaclar.length;
+            final no = (_h(i, j, 614) * ormanL.length).floor() % ormanL.length;
             final boy = 5.0 + 6.5 * _h(i, j, 615) * _h(i, j, 616);
             final e = ekran(q);
             if (e.dx < -300 || e.dx > W + 300) continue;
@@ -1330,7 +1337,7 @@ class _Dunya extends CustomPainter {
         }
         liste.sort((a, b) => b.$1.compareTo(a.$1)); // uzaktan yakına
         for (final t in liste) {
-          final im = _Orman.agaclar[t.$4], ayna = t.$5 >= 1000, bo = t.$5 % 1000;
+          final im = ormanL[t.$4], ayna = t.$5 >= 1000, bo = t.$5 % 1000;
           final alt = t.$3, ust = yH + (_goz - bo) / t.$1 * f, yuk = alt - ust, gen = yuk * im.width / im.height;
           final sisA = (1 - math.exp(-t.$1 * 0.03)).clamp(0.0, 0.85);
           c.save();
@@ -1345,7 +1352,7 @@ class _Dunya extends CustomPainter {
             Rect.fromLTRB(t.$2 - gen / 2, ust, t.$2 + gen / 2, alt),
             Paint()
               ..filterQuality = FilterQuality.medium
-              ..colorFilter = ColorFilter.mode(Color.fromRGBO(204, 198, 158, sisA), BlendMode.srcATop),
+              ..colorFilter = ColorFilter.mode(Color.fromRGBO((_Zemin.setler[ay.doku]!.sayi('sis', 0) * 255).round(), (_Zemin.setler[ay.doku]!.sayi('sis', 1) * 255).round(), (_Zemin.setler[ay.doku]!.sayi('sis', 2) * 255).round(), sisA), BlendMode.srcATop),
           );
           c.restore();
         }
@@ -1362,7 +1369,7 @@ class _Dunya extends CustomPainter {
         if (ay.cit == 'tas') {
           final bahce = ay.pano.isNotEmpty; // bahçe duvarı: daha yüksek, harçlı, sıralı (kaymalı) taş sıraları
           final hw = bahce ? 1.1 : 0.62, sira = bahce ? 4 : 2, bl = bahce ? 0.62 : 0.55;
-          final dim = bahce ? _Duvar.im : null;
+          final dim = bahce ? _Duvar.setler[ay.doku] : null;
           if (dim != null) {
             // gerçek taş dokusu: 0,4 m'lik dilimler (perspektif hatası küçük kalsın), uzakta sis katmanı
             final tw = dim.width.toDouble(), th = dim.height.toDouble();
@@ -1534,7 +1541,7 @@ class _Dunya extends CustomPainter {
         kenar(Offset(-_citX, z1), Offset(-_citX, z0));
         cit.ciz(c);
         if (dP.isNotEmpty) {
-          final dim = _Duvar.im!;
+          final dim = _Duvar.setler[ay.doku]!;
           c.drawVertices(
             ui.Vertices.raw(VertexMode.triangles, Float32List.fromList(dP), textureCoordinates: Float32List.fromList(dT), colors: Int32List.fromList(dC)),
             BlendMode.modulate,
