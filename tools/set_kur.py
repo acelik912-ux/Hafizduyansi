@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Sahne seti kurar: tools/<ad>_set_kaynak/{cim,yol,pano,duvar,agaclar}.jpg  ->  flutter_app/assets/doku/<ad>_*
-Kullanım: python3 tools/set_kur.py <ad> [ufuk_satiri] [cim_kirmizi_carpan]
+Kullanım: python3 tools/set_kur.py <ad> [ufuk_satiri] [cim_kirmizi_carpan] [ust_gok_pad_px]
  - cim/yol dikişsizleştirilir (_i/_k paylı çiftler), duvar yatay dikişsiz, ağaç levhasından saydam <ad>_agac_N.png (tüm ağaçlar)
  - <ad>_set.json: shader/orman sabitleri (cimOrt, yolOrt, sis, sisMax, kivrim, ufuk) – oyun kodu bunu okur
  - panoramada ufuk satırı (ağaç diplerinin zemine değdiği satır) verilmezse alt %22 alınır."""
@@ -44,9 +44,23 @@ yol = Image.open(os.path.join(KAYNAK, 'yol.jpg')).convert('RGB').resize((2048, 2
 bilgi['yolOrt'] = yaz('yol', dikissiz(yol.crop((512, 0, 1536, 2048))))
 
 p = Image.open(os.path.join(KAYNAK, 'pano.jpg')).convert('RGB')
+uf = int(sys.argv[2]) if len(sys.argv) > 2 else int(p.height * 0.78)
+# gökyüzü kısa kalırsa oyun üst satırı uzatır ve dikey şeritler çıkar: üste yumuşak, yatayda dikişsiz bir gök bandı ekle
+PAD = int(sys.argv[4]) if len(sys.argv) > 4 else 0
+if PAD:
+    pa0 = np.asarray(p).astype(np.float32)
+    F = 220  # görüntünün üst kısmı bantla yumuşakça birleşir (sert kenar olmasın)
+    kenar = ndi.gaussian_filter1d(pa0[:40].mean(0), 450, axis=0, mode='wrap')  # (w,3) çok yumuşak yatay renk
+    kenar = 0.65 * kenar + 0.35 * kenar.mean(0, keepdims=True)
+    t = (1 - np.arange(PAD)[:, None, None] / PAD)  # satır 0 = en üst (1), son satır = kenar (0)
+    ton = np.array([0.93, 0.97, 1.0], dtype=np.float32)
+    band = kenar[None] * (1 - t) + (kenar * ton)[None] * t  # üste doğru hafif mavi
+    w = (np.arange(F)[:, None, None] / F) ** 1.2
+    pa0[:F] = kenar[None] * (1 - w) + pa0[:F] * w
+    p = Image.fromarray(np.vstack([band, pa0]).clip(0, 255).astype(np.uint8))
+    uf += PAD
 p.save(os.path.join(CIKIS, ad + '_pano.jpg'), quality=95)
 pa = np.asarray(p).astype(np.float32)
-uf = int(sys.argv[2]) if len(sys.argv) > 2 else int(p.height * 0.78)
 bilgi['ufuk'] = round(uf / p.height, 4)
 bilgi['sis'] = [round(float(x), 3) for x in pa[uf - 6:uf + 14].reshape(-1, 3).mean(0) / 255]
 bilgi['sisMax'] = 0.97
