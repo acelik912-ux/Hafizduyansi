@@ -297,3 +297,7 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 ## ÇAYIR/OVA/ORMAN/GÖK SETLERİ (9 Kasım 2026)
 - Kullanıcının Gemini setleri `tools/{cayir,ova,orman,gok}_set_kaynak/` → `set_kur.py` (cayir 430 pad120, ova 410 pad120, orman 800, gok 790; ufuk satırları tahmin). `_ayarlar`: cayir (cüz 4), ova (5 ve 13), orman (6), gok (7 ve 27) artık `doku/pano` setli, `cit:'tas'`; eski kodla çizilmiş `kir`/`yildiz` kapalı.
 - CI videosuyla (`?c=4..7`) açıldığı görüldü; çayır/ova göğü düz (panoramanın üstü kısa, bulut görünmez). Gerçek cihazda denenmedi, APK yok.
+
+## 7. CÜZ UZAY SAHNESİ (9 Kasım 2026)
+- Kullanıcı: 7. cüz (Gök Cisimleri) arka planı uzayda olsun. `gok` sahnesi artık `doku/pano:'uzay'`, `cit:'yok'`: kodla üretilmiş set (`python3 tools/uzay_uret.py` → `tools/uzay_set_kaynak/{pano,cim}.jpg` (yol/duvar/ağaç kaynağı eski gok'tan) → `python3 tools/set_kur.py uzay 700 1.0 0`; `uzay_agac_*` ve `uzay_duvar.jpg` silinir ki orman/duvar çizilmesin). Yer: koyu çivit yıldız tozu, yol: açık gri-mavi. Uzayda çim yaprağı yok (`cimler` atlanır) ve yol kenarı toprak şeridi yok (`uKenar` shader uniform'u, float 28).
+- Eski gok (gece çayırı, Gemini) `gok_*` olarak duruyor ama 7/27. cüz kullanmıyor. İstenirse Gemini'den gerçek uzay panoraması (nebula/samanyolu) istenip `uzay_set_kaynak/pano.jpg` yerine konur. CI ile doğrulandı (`?c=7`), gerçek cihazda denenmedi, APK yok. Cüz 27 (Bilim ve Medeniyet) da `gok` sahnesini kullandığı için uzay görünümü alır; istemezsen ayrı sahne yap.
