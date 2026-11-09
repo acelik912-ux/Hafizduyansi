@@ -17,10 +17,10 @@ def cek(mod, ad):
 
         def kaydet(bekle=0.35):
             time.sleep(bekle)
-            pg.screenshot(path=os.path.join(kare, '%04d.png' % n[0])); n[0] += 1
+            pg.screenshot(path=os.path.join(kare, '%04d.png' % n[0]), timeout=120000); n[0] += 1
 
         kaydet(1.0)
-        pg.screenshot(path=os.path.join(out, ad + '_ilk.png'))
+        pg.screenshot(path=os.path.join(out, ad + '_ilk.png'), timeout=120000)
         # 1) sağa/sola dön: 40 px ≈ 6° ; yarım tur
         for tur in range(4):
             x = 380
@@ -33,11 +33,12 @@ def cek(mod, ad):
         pg.mouse.click(206, 700)
         for i in range(24):
             kaydet(0.3)
-        pg.screenshot(path=os.path.join(out, ad + '_son.png'))
+        pg.screenshot(path=os.path.join(out, ad + '_son.png'), timeout=120000)
         b.close()
     subprocess.run(['ffmpeg', '-y', '-framerate', '6', '-i', os.path.join(kare, '%04d.png'), '-vf', 'scale=412:880', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', os.path.join(out, '%s.mp4' % ad)], check=False)
 
 
 for c in os.environ.get('CUZ','4').split(','):
     os.environ['CUZ1']=c
-    cek('yeni', 'c'+c)
+    try: cek('yeni', 'c'+c)
+    except Exception as e: print('HATA', c, str(e)[:300])
