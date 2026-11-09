@@ -813,17 +813,18 @@ const _ayarlar = <String, _Ayar>{
   // 11. cüz: deniz canlıları — kumsal ve açık deniz
   'sahil': _Ayar(gokUst: Color(0xFF4FA8E8), gokAlt: Color(0xFFDFF1F7), uzak: Color(0xFF5AB0D0), orta: Color(0xFF2F8FB8), sis: Color(0xFFBEE1EB), zeminTon: Color(0xFFF3E6C0), cimTon: Color(0xFFE9D6A4), cimOran: 0.9, deniz: true, tarh: false, cit: 'yok', zemRenk: Color(0xFFF0DEA6), sinir: 'kaya'),
   // 13. cüz: su ve hava olayları — bulutlu vadi, dereler
-  'vadi': _Ayar(gokUst: Color(0xFF5E7389), gokAlt: Color(0xFFB8C6CF), uzak: Color(0xFF8FA3AD), orta: Color(0xFF6F8A8F), koruA: Color(0xFF4E6F6A), koruB: Color(0xFF365A55), sis: Color(0xFFA0B4B9), zeminTon: Color(0xFFB9CCB0), bulut: 1.5, dere: true, tarh: false, cit: 'yok', siluet: 'dag', sinir: 'kamis'),
+  'vadi': _Ayar(doku: 'vadi', pano: 'vadi', cit: 'tas', tarh: false),
   // 14. cüz: Nahl'in nimetleri — bal rengi sabah çayırı
-  'nahl': _Ayar(gokUst: Color(0xFF69B0E4), gokAlt: Color(0xFFFFEFC8), uzak: Color(0xFFC6CFA6), orta: Color(0xFFA6BF7E), koruA: Color(0xFF86A85E), koruB: Color(0xFF5F8A42), sis: Color(0xFFD8DDB0), zeminTon: Color(0xFFFFF3CC), kir: true, cit: 'yok', sinir: 'cali'),
+  'nahl': _Ayar(doku: 'nahl', pano: 'nahl', cit: 'tas', tarh: false),
   // 15. cüz: Kehf ve İsrâ — dağ eteği, şafak
-  'dag': _Ayar(gokUst: Color(0xFF7C9DC8), gokAlt: Color(0xFFF3D8C4), uzak: Color(0xFFA9A3B5), orta: Color(0xFF8A8590), koruA: Color(0xFF6D6F6A), koruB: Color(0xFF55584F), sis: Color(0xFFBEB9C8), zeminTon: Color(0xFFCFC9B4), cimTon: Color(0xFF9A9A7A), cimOran: 0.5, tarh: false, cit: 'yok', siluet: 'dag', zemRenk: Color(0xFFB4AC9C), sinir: 'kaya'),
+  'dag': _Ayar(doku: 'dag', pano: 'dag', cit: 'tas', tarh: false),
+  'buzul': _Ayar(doku: 'buzul', pano: 'buzul', cit: 'tas', tarh: false),
   // 12. cüz: Yûsuf'un Mısır'ı — piramitler, dikilitaş, hurma ve kum tepeleri (hepsi sabit)
   'misir': _Ayar(gokUst: Color(0xFF6FB0E4), gokAlt: Color(0xFFFBE6BC), uzak: Color(0xFFE2C79A), orta: Color(0xFFD2AA72), koruA: Color(0xFFC79B62), koruB: Color(0xFFAE814B), sis: Color(0xFFEBD0A0), zeminTon: Color(0xFFEBCF9C), cimTon: Color(0xFFD2AE70), cimOran: 0.75, bulut: 0.3, tarh: false, piramit: true, cit: 'yok', zemRenk: Color(0xFFD9B070), sinir: 'hurma'),
   // 16–30. cüzler: avlu (cami/medeniyet), kale (sur ve kuleler), cennet (bahçe, sular)
   'avlu': _Ayar(gokUst: Color(0xFF6FA6D6), gokAlt: Color(0xFFFBEBCB), uzak: Color(0xFFD9C9A6), orta: Color(0xFFC9B68E), koruA: Color(0xFFB09F78), koruB: Color(0xFF8E7E5C), sis: Color(0xFFE6D6B0), zeminTon: Color(0xFFE4D6B4), cimTon: Color(0xFFD8C9A0), cimOran: 0.8, bulut: 0.4, tarh: false, cit: 'yok', siluet: 'cami', zemRenk: Color(0xFFD2C4A0), sinir: 'sutun'),
   'kale': _Ayar(gokUst: Color(0xFF7592BC), gokAlt: Color(0xFFF0DEC2), uzak: Color(0xFFB4A89A), orta: Color(0xFF9A8D7E), koruA: Color(0xFF7E715F), koruB: Color(0xFF5F5445), sis: Color(0xFFD2C5B0), zeminTon: Color(0xFFD9CDB2), cimTon: Color(0xFF8F8466), cimOran: 0.7, bulut: 0.5, tarh: false, cit: 'tas', siluet: 'kale', zemRenk: Color(0xFFB8AC96)),
-  'cennet': _Ayar(gokUst: Color(0xFF58B4EA), gokAlt: Color(0xFFFFF6D6), uzak: Color(0xFFBFE0B8), orta: Color(0xFF8FD08A), koruA: Color(0xFF5FB86A), koruB: Color(0xFF3C9A52), sis: Color(0xFFD2EFC4), zeminTon: Color(0xFFD8F4C0), kir: true, dere: true, tarh: false, cit: 'yok', sinir: 'cali'),
+  'cennet': _Ayar(doku: 'buzul', pano: 'buzul', cit: 'tas', tarh: false),
 };
 
 _Ayar _ayarOf(String sahne) => _ayarlar[sahne] ?? const _Ayar();
