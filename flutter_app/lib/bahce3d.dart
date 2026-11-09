@@ -799,17 +799,17 @@ const _ayarlar = <String, _Ayar>{
   // 1. cüz: meyve bahçesi — otlak ile aynı Gemini panorama/zemin/taş duvar/orman seti
   'bahce': _Ayar(tarh: false, cit: 'tas', doku: 'otlak', pano: 'otlak'),
   'kus': _Ayar(cit: 'tas', dere: true, tarh: false, doku: 'kus', pano: 'kus'),
-  'cayir': _Ayar(kir: true, cit: 'yok', sinir: 'cali'),
+  'cayir': _Ayar(doku: 'cayir', pano: 'cayir', cit: 'tas', tarh: false),
   // 6. cüz: kıssalardaki hayvanlar — gür orman
-  'orman': _Ayar(gokUst: Color(0xFF7FB3A6), gokAlt: Color(0xFFDCEBD0), uzak: Color(0xFF9DBBA0), orta: Color(0xFF6E9873), koruA: Color(0xFF4F7F55), koruB: Color(0xFF2F5E3C), sis: Color(0xFF96BEA0), zeminTon: Color(0xFFB4D6A6), bulut: 0.6, cit: 'yok', tarh: false, siluet: 'orman', sinir: 'agac'),
+  'orman': _Ayar(doku: 'orman', pano: 'orman', cit: 'tas', tarh: false),
   // 7. cüz: gök cisimleri — gece göğü, sabit yıldızlar ve hilal
-  'gok': _Ayar(gokUst: Color(0xFF080C2E), gokAlt: Color(0xFF4A4682), uzak: Color(0xFF2A2E5C), orta: Color(0xFF1F2448), koruA: Color(0xFF161B38), koruB: Color(0xFF0E1228), sis: Color(0xFF28306A), zeminTon: Color(0xFF5C6AA6), cimTon: Color(0xFF1A2448), cimOran: 0.75, bulut: 0, golge: 0.3, yildiz: true, tarh: false, cit: 'yok', sinir: 'kaya'),
+  'gok': _Ayar(doku: 'gok', pano: 'gok', cit: 'tas', tarh: false),
   // 8. cüz: sürü hayvanları — sabah otlağı
   'otlak': _Ayar(gokUst: Color(0xFF6FB1E6), gokAlt: Color(0xFFFCE9C0), uzak: Color(0xFFC9C79F), orta: Color(0xFFA9B97C), koruA: Color(0xFF86A55C), koruB: Color(0xFF5F8A42), sis: Color(0xFFD6D6AA), zeminTon: Color(0xFFFFF0C8), tarh: false, cit: 'tas', doku: 'otlak', pano: 'otlak'),
   // 9. ve 12. cüz: mekânlar, Yûsuf — çöl ve kayalık vadi
   'col': _Ayar(gokUst: Color(0xFF7AB6E6), gokAlt: Color(0xFFF6E2BE), uzak: Color(0xFFD8B98F), orta: Color(0xFFC49A6B), koruA: Color(0xFFB07E52), koruB: Color(0xFF93663F), sis: Color(0xFFE8C896), zeminTon: Color(0xFFE8C99A), cimTon: Color(0xFFC9A56A), cimOran: 0.75, bulut: 0.5, tarh: false, cit: 'yok', siluet: 'mesa', zemRenk: Color(0xFFD9B070), sinir: 'kaya'),
   // 10. cüz: atlar — altın başaklı ova
-  'ova': _Ayar(gokUst: Color(0xFF5FA3E0), gokAlt: Color(0xFFE8F1F2), uzak: Color(0xFFB8C9A6), orta: Color(0xFFC8BB7C), koruA: Color(0xFFB9A25E), koruB: Color(0xFF92823E), sis: Color(0xFFDCD2A0), zeminTon: Color(0xFFF2E3A0), cimTon: Color(0xFFD9C46E), cimOran: 0.55, bulut: 0.8, tarh: false, cit: 'yok', sinir: 'bugday'),
+  'ova': _Ayar(doku: 'ova', pano: 'ova', cit: 'tas', tarh: false),
   // 11. cüz: deniz canlıları — kumsal ve açık deniz
   'sahil': _Ayar(gokUst: Color(0xFF4FA8E8), gokAlt: Color(0xFFDFF1F7), uzak: Color(0xFF5AB0D0), orta: Color(0xFF2F8FB8), sis: Color(0xFFBEE1EB), zeminTon: Color(0xFFF3E6C0), cimTon: Color(0xFFE9D6A4), cimOran: 0.9, deniz: true, tarh: false, cit: 'yok', zemRenk: Color(0xFFF0DEA6), sinir: 'kaya'),
   // 13. cüz: su ve hava olayları — bulutlu vadi, dereler
