@@ -293,3 +293,7 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Panoramanın gökyüzü kısa kalırsa (kamera yukarı bakınca üst satır uzatılıp dikey şeritler çıkıyordu) `ust_gok_pad_px` ile üste yumuşak gök bandı eklenir (kus için 500). Ufuk satırı = ağaç diplerinin zemine değdiği satır (kus 860, otlak 900).
 - Kuruldu: `otlak` (8. cüz, 1. cüz), `kus` (3. cüz, kendi seti: söğüt/kavak ağaçları, kum yolu, nehir taşı duvarı). Diğer sahneler için istemler `gemini_arka_plan_istemleri.md` / `gemini_devam_ana_istemler.md` (kullanıcıya verildi; üretim bekleniyor). Dere (kus) hâlâ kodla.
 - Gerçek cihazda denenmedi, APK yok. Ekran/video: geçici `ekran-kus` dalı (ana dala ALINMAZ).
+
+## ÇAYIR/OVA/ORMAN/GÖK SETLERİ (9 Kasım 2026)
+- Kullanıcının Gemini setleri `tools/{cayir,ova,orman,gok}_set_kaynak/` → `set_kur.py` (cayir 430 pad120, ova 410 pad120, orman 800, gok 790; ufuk satırları tahmin). `_ayarlar`: cayir (cüz 4), ova (5 ve 13), orman (6), gok (7 ve 27) artık `doku/pano` setli, `cit:'tas'`; eski kodla çizilmiş `kir`/`yildiz` kapalı.
+- CI videosuyla (`?c=4..7`) açıldığı görüldü; çayır/ova göğü düz (panoramanın üstü kısa, bulut görünmez). Gerçek cihazda denenmedi, APK yok.
