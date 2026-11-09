@@ -22,12 +22,12 @@ jobs:
           playwright install --with-deps chromium
           (cd flutter_app/build/web && python3 -m http.server 8765 >/dev/null 2>&1 &)
           sleep 3
-          CUZ=1,2,3,7,18,24 python3 tools/tanitim_cek.py sonuc || true
+          python3 tools/tanitim_cek.py sonuc || true
           ls -la sonuc || true
       - name: Dala yaz
         run: |
           git config user.name "ekran-bot"; git config user.email "bot@example.com"
-          mkdir -p /tmp/o; for d in sonuc/v*; do cp $d/*.webm /tmp/o/${d##*/}.webm; done; cp sonuc/*.mp4 sonuc/*.png /tmp/o/ 2>/dev/null || true; cp analiz.txt derleme.txt /tmp/o/
+          mkdir -p /tmp/o; cp sonuc/*.mp4 sonuc/*.png /tmp/o/ 2>/dev/null || true; cp analiz.txt derleme.txt /tmp/o/
           git checkout --orphan ekran-sonuc
           git rm -rf --cached . >/dev/null 2>&1 || true
           cp /tmp/o/* . 
