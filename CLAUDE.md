@@ -287,3 +287,9 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - Gerçek cihazda denenmedi, APK yok. Dağdaki ince açık ufuk çizgisi, uzak ağaçlarda hafif sis ve yeşil çim tutamları (kodla) açık küçük konular.
 - 1. cüz: kayısı kullanıcının meyveli görseliyle (`tools/kayisi_yeni.py`).
 - 3. cüz (`kus`) de aynı seti kullanır (`doku/pano: 'otlak'`, `tarh:false`, taş duvar + dere). CI videosuyla (`?c=3`) açıldığı doğrulandı, analiz yeni sorun yok; gerçek cihazda denenmedi. Dere taşları/çimle uyumu videoda ayrıca bakılmadı.
+
+## SAHNE SETİ KURULUMU (9 Kasım 2026) – `tools/set_kur.py`
+- Kullanıcının Gemini görsellerinden sahne seti kurar: `tools/<ad>_set_kaynak/{cim,yol,pano,duvar,agaclar}.jpg` → `python3 tools/set_kur.py <ad> [ufuk_satiri] [cim_kirmizi_carpan] [ust_gok_pad_px]` → `flutter_app/assets/doku/<ad>_*` + `<ad>_set.json` (cimOrt, yolOrt, sis, sisMax, kivrim, ufuk). Oyun kodu (`bahce3d.dart`) sete özel değerleri bu json'dan okur (artık otlak'a sabit değil); `_Ayar(doku:'<ad>', pano:'<ad>')`. `_Orman`/`_Duvar` setler ad ile anahtarlı.
+- Panoramanın gökyüzü kısa kalırsa (kamera yukarı bakınca üst satır uzatılıp dikey şeritler çıkıyordu) `ust_gok_pad_px` ile üste yumuşak gök bandı eklenir (kus için 500). Ufuk satırı = ağaç diplerinin zemine değdiği satır (kus 860, otlak 900).
+- Kuruldu: `otlak` (8. cüz, 1. cüz), `kus` (3. cüz, kendi seti: söğüt/kavak ağaçları, kum yolu, nehir taşı duvarı). Diğer sahneler için istemler `gemini_arka_plan_istemleri.md` / `gemini_devam_ana_istemler.md` (kullanıcıya verildi; üretim bekleniyor). Dere (kus) hâlâ kodla.
+- Gerçek cihazda denenmedi, APK yok. Ekran/video: geçici `ekran-kus` dalı (ana dala ALINMAZ).
