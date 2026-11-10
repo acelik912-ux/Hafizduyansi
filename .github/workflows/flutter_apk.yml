@@ -13,6 +13,11 @@ jobs:
       run:
         working-directory: flutter_app
     steps:
+      - name: Disk aç (varlıklar çok büyük)
+        working-directory: .
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL || true
+          df -h /
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
@@ -24,7 +29,16 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: APK derle
-        run: flutter build apk --release --build-number=$((1000 + GITHUB_RUN_NUMBER))
+        run: |
+          set +e
+          flutter build apk --release --build-number=$((1000 + GITHUB_RUN_NUMBER)) > build.txt 2>&1
+          kod=$?
+          df -h / | tail -1 | while read -r l; do echo "::notice::disk: $l"; done
+          if [ $kod -ne 0 ]; then
+            grep -nE "What went wrong|Execution failed|FAILURE|error:|Error:|No space|OutOfMemory|Could not|Exception" -A2 build.txt | head -40 | while read -r l; do echo "::error::$l"; done
+            tail -25 build.txt | while read -r l; do echo "::error::son: $l"; done
+          fi
+          exit $kod
       - name: APK'yı Release olarak yayımla
         env:
           GH_TOKEN: ${{ github.token }}
