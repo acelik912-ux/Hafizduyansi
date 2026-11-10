@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'ayet.dart' show tekrarAd, hizAd;
 import 'ortak.dart';
+import 'tanitim.dart';
 import 'veri.dart';
 
 class Ayarlar extends StatefulWidget {
@@ -111,6 +112,22 @@ class _AyarlarState extends State<Ayarlar> {
               decoration: BoxDecoration(color: R.cream, borderRadius: BorderRadius.circular(R.r12)),
               child: Text('Hamd, Âlemlerin Rabbi Allah’a mahsustur.', style: TextStyle(color: R.ink, fontSize: t.mealSize, height: 1.5)),
             ),
+          ]),
+        ),
+        const Baslik('Tanıtım'),
+        Kart(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TanitimVideosu())),
+          child: Row(children: [
+            const Icon(Icons.play_circle_outline_rounded, color: R.sub),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Tanıtım videosu', style: ts(R.text, 15)),
+                const SizedBox(height: 2),
+                Text('Uygulamanın nasıl kullanıldığını anlatır (yaklaşık 1 dk 45 sn)', style: ts(R.sub, 12.5, FontWeight.w400)),
+              ]),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: R.faint),
           ]),
         ),
         const Baslik('Hakkında'),

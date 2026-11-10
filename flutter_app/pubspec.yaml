@@ -37,6 +37,7 @@ dependencies:
   shared_preferences: ^2.5.6
   audioplayers: ^6.7.1
   share_plus: ^13.3.1
+  video_player: ^2.10.0
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +64,7 @@ flutter:
     - assets/logo.png
     - assets/ozel/
     - assets/doku/
+    - assets/video/
     # PAKET-BAŞ
     - assets/paket/cuz1/
     - assets/paket/cuz1/img/
