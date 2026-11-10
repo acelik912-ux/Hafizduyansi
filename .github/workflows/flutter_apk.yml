@@ -47,6 +47,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set +e
           ls -la build/app/outputs/flutter-apk/
+          boyut=$(stat -c %s build/app/outputs/flutter-apk/app-release.apk)
+          echo "::notice::APK boyutu: $boyut bayt ($((boyut/1048576)) MiB); Release sınırı 2048 MiB"
           gh release create "apk-${GITHUB_RUN_NUMBER}" build/app/outputs/flutter-apk/app-release.apk \
-            --repo "$GITHUB_REPOSITORY" --title "APK ${GITHUB_RUN_NUMBER}" --notes "Elle derlendi (sürüm no $((1000 + GITHUB_RUN_NUMBER)))." --prerelease
+            --repo "$GITHUB_REPOSITORY" --title "APK ${GITHUB_RUN_NUMBER}" --notes "Elle derlendi (sürüm no $((1000 + GITHUB_RUN_NUMBER)))." --prerelease > rel.txt 2>&1
+          kod=$?
+          if [ $kod -ne 0 ]; then tail -8 rel.txt | while read -r l; do echo "::error::release: $l"; done; fi
+          exit $kod

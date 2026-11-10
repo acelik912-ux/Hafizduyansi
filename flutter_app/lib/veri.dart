@@ -104,9 +104,15 @@ class Depo {
   final Map<int, Tema> cuzTema = {}; // yalnızca bir cüze ait temalar (paketteki 'cuz' alanı)
   final Set<String> sesler = {}; // 'SSSAAA' -> assets/paket/<ad>/a/SSSAAA.mp3
   final Map<String, String> sesYolu = {};
+  Map<String, String> _tekil = {}; // assets/dedup.json: aynı görselin silinen kopyası -> kalan kopya (APK boyutu)
+  String _c(String yol) => _tekil[yol] ?? yol;
 
   static Future<Depo> yukle() async {
     final d = Depo();
+    try {
+      final h = jsonDecode(await rootBundle.loadString('assets/dedup.json')) as Map;
+      d._tekil = {for (final e in h.entries) e.key as String: e.value as String};
+    } catch (_) {}
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
     final all = manifest.listAssets();
     for (final pj in all.where((a) => RegExp(r'^assets/paket/[^/]+/project\.json$').hasMatch(a))) {
@@ -165,17 +171,18 @@ class Depo {
     final trees = (meta['trees'] as Map? ?? {});
     final shift = trees.isNotEmpty && !trees.containsKey('0') ? 1 : 0; // paket 1'den başlıyorsa uygulama 0'dan başlar
     trees.forEach((k, t) {
-      tema.trees[int.parse(k) - shift] = '${base}trees/${t['file']}';
+      tema.trees[int.parse(k) - shift] = _c('${base}trees/${t['file']}');
       if (t['name'] is String) tema.adlar[int.parse(k) - shift] = t['name'];
     });
     final re = RegExp(r'fruits/(\d+)_(\d)\.png$');
-    for (final a in all.where((a) => a.startsWith('${base}fruits/'))) {
+    final meyveler = <String>{...all.where((a) => a.startsWith('${base}fruits/')), ..._tekil.keys.where((a) => a.startsWith('${base}fruits/'))};
+    for (final a in meyveler) {
       final m = re.firstMatch(a);
       if (m == null) continue;
       final idx = int.parse(m[1]!) - shift, j = int.parse(m[2]!);
-      (tema.fruits[idx] ??= List<String?>.filled(5, null))[j] = a;
+      (tema.fruits[idx] ??= List<String?>.filled(5, null))[j] = _c(a);
     }
-    (meta['ui'] as Map? ?? {}).forEach((k, f) => tema.ui[k] = '${base}bg/$f');
+    (meta['ui'] as Map? ?? {}).forEach((k, f) => tema.ui[k] = _c('${base}bg/$f'));
   }
 
   // ağaç görseli: 1. cüz 1. sayfa için renkli topları örtülmüş kayısı ağacı (tools/kayisi_temizle.py)

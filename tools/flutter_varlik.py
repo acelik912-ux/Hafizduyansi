@@ -36,3 +36,7 @@ satirlar = '\n'.join('    - ' + k for k in sorted(klasorler))
 yeni = re.sub(r'(    # PAKET-BAŞ\n).*?(    # PAKET-SON)', lambda m: m.group(1) + satirlar + '\n' + m.group(2), metin, flags=re.S)
 open(ps, 'w', encoding='utf-8').write(yeni)
 print('pubspec.yaml güncellendi:', len(klasorler), 'klasör')
+
+# temalar arasındaki bayt bayt aynı görselleri tekilleştir (APK boyutu; bkz. tools/varlik_tekilles.py)
+import subprocess
+subprocess.run([sys.executable, os.path.join(KOK, 'tools', 'varlik_tekilles.py')], check=True)
