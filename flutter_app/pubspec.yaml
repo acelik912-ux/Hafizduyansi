@@ -38,6 +38,7 @@ dependencies:
   audioplayers: ^6.7.1
   share_plus: ^13.3.1
   video_player: ^2.10.0
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

@@ -458,28 +458,42 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     }
   }
 
-  Future<void> _capaBirak() async {
-    final t = await capaSor(context);
-    if (t == null || t.isEmpty || !mounted) return;
-    // bulunulan yerin biraz önüne, görüş yönünde
-    final x = k.x + math.sin(k.yaw) * 2.2, z = k.z + math.cos(k.yaw) * 2.2;
-    setState(() => capalar = [...capalar, Capa(x, z, t)]);
+  // [e] verilirse (basılı tutulan ekran noktası) çapa yerde tam oraya, yoksa bulunulan yerin biraz önüne bırakılır
+  Future<void> _capaBirak([Offset? e]) async {
+    final s = await capaSor(context);
+    if (s == null || s.sil || !mounted) return;
+    var x = k.x + math.sin(k.yaw) * 2.2, z = k.z + math.cos(k.yaw) * 2.2;
+    final dh = _goz - 1.1; // çapa yerden 1,1 m yukarıda çizilir (_capaWidgetleri ile aynı)
+    if (e != null && e.dy > ufuk + 4) {
+      final d = math.min(25.0, dh * F / (e.dy - ufuk)), yan = (e.dx - widget.W / 2) * d / F, c = math.cos(k.yaw), sn = math.sin(k.yaw);
+      x = k.x + yan * c + d * sn;
+      z = k.z - yan * sn + d * c;
+    }
+    setState(() => capalar = [...capalar, Capa(x, z, capaMetni(s), resim: s.resim)]);
     CapaDeposu.kaydet(widget.kimlik, capalar);
   }
 
   Future<void> _capaDuzenle(int i) async {
-    final t = await capaSor(context, mevcut: capalar[i].metin);
-    if (t == null || !mounted) return;
+    final s = await capaSor(context, mevcut: capalar[i]);
+    if (s == null || !mounted) return;
     setState(() {
       final l = [...capalar];
-      if (t.isEmpty) {
+      if (s.sil) {
         l.removeAt(i);
       } else {
-        l[i] = Capa(l[i].x, l[i].z, t);
+        l[i] = l[i].yeni(capaMetni(s), s.resim);
       }
       capalar = l;
     });
     CapaDeposu.kaydet(widget.kimlik, capalar);
+  }
+
+  // ağacın önündeyken: çapalar ağacın ekran dikdörtgenine oranlı durur (dönünce/yaklaşınca kaymaz), ağaç başına ayrı saklanır
+  Widget? _agacCapalari(int i) {
+    final r = cizim.where((c) => c.s.idx == i).map((c) => c.r).firstOrNull;
+    if (r == null) return null;
+    final a = 'c${widget.kimlik}_3d_agac$i';
+    return Positioned.fill(child: CapaKatman(key: ValueKey(a), anahtar: a, alan: r));
   }
 
   List<Widget> _capaWidgetleri() {
@@ -489,7 +503,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
       if (d < 0.6 || d > 30) continue;
       final x = widget.W / 2 + c.dx / d * F, y = ufuk + (_goz - 1.1) / d * F;
       if (x < -40 || x > widget.W + 40 || y < widget.pad.top + 60 || y > widget.H - widget.pad.bottom - 20) continue;
-      out.add(Positioned(left: x - 60, top: y - 24, width: 120, child: Center(child: CapaDugme(metin: cp.metin, onTap: () => _capaDuzenle(i)))));
+      out.add(Positioned(left: x - 60, top: y - 24, width: 120, child: Center(child: CapaDugme(metin: cp.metin, bayt: cp.bayt, onTap: () => _capaDuzenle(i)))));
     }
     return out;
   }
@@ -554,6 +568,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapUp: (g) => _dokun(g.localPosition),
+            onLongPressStart: yk < 0 ? (g) => _capaBirak(g.localPosition) : null, // basılı tutulan yere çapa (ağaç önündeyken ağaca oranlı çapa katmanı)
             // tek parmak: yana kaydırınca dönülür (dünyayı tutup çevirir gibi); iki parmak: yakınlaş / uzaklaş
             onScaleEnd: (d) {
               if (!_ikiParmak) _odakla();
@@ -580,6 +595,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
         ...levhalar,
         ..._capaWidgetleri(),
         ...ayetler,
+        if (yk >= 0 && hedef == null) ?_agacCapalari(yk),
         if (yk < 0)
           Positioned(
             left: 12,

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'capa.dart';
 import 'ortak.dart';
 import 'veri.dart';
 
@@ -392,7 +393,8 @@ class MushafSayfasi extends StatefulWidget {
   final Ayet? focus;
   final bool gizle;
   final VoidCallback onClose;
-  const MushafSayfasi({super.key, required this.sheets, required this.baslik, this.focus, this.gizle = false, required this.onClose});
+  final String capaAnahtar; // çapalar sayfaya yapışık durur (kaydırınca/büyütünce birlikte hareket eder)
+  const MushafSayfasi({super.key, required this.sheets, required this.baslik, this.focus, this.gizle = false, required this.onClose, this.capaAnahtar = 'mushaf'});
   @override
   State<MushafSayfasi> createState() => _MushafSayfasiState();
 }
@@ -402,6 +404,26 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
   Map<String, bool> shown = {};
   double zoom = 1;
   final sc = ScrollController();
+  late final List<CapaKumanda> kumandalar = [for (final _ in widget.sheets) CapaKumanda()];
+
+  // üstteki 📌: ekranın ortasındaki sayfa noktasına çapa bırakır
+  void _capaEkle() {
+    if (widget.sheets.isEmpty) return;
+    final iw = math.min(MediaQuery.sizeOf(context).width - 16, 760.0) * zoom;
+    var y = sc.hasClients ? sc.offset + sc.position.viewportDimension / 2 - 8 : 200.0;
+    var si = 0;
+    var fz = 0.5;
+    for (var i = 0; i < widget.sheets.length; i++) {
+      final ih = iw * (widget.sheets[i].g.h / widget.sheets[i].g.w);
+      if (y < ih + 12 || i == widget.sheets.length - 1) {
+        si = i;
+        fz = (y / ih).clamp(0.03, 0.97);
+        break;
+      }
+      y -= ih + 12;
+    }
+    kumandalar[si].ekle?.call(0.5, fz);
+  }
 
   @override
   void initState() {
@@ -448,6 +470,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
           child: Row(children: [
             IconButton(onPressed: widget.onClose, icon: const Icon(Icons.arrow_back_rounded, color: R.text), tooltip: 'Geri'),
             Expanded(child: Text(widget.baslik, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.text, 16, FontWeight.w700))),
+            IconButton(onPressed: _capaEkle, icon: const Text('📌', style: TextStyle(fontSize: 20)), tooltip: 'Çapa bırak (sayfaya basılı tutarak da bırakabilirsin)'),
             IconButton(onPressed: () => setState(() => zoom = (zoom - 0.25).clamp(1, 3)), icon: const Icon(Icons.zoom_out_rounded, color: R.text), tooltip: 'Küçült'),
             IconButton(onPressed: () => setState(() => zoom = (zoom + 0.25).clamp(1, 3)), icon: const Icon(Icons.zoom_in_rounded, color: R.text), tooltip: 'Büyüt'),
             IconButton(onPressed: () => tercih.degistir((t) => t.night = !t.night), icon: Icon(N ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: R.text), tooltip: 'Gece modu'),
@@ -492,6 +515,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
                                 Positioned.fill(child: img(sh.g.path)),
                                 for (final r in sh.rects) _kapak(r, iw, iw * (sh.g.h / sh.g.w), f),
                                 if (N) const Positioned.fill(child: IgnorePointer(child: ColoredBox(color: Color(0x66000000)))),
+                                Positioned.fill(child: CapaKatman(key: ValueKey('${widget.capaAnahtar}_${widget.sheets.indexOf(sh)}'), anahtar: '${widget.capaAnahtar}_${widget.sheets.indexOf(sh)}', dugme: false, kumanda: kumandalar[widget.sheets.indexOf(sh)])),
                               ]),
                             ),
                           ),

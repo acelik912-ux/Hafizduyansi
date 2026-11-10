@@ -253,8 +253,6 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
             ),
           ),
           if (N) const Positioned.fill(child: IgnorePointer(child: ColoredBox(color: Color(0x6B060905)))),
-          if (!(cur < 0 && camiIc < 0 && kaleIc < 0 && open < 0 && sheetFor == null && tercih.bahce == '3d')) // 3B bahçenin kendi çapaları var
-            Positioned.fill(child: CapaKatman(key: ValueKey(_capaAnahtar()), anahtar: _capaAnahtar(), solAlt: 0.42)),
           if (open >= 0 && sheetFor == null)
             Positioned.fill(
               child: AyetPaneli(
@@ -278,9 +276,12 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
                 baslik: '${widget.cd.name} · Sayfa ${sheetFor!.p + 1}',
                 focus: ozelSayfa(widget.cd, sheetFor!.p) && open < 0 ? null : sheetFor!.a,
                 gizle: sheetGizle,
+                capaAnahtar: _capaAnahtar(),
                 onClose: () => setState(() => sheetFor = null),
               ),
             ),
+          if (!(cur < 0 && camiIc < 0 && kaleIc < 0 && open < 0 && sheetFor == null && tercih.bahce == '3d') && sheetFor == null) // 3B bahçenin kendi çapaları var; mushaf sayfasında çapalar sayfaya yapışık
+            Positioned.fill(child: CapaKatman(key: ValueKey(_capaAnahtar()), anahtar: _capaAnahtar(), solAlt: 0.42)),
         ]),
       ),
     );
