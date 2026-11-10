@@ -657,7 +657,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
       final y = oz ? r.top + r.height * (0.34 + m * 0.15) : ust + s * sh + (sh - lh) / 2;
       final yan = oz || m == 0 ? 0 : (m.isOdd ? 1 : -1); // 0 orta, 1 sağ, -1 sol
       final left = yan == 0 ? cx - lw / 2 : (yan > 0 ? cx + r.width * 0.5 - lw : cx - r.width * 0.5);
-      final renk = oz ? 2 : j % 5, src = widget.meyve(i, renk); // Kayısı'da sarı kayısı
+      final renk = oz ? 2 : page.renkOf(j), src = widget.meyve(i, renk); // Kayısı'da sarı kayısı
       final meyve = Container(
         width: fd,
         height: fd,

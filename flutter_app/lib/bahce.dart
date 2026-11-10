@@ -50,7 +50,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
   String gview = 'grid'; // 'grid' (4×5 kartlar) | 'path' (orman yolu)
   int dir = 1;
 
-  static int _grupSay(Sayfa p) => p.kind == 'special' ? p.imgs.length : math.max(1, (p.ayat.length / 5).ceil());
+  static int _grupSay(Sayfa p) => p.kind == 'special' ? p.imgs.length : p.grupSay;
 
   @override
   void initState() {
@@ -162,7 +162,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
                   onIc: widget.cd.no == 18 ? (p) => setState(() => camiIc = p) : widget.cd.no == 15 ? (p) => setState(() => kaleIc = p) : null,
                   // bahçedeki ayet başına dokununca ayet paneli; kapanınca bahçede kalınır
                   onAyet: (p, j) {
-                    final fi = flat.indexWhere((f) => f.p == p && f.s * 5 + f.k == j);
+                    final fi = flat.indexWhere((f) => f.p == p && pages[p].sira(f.s, f.k) == j);
                     if (fi >= 0) _set(() { open = fi; dinle = false; });
                   },
                 )
@@ -196,7 +196,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         meyve: (k) => tema.fruits[camiIc]?[k],
         onClose: () => setState(() => camiIc = -1),
         onAyet: (j) {
-          final fi = flat.indexWhere((f) => f.p == camiIc && f.s * 5 + f.k == j);
+          final fi = flat.indexWhere((f) => f.p == camiIc && pages[camiIc].sira(f.s, f.k) == j);
           if (fi >= 0) _set(() { open = fi; dinle = false; });
         },
       );
@@ -209,7 +209,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         meyve: (k) => tema.fruits[kaleIc]?[k],
         onClose: () => setState(() => kaleIc = -1),
         onAyet: (j) {
-          final fi = flat.indexWhere((f) => f.p == kaleIc && f.s * 5 + f.k == j);
+          final fi = flat.indexWhere((f) => f.p == kaleIc && pages[kaleIc].sira(f.s, f.k) == j);
           if (fi >= 0) _set(() { open = fi; dinle = false; });
         },
       );
@@ -308,7 +308,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         const SizedBox(width: 10),
         Expanded(
           child: Center(
-            child: CamBaslik('Sayfa ${it.p + 1} · ${_ad(it.p)}', sub: '${widget.cd.name}${it.n > 1 ? '  ·  ${it.s + 1}/${it.n}' : ''}'),
+            child: CamBaslik('Sayfa ${it.p + 1} · ${_ad(it.p)}', sub: '${widget.cd.name}${it.n > 1 ? '  ·  ${page.sureBol && page.kind == 'ayat' ? '${page.grup(it.s).first.sname} ${it.s + 1}/${it.n}' : '${it.s + 1}/${it.n}'}' : ''}'),
           ),
         ),
         const SizedBox(width: 10),
@@ -343,7 +343,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
       final avail = H - topH - botH;
       final sh = [avail, (W * 0.84) * (4 / 3), 700.0].reduce(math.min), sw = sh * 0.75;
       final sl = (W - sw) / 2, st = topH + (avail - sh) / 2;
-      final group = ozel ? <Ayet>[] : page.ayat.skip(it.s * 5).take(5).toList();
+      final group = ozel ? <Ayet>[] : page.grup(it.s);
       final fd = sw * 0.155 * 1.2, lh = math.min(56.0, sh * 0.142 - 5); // fd = cam meyve çapı
       final lwb = math.min(W * 0.235, 96.0), off = W / 2 - 6 - lwb - 6 - fd / 2; // etiketler iki kenarda, meyveler ortada simetrik
       final pos = [
@@ -382,7 +382,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
     final nextPage = it.p + 1 < pages.length ? pages[it.p + 1] : null;
     Widget orta;
     if (it.s < it.n - 1) {
-      orta = _altKart(null, 'Sayfa devamı', '${it.s + 2}/${it.n}', next);
+      orta = _altKart(null, page.sureBol && page.grup(it.s + 1).first.sname != page.grup(it.s).first.sname ? 'Sonraki sûre' : 'Sayfa devamı', page.sureBol ? page.grup(it.s + 1).first.sname : '${it.s + 2}/${it.n}', next);
     } else if (nextPage != null && nextPage.kind == 'ayat' && nextPage.ayat.isNotEmpty) {
       orta = _altKart(nextPage.ayat.first.start.path, 'Sonraki sayfa', '${it.p + 2} · ${_ad(it.p + 1)}', next);
     } else {

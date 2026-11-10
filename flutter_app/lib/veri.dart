@@ -61,7 +61,29 @@ class Sayfa {
   final List<Ayet> ayat;
   final List<Gorsel> imgs;
   final List<Sheet> sheets;
-  Sayfa(this.kind, this.ayat, this.imgs, this.sheets);
+  // sureBol: ayetler 5'li gruplara sûre sınırında da bölünür ve renk döngüsü (siyah, kırmızı, sarı, yeşil, lacivert)
+  // her sûrenin başında yeniden başlar (30. cüz: kısa sûreler tek sayfaya sığıyor).
+  final bool sureBol;
+  Sayfa(this.kind, this.ayat, this.imgs, this.sheets, {this.sureBol = false});
+
+  // her grubun ilk ayetinin sayfadaki sırası
+  late final List<int> grupBas = () {
+    final l = <int>[];
+    for (var j = 0; j < ayat.length; j++) {
+      final yeniSure = sureBol && j > 0 && (ayat[j].sura != ayat[j - 1].sura);
+      if (j == 0 || yeniSure || (j - l.last) >= 5) l.add(j);
+    }
+    return l;
+  }();
+  int get grupSay => grupBas.isEmpty ? 1 : grupBas.length;
+  int grupOf(int j) {
+    var s = 0;
+    for (var i = 0; i < grupBas.length; i++) { if (grupBas[i] <= j) s = i; }
+    return s;
+  }
+  int renkOf(int j) => j - grupBas[grupOf(j)];
+  int sira(int s, int k) => grupBas[s] + k; // s. grubun k. ayetinin sayfadaki sırası
+  List<Ayet> grup(int s) => ayat.sublist(grupBas[s], s + 1 < grupBas.length ? grupBas[s + 1] : ayat.length);
 }
 
 class Cuz {
@@ -91,7 +113,7 @@ class Duz {
 List<Duz> duzListe(Cuz cd) => [
       for (var pi = 0; pi < cd.pages.length; pi++)
         if (cd.pages[pi].kind == 'ayat')
-          for (var j = 0; j < cd.pages[pi].ayat.length; j++) Duz(pi, j ~/ 5, j % 5, cd.pages[pi].ayat[j])
+          for (var j = 0; j < cd.pages[pi].ayat.length; j++) Duz(pi, cd.pages[pi].grupOf(j), cd.pages[pi].renkOf(j), cd.pages[pi].ayat[j])
     ];
 
 // 1. cüzün 1. sayfası (Kayısı): 5 meyve yerine tek sarı kayısı; dokununca Fâtiha + Bakara mushaf sayfası
@@ -155,6 +177,7 @@ class Depo {
                   AyetRect(r['sura'], r['no'], (r['x'] as num).toDouble(), (r['y'] as num).toDouble(), (r['w'] as num).toDouble(), (r['h'] as num).toDouble())
               ])
           ],
+          sureBol: meta['cuz'] == 30,
         ));
       }
     }
