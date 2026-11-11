@@ -2,6 +2,9 @@
 // Puan, rozet, ilerleme takibi yok: yalnızca son konum hatırlanır.
 import 'package:flutter/material.dart';
 
+import 'dart:math' as math;
+
+import 'bahce3d.dart';
 import 'ortak.dart';
 import 'veri.dart';
 
@@ -29,6 +32,7 @@ class _BugunState extends State<Bugun> {
   final _q = TextEditingController();
   Konum? _last;
   late final List<_Satir> _index = _dizin();
+  bool _kilit = false; // parmak 3B stüdyodayken sayfa kaymasın
 
   @override
   void initState() {
@@ -72,6 +76,7 @@ class _BugunState extends State<Bugun> {
     final res = _sonuclar;
     final arama = _q.text.trim().length >= 2;
     return ListView(
+      physics: _kilit ? const NeverScrollableScrollPhysics() : null,
       padding: EdgeInsets.fromLTRB(16, pad.top + 12, 16, 24),
       children: [
         _ust(),
@@ -86,7 +91,7 @@ class _BugunState extends State<Bugun> {
           _devam(),
           const SizedBox(height: 14),
           _hizli(),
-          _gununAyeti(),
+          _studyo(),
           const SizedBox(height: 28),
           Center(child: Text('Meal: Diyanet İşleri · Kıraat: Nâsır el-Katâmî', style: ts(R.faint, 12, FontWeight.w500))),
         ],
@@ -237,7 +242,44 @@ class _BugunState extends State<Bugun> {
     ]);
   }
 
-  // günün ayeti: her gün yüklü ayetlerden bir başkası (takip yok, yalnızca güne göre seçilir)
+  // 3B stüdyo: kaldığın cüzün bahçesi doğrudan ana sayfada (ağaca dokun = ağaç sayfası, ayet başına dokun = ayet paneli)
+  Widget _studyo() {
+    final d = widget.depo;
+    final last = _last;
+    final cd = last != null ? d.cuz[last.cuz] : (d.cuz.isEmpty ? null : d.cuz[d.cuz.keys.reduce((a, b) => a < b ? a : b)]);
+    if (cd == null) return const SizedBox();
+    final tema = d.temaOf(cd.no);
+    final flat = duzListe(cd);
+    final ekran = MediaQuery.sizeOf(context);
+    final w = math.min(ekran.width, 600.0) - 32, h = math.min(ekran.height * 0.62, 620.0);
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Baslik('3B stüdyo · ${cd.name}'),
+      Listener(
+        onPointerDown: (_) { if (!_kilit) setState(() => _kilit = true); },
+        onPointerUp: (_) { if (_kilit) setState(() => _kilit = false); },
+        onPointerCancel: (_) { if (_kilit) setState(() => _kilit = false); },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(R.r28),
+          child: SizedBox(
+            width: w, height: h,
+            child: Bahce3B(
+              key: ValueKey('bugun3b${cd.no}'),
+              kimlik: cd.no, pages: cd.pages, agac: (i) => d.agacOf(cd, i), ad: (i) => d.adOf(cd, i), sahne: tema.sahne, birim: tema.birim,
+              meyve: (p, k) => tema.fruits[p]?[k], ozel: (p) => ozelSayfa(cd, p), W: w, H: h, pad: EdgeInsets.zero,
+              onOpen: (p) => widget.onOpen(cd.no, tree: p),
+              onAyet: (p, j) {
+                final fi = flat.indexWhere((f) => f.p == p && cd.pages[p].sira(f.s, f.k) == j);
+                if (fi >= 0) widget.onOpen(cd.no, ayah: fi);
+              },
+            ),
+          ),
+        ),
+      ),
+    ]);
+  }
+
+  // (eski) günün ayeti: artık ana sayfada gösterilmiyor
+  // ignore: unused_element
   Widget _gununAyeti() {
     final all = <(int, int, Duz)>[];
     widget.depo.cuz.forEach((n, cd) { final f = duzListe(cd); for (var i = 0; i < f.length; i++) { all.add((n, i, f[i])); } });

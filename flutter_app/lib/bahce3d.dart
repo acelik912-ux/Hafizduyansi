@@ -584,7 +584,7 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
             onScaleUpdate: (g) => setState(() {
               if (g.pointerCount >= 2) {
                 _ikiParmak = true;
-                k.zum = (zumBas * g.scale).clamp(0.8, 3.0);
+                k.zum = (zumBas * g.scale).clamp(0.4, 3.0); // iki parmak yaklaşınca yakınlaşır, birbirine çekince geriye (geniş görüş) açılır
               } else {
                 k.yaw = _aci(k.yaw - g.focalPointDelta.dx / F);
               }
@@ -663,7 +663,8 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     // yerleşim tamamen ağacın ekrandaki boyutuna oranlı: etiketler ağaca basılmış gibi, bakış dönünce
     // ya da yaklaşıp uzaklaşınca ağaçla birlikte kayar ve büyüyüp küçülür
     if (r.height < 160) return const [];
-    final ust = r.top + r.height * 0.04, alt = r.bottom - r.height * 0.12, ara = r.width * 0.01;
+    // ayet başları ağacın görselini örtmesin: tacın biraz üstünden başlar, gövdenin üst yarısında biter (alt kısım ve nesne görünür kalır)
+    final ust = r.top - r.height * 0.12, alt = r.top + r.height * 0.62, ara = r.width * 0.01;
     final sh = (alt - ust) / satir, lh = math.min(r.height * 0.1, sh - r.height * 0.012), fd = math.min(lh * 0.9, r.width * 0.11);
     final cx = r.center.dx, lw = r.width * 0.5 - ara;
     final out = <Widget>[];

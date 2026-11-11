@@ -333,3 +333,10 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 ## GÖRSEL BENZERLİKLER KARARI (11 Kasım 2026)
 - Kullanıcı: benzer görselleri tek tek değiştirmek zor iş; düzen böyle kalsın, insanlar görselleri çapalarla (not/resim/emoji) kendileri birleştirsin. Benzer görsel taraması/değiştirme ŞİMDİLİK YAPILMAYACAK.
 - Önerilen ama istenmeyen (kodlanmadı): "yürüyerek hatırlama" modu, çapa için bağ kurma istemi, kullanıcının kendi tekrar sepeti. Kullanıcı isterse tekrar önerilebilir; puan/ilerleme takibi kuralı geçerli.
+
+
+## 3B STÜDYO ANA SAYFADA (11 Kasım 2026, akşam)
+- Kullanıcı: uygulamanın en önemli parçası 3B stüdyo; Bugün sekmesindeki "Günün ayeti" yerine geldi (`bugun.dart` `_studyo()`: kaldığın cüzün `Bahce3B`'si, yükseklik ekranın %62'si ≤620; parmak stüdyodayken ListView kilitlenir (`_kilit`); ağaca/ayet başına dokunma `widget.onOpen`'e gider). `_gununAyeti` kodda duruyor ama kullanılmıyor.
+- 3B'de iki parmak sıkıştırınca geriye açılır: `k.zum` alt sınırı 0,8 → 0,4. Ayet başları ağaç görselini örtmesin diye `_ayetBaslari` bölgesi `r.top-0,12h … r.top+0,62h` (eskiden tüm ağaç boyu).
+- Yerelde flutter yok; derleme/analiz CI'da. Gerçek cihazda denenmedi.
+- Sorulan ama yapılmayan: ağaç sayfasında 5'li renk düğmelerinin içini boşaltma (yalnız renkler) — kullanıcıya fikir söylendi, karar bekleniyor.
