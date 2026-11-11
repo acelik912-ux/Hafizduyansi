@@ -56,6 +56,9 @@ class Sheet {
   Sheet(this.g, this.rects);
 }
 
+// Sessiz sürüm (--dart-define=SESSIZ=true): ses paketleri APK'ya girmez, ses ve okuyucu arayüzü gizlenir.
+const bool sessizSurum = bool.fromEnvironment('SESSIZ');
+
 class Sayfa {
   final String kind; // 'ayat' | 'special'
   final List<Ayet> ayat;

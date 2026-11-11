@@ -86,7 +86,8 @@ class _AyarlarState extends State<Ayarlar> {
             ),
           ]),
         ),
-        const Baslik('Ses'),
+        if (!sessizSurum) const Baslik('Ses'),
+        if (!sessizSurum)
         Kart(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(children: [
@@ -133,10 +134,12 @@ class _AyarlarState extends State<Ayarlar> {
         const Baslik('Hakkında'),
         Kart(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Hafız Dünyası', style: ts(R.text, 16, FontWeight.w700)),
+            Text(sessizSurum ? 'Hafız Dünyası (Sessiz sürüm)' : 'Hafız Dünyası', style: ts(R.text, 16, FontWeight.w700)),
             const SizedBox(height: 6),
             Text('Kuran ezberi için görsel bahçe. Her cüz 20 sayfa, her sayfa bir ağaç; meyveler sayfanın ayet başları.\n\n'
-                'Ayet görselleri Diyanet mushafından alınmıştır. Meal: Diyanet İşleri Başkanlığı. Kıraat: Nâsır el-Katâmî.',
+                sessizSurum
+                    ? 'Ayet görselleri Diyanet mushafından alınmıştır. Meal: Diyanet İşleri Başkanlığı.\n\nBu sürüm ses kaydı içermez.'
+                    : 'Ayet görselleri Diyanet mushafından alınmıştır. Meal: Diyanet İşleri Başkanlığı. Kıraat: Nâsır el-Katâmî.',
                 style: ts(R.sub, 13.5, FontWeight.w400).copyWith(height: 1.5)),
           ]),
         ),

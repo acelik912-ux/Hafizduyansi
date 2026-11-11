@@ -393,7 +393,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
     children.add(Positioned(
       left: 12, right: 12, bottom: pad.bottom + 12,
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        if (page.kind == 'ayat')
+        if (page.kind == 'ayat' && !sessizSurum)
           Bas(
             onTap: _sayfayiDinle,
             child: Cam(

@@ -291,26 +291,30 @@ class _AyetPaneliState extends State<AyetPaneli> {
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             CamIkon(Icons.skip_previous_rounded, idx > 0 ? widget.onPrev : null, size: 46, ipucu: 'Önceki ayet'),
             const SizedBox(width: 22),
-            Bas(
-              onTap: playing ? _stop : _start,
-              child: Container(
-                width: 64, height: 64,
-                decoration: const BoxDecoration(color: R.primary, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Color(0x661FA971), blurRadius: 16)]),
-                child: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 36),
+            if (!sessizSurum) ...[
+              Bas(
+                onTap: playing ? _stop : _start,
+                child: Container(
+                  width: 64, height: 64,
+                  decoration: const BoxDecoration(color: R.primary, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Color(0x661FA971), blurRadius: 16)]),
+                  child: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 36),
+                ),
               ),
-            ),
-            const SizedBox(width: 22),
+              const SizedBox(width: 22),
+            ],
             CamIkon(Icons.skip_next_rounded, idx < total - 1 ? widget.onNext : null, size: 46, ipucu: 'Sonraki ayet'),
           ]),
           const SizedBox(height: 12),
           Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
-              Cip('Tekrar ${tekrarAd(tercih.repeat)}', icon: Icons.repeat_rounded, on: tercih.repeat != 1, cam: true,
-                  onTap: () => _dongu(_tekrarlar, tercih.repeat, (v) => tercih.degistir((t) => t.repeat = v))),
-              Cip(hizAd(tercih.rate), icon: Icons.speed_rounded, on: tercih.rate != 1, cam: true, onTap: () => _dongu(_hizlar, tercih.rate, (v) {
-                    tercih.degistir((t) => t.rate = v);
-                    _p?.setPlaybackRate(v);
-                  })),
-              Cip('Otomatik', icon: Icons.playlist_play_rounded, on: tercih.auto, cam: true, onTap: () => tercih.degistir((t) => t.auto = !t.auto)),
+              if (!sessizSurum) ...[
+                Cip('Tekrar ${tekrarAd(tercih.repeat)}', icon: Icons.repeat_rounded, on: tercih.repeat != 1, cam: true,
+                    onTap: () => _dongu(_tekrarlar, tercih.repeat, (v) => tercih.degistir((t) => t.repeat = v))),
+                Cip(hizAd(tercih.rate), icon: Icons.speed_rounded, on: tercih.rate != 1, cam: true, onTap: () => _dongu(_hizlar, tercih.rate, (v) {
+                      tercih.degistir((t) => t.rate = v);
+                      _p?.setPlaybackRate(v);
+                    })),
+                Cip('Otomatik', icon: Icons.playlist_play_rounded, on: tercih.auto, cam: true, onTap: () => tercih.degistir((t) => t.auto = !t.auto)),
+              ],
               Cip('Meal', icon: Icons.translate_rounded, on: showMeal, cam: true, onTap: () => setState(() => showMeal = !showMeal)),
               Cip('Büyük', icon: Icons.text_fields_rounded, cam: true, onTap: () => setState(() => big = true)),
           ]),
