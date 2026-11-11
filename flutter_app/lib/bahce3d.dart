@@ -654,7 +654,6 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final r = cizim.where((c) => c.s.idx == i).map((c) => c.r).firstOrNull;
     if (r == null) return const [];
     final oz = widget.ozel(i);
-    final magara = widget.sahne != 'bahce'; // halka içi dolgulu düğmeler (2. ve 3. cüz)
     final secili = [
       for (var j = 0; j < page.ayat.length; j++)
         if (!oz || page.ayat[j].no == 1) j,
