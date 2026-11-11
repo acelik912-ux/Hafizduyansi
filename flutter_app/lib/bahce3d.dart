@@ -667,25 +667,25 @@ class _Bahce3BState extends State<Bahce3B> with SingleTickerProviderStateMixin {
     final ust = r.top - r.height * 0.12, alt = r.top + r.height * 0.62, ara = r.width * 0.01;
     final sh = (alt - ust) / satir, lh = math.min(r.height * 0.1, sh - r.height * 0.012), fd = math.min(lh * 0.9, r.width * 0.11);
     final cx = r.center.dx, lw = r.width * 0.5 - ara;
+    // etiketler ve renk daireleri yanlara açılır: bitki/ağaç/nesne ortada net görünür (ekran kenarına taşmadan)
+    final kay = math.max(0.0, math.min(r.width * 0.30, math.min(cx - r.width * 0.5 - 6, widget.W - 6 - (cx + r.width * 0.5))));
     final out = <Widget>[];
     for (var m = 0; m < n; m++) {
       final j = secili[m], s = (m + 1) ~/ 2;
       // Kayısı: iki etiket tacın ortasında alt alta; diğerleri ilki tepede, sonra sağ-sol sırayla
       final y = oz ? r.top + r.height * (0.34 + m * 0.15) : ust + s * sh + (sh - lh) / 2;
       final yan = oz || m == 0 ? 0 : (m.isOdd ? 1 : -1); // 0 orta, 1 sağ, -1 sol
-      final left = yan == 0 ? cx - lw / 2 : (yan > 0 ? cx + r.width * 0.5 - lw : cx - r.width * 0.5);
-      final renk = oz ? 2 : page.renkOf(j), src = widget.meyve(i, renk); // Kayısı'da sarı kayısı
+      final left = yan == 0 ? cx - lw / 2 : (yan > 0 ? cx + r.width * 0.5 - lw + kay : cx - r.width * 0.5 - kay);
+      final renk = oz ? 2 : page.renkOf(j); // Kayısı'da sarı
       final meyve = Container(
         width: fd,
         height: fd,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: magara ? null : const Color(0x8C08160E),
-          gradient: magara ? RadialGradient(colors: [Color.lerp(fruitCol[renk], Colors.white, 0.28)!, fruitCol[renk]], radius: 0.8) : null, // 2. cüz: halka içi ayet rengiyle dolu
+          gradient: RadialGradient(colors: [Color.lerp(fruitCol[renk], Colors.white, 0.28)!, fruitCol[renk]], radius: 0.8), // yalnızca düz renk: ayet rengi (içinde resim yok)
           border: Border.all(color: renk == 0 ? const Color(0xBFEBEBEB) : fruitCol[renk], width: 2),
         ),
-        child: src != null ? img(src, w: fd * (magara ? 0.64 : 0.78), h: fd * (magara ? 0.64 : 0.78)) : Text('${j + 1}', style: ts(fruitFg(renk), fd * 0.4, FontWeight.w800)),
       );
       final etiket = Expanded(child: AyetEtiket(page.ayat[j].start.path, double.infinity, lh, border: fruitCol[renk], radius: 12));
       out.add(

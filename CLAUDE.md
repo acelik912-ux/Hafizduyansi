@@ -340,3 +340,4 @@ Kullanıcı ChatGPT'yi GitHub'a bağladı; o değişiklik yaparsa ve sonuç iyi 
 - 3B'de iki parmak sıkıştırınca geriye açılır: `k.zum` alt sınırı 0,8 → 0,4. Ayet başları ağaç görselini örtmesin diye `_ayetBaslari` bölgesi `r.top-0,12h … r.top+0,62h` (eskiden tüm ağaç boyu).
 - Yerelde flutter yok; derleme/analiz CI'da. Gerçek cihazda denenmedi.
 - Sorulan ama yapılmayan: ağaç sayfasında 5'li renk düğmelerinin içini boşaltma (yalnız renkler) — kullanıcıya fikir söylendi, karar bekleniyor.
+- (11 Kasım, 22:35) Ağaç önündeki ayet başı daireleri artık içi boş düz renk (ayet rengi, resim yok); etiketler+daireler yanlara `kay` (≤ ağaç genişliğinin %30'u, ekran kenarına taşmadan) açıldı ki ortadaki bitki/nesne net görünsün. Amaç: 30 cüzdeki 3B stüdyonun içeriği akılda kalsın. Cihazda denenmedi.
