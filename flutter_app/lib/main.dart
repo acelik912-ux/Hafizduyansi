@@ -13,6 +13,7 @@ import 'bugun.dart';
 import 'cuzler.dart';
 import 'ortak.dart';
 import 'veri.dart';
+import 'ozel_gorsel.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,11 +74,21 @@ class _KokState extends State<Kok> {
   void initState() {
     super.initState();
     _yukle();
+    ozelGorsel.addListener(_ozelDegisti);
+  }
+
+  void _ozelDegisti() { if (mounted) setState(() => _rev++); }
+
+  @override
+  void dispose() {
+    ozelGorsel.removeListener(_ozelDegisti);
+    super.dispose();
   }
 
   Future<void> _yukle() async {
     try {
       await tercih.yukle();
+      await ozelGorsel.yukle();
       profilAdi = await Kayit.profilAdi();
       final d = await Depo.yukle();
       setState(() => depo = d);
@@ -124,7 +135,7 @@ class _KokState extends State<Kok> {
     final sayfalar = [
       CapaKatman(anahtar: 'sekme_bugun', child: Bugun(key: ValueKey('bugun$_rev$profilAdi'), depo: d, profilAdi: profilAdi, onOpen: _cuzAc, onProfil: () => setState(() => sekme = 2))),
       CapaKatman(anahtar: 'sekme_cuzler', child: Cuzler(depo: d, onOpen: _cuzAc)),
-      CapaKatman(anahtar: 'sekme_ayarlar', child: Ayarlar(profilAdi: profilAdi, onAd: adKaydet)),
+      CapaKatman(anahtar: 'sekme_ayarlar', child: Ayarlar(profilAdi: profilAdi, onAd: adKaydet, depo: d)),
     ];
     return Scaffold(
       body: IndexedStack(index: sekme, children: sayfalar),

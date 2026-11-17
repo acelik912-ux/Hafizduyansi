@@ -3,6 +3,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'ozel_gorsel.dart';
 
 class R {
   // renkler
@@ -211,8 +212,15 @@ class AyetEtiket extends StatelessWidget {
 }
 
 // Görsel: kalite düşürmeden kutuya sığdırır
-Widget img(String path, {double? w, double? h, BoxFit fit = BoxFit.contain, int? cacheWidth}) =>
-    Image.asset(path, width: w, height: h, fit: fit, filterQuality: FilterQuality.high, gaplessPlayback: true, cacheWidth: cacheWidth);
+Widget img(String path, {double? w, double? h, BoxFit fit = BoxFit.contain, int? cacheWidth}) {
+  if (path.startsWith('ozel:')) {
+    // kullanıcının kendi resmi (bkz. ozel_gorsel.dart): bellekten, orijinal çözünürlükte
+    final b = ozelGorsel.bayt(path);
+    if (b == null) return SizedBox(width: w, height: h);
+    return Image.memory(b, width: w, height: h, fit: fit, filterQuality: FilterQuality.high, gaplessPlayback: true, cacheWidth: cacheWidth);
+  }
+  return Image.asset(path, width: w, height: h, fit: fit, filterQuality: FilterQuality.high, gaplessPlayback: true, cacheWidth: cacheWidth);
+}
 
 void bilgi(BuildContext context, String t) => ScaffoldMessenger.of(context)
   ..hideCurrentSnackBar()

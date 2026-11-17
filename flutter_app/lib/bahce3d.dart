@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'capa.dart';
 import 'ortak.dart';
 import 'veri.dart';
+import 'ozel_gorsel.dart';
 
 const _goz = 1.55, _agacH = 4.4, _aralik = 4.4, _yanX = 2.5, _yolW = 0.85;
 const _citX = 6.5, _citZ0 = -5.0, _citH = 1.0; // çit: x = ±_citX, z = _citZ0 .. son ağaç + 4.5
@@ -188,8 +189,14 @@ bool _ipucuGoruldu = false;
 
 Future<void> _resim(String p) async {
   if (_resimler.containsKey(p)) return;
-  final data = await rootBundle.load(p);
-  final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+  if (p.startsWith('ozel:')) {
+    // aynı nesnenin eski özel sürümlerini bellekten at
+    final onek = '${p.split(':').take(2).join(':')}:';
+    for (final k in _resimler.keys.where((k) => k.startsWith(onek)).toList()) { _resimler.remove(k)?.dispose(); }
+  }
+  final ozel = ozelGorsel.bayt(p); // 'ozel:...' = kullanıcının kendi resmi
+  final bayt = ozel ?? (await rootBundle.load(p)).buffer.asUint8List();
+  final codec = await ui.instantiateImageCodec(bayt);
   _resimler[p] = (await codec.getNextFrame()).image;
 }
 

@@ -13,6 +13,8 @@ import 'kale3d.dart';
 import 'ortak.dart';
 import 'bilgi.dart';
 import 'veri.dart';
+import 'ozel_gorsel_ekran.dart';
+import 'ozel_gorsel.dart';
 
 class _Adim {
   final int p, s, n; // sayfa, sayfa içi grup, grup sayısı
@@ -56,6 +58,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
   void initState() {
     super.initState();
     tercih.addListener(_yenile);
+    ozelGorsel.addListener(_yenile);
     final ia = widget.initAyah >= 0 && widget.initAyah < flat.length ? widget.initAyah : -1;
     if (ia >= 0) {
       cur = seq.indexWhere((x) => x.p == flat[ia].p && x.s == flat[ia].s);
@@ -74,6 +77,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
   @override
   void dispose() {
     tercih.removeListener(_yenile);
+    ozelGorsel.removeListener(_yenile);
     super.dispose();
   }
 
@@ -158,6 +162,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         Positioned.fill(
           child: tercih.bahce == '3d'
               ? Bahce3B(
+                  key: ValueKey('b3d${widget.cd.no}_${ozelGorsel.revizyon}'),
                   kimlik: widget.cd.no, pages: pages, agac: _agac, ad: _ad, sahne: tema.sahne, birim: tema.birim, meyve: (p, k) => tema.fruits[p]?[k], ozel: (p) => ozelSayfa(widget.cd, p), W: winW, H: H, pad: pad, onOpen: openTree,
                   onIc: widget.cd.no == 18 ? (p) => setState(() => camiIc = p) : widget.cd.no == 15 ? (p) => setState(() => kaleIc = p) : null,
                   // bahçedeki ayet başına dokununca ayet paneli; kapanınca bahçede kalınır
@@ -180,6 +185,8 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
             Expanded(child: Center(child: CamBaslik(widget.cd.name, sub: '${pages.length} ${tema.birim} · ${flat.length} ayet'))),
             const SizedBox(width: 10),
             CamIkon(N ? Icons.light_mode_rounded : Icons.dark_mode_rounded, () => tercih.degistir((t) => t.night = !t.night), ipucu: 'Gece modu'),
+            const SizedBox(width: 8),
+            CamIkon(Icons.add_photo_alternate_rounded, () => ozelGorselAc(context, widget.depo, widget.cd), ipucu: 'Görselleri değiştir'),
             const SizedBox(width: 8),
             CamIkon(Icons.tune_rounded, _gorunum, ipucu: 'Görünüm'),
           ]),

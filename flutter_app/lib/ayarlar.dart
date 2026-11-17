@@ -6,11 +6,13 @@ import 'ayet.dart' show tekrarAd, hizAd;
 import 'ortak.dart';
 import 'tanitim.dart';
 import 'veri.dart';
+import 'ozel_gorsel_ekran.dart';
 
 class Ayarlar extends StatefulWidget {
   final String profilAdi;
   final ValueChanged<String> onAd;
-  const Ayarlar({super.key, required this.profilAdi, required this.onAd});
+  final Depo? depo;
+  const Ayarlar({super.key, required this.profilAdi, required this.onAd, this.depo});
   @override
   State<Ayarlar> createState() => _AyarlarState();
 }
@@ -115,6 +117,24 @@ class _AyarlarState extends State<Ayarlar> {
             ),
           ]),
         ),
+        if (widget.depo != null) ...[
+          const Baslik('Görseller'),
+          Kart(
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => OzelGorselCuzler(depo: widget.depo!))),
+            child: Row(children: [
+              const Icon(Icons.add_photo_alternate_rounded, color: R.sub),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Görselleri özelleştir', style: ts(R.text, 15)),
+                  const SizedBox(height: 2),
+                  Text('Ağaç, kuş, böcek gibi nesneleri kendi resminle değiştir (orijinal boyutta, istersen zemini silinmiş PNG olarak)', style: ts(R.sub, 12.5, FontWeight.w400)),
+                ]),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: R.faint),
+            ]),
+          ),
+        ],
         const Baslik('Tanıtım'),
         Kart(
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TanitimVideosu())),

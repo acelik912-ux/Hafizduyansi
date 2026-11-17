@@ -7,6 +7,8 @@ import 'dart:math' as math;
 import 'bahce3d.dart';
 import 'ortak.dart';
 import 'veri.dart';
+import 'ozel_gorsel_ekran.dart';
+import 'ozel_gorsel.dart';
 
 typedef CuzAc = void Function(int cuz, {int ayah, int tree, int sheet});
 
@@ -262,8 +264,9 @@ class _BugunState extends State<Bugun> {
           borderRadius: BorderRadius.circular(R.r28),
           child: SizedBox(
             width: w, height: h,
-            child: Bahce3B(
-              key: ValueKey('bugun3b${cd.no}'),
+            child: Stack(children: [
+            Positioned.fill(child: Bahce3B(
+              key: ValueKey('bugun3b${cd.no}_${ozelGorsel.revizyon}'),
               kimlik: cd.no, pages: cd.pages, agac: (i) => d.agacOf(cd, i), ad: (i) => d.adOf(cd, i), sahne: tema.sahne, birim: tema.birim,
               meyve: (p, k) => tema.fruits[p]?[k], ozel: (p) => ozelSayfa(cd, p), W: w, H: h, pad: EdgeInsets.zero,
               onOpen: (p) => widget.onOpen(cd.no, tree: p),
@@ -271,7 +274,9 @@ class _BugunState extends State<Bugun> {
                 final fi = flat.indexWhere((f) => f.p == p && cd.pages[p].sira(f.s, f.k) == j);
                 if (fi >= 0) widget.onOpen(cd.no, ayah: fi);
               },
-            ),
+            )),
+            Positioned(right: 8, top: 8, child: CamIkon(Icons.add_photo_alternate_rounded, () => ozelGorselAc(context, d, cd), ipucu: 'Görselleri değiştir', size: 40)),
+            ]),
           ),
         ),
       ),

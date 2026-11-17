@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'ozel_gorsel.dart';
 
 // ----------------------------------------------------------------- sabitler
 const treeNames = ['Kayısı', 'İncir', 'Medine Hurması', 'Zeytin', 'Elma', 'Üzüm', 'Nar', 'Armut', 'Kiraz', 'Portakal', 'Trabzon Hurması', 'Antep Fıstığı', 'Çam', 'Limon', 'Muz', 'Muşmula', 'Kuşburnu', 'Dut', 'Şeftali', 'Badem'];
@@ -212,7 +213,10 @@ class Depo {
   }
 
   // ağaç görseli: 1. cüz 1. sayfa için renkli topları örtülmüş kayısı ağacı (tools/kayisi_temizle.py)
-  String? agacOf(Cuz? cd, int i) => cd != null && ozelSayfa(cd, i) ? 'assets/ozel/tree01_temiz.png' : temaOf(cd?.no).trees[i];
+  // paketin kendi görseli (kullanıcı değiştirmemişse ya da 'aslına döndür' önizlemesi için)
+  String? asilAgacOf(Cuz? cd, int i) => cd != null && ozelSayfa(cd, i) ? 'assets/ozel/tree01_temiz.png' : temaOf(cd?.no).trees[i];
+  // kullanıcı bu nesneyi kendi resmiyle değiştirdiyse 'ozel:...' yolu (bkz. ozel_gorsel.dart)
+  String? agacOf(Cuz? cd, int i) => (cd != null ? ozelGorsel.yol(cd.no, i) : null) ?? asilAgacOf(cd, i);
 
   Tema temaOf(int? cuz) => cuzTema[cuz] ?? tema;
   String adOf(Cuz? cd, int i) => temaOf(cd?.no).adlar[i] ?? treeName(i);
