@@ -1,0 +1,90 @@
+name: Flutter AAB (Google Play için)
+# Elle çalıştır: GitHub > Actions > "Flutter APK" > Run workflow. Bitince GitHub > Releases > en yeni "APK" sürümünden app-release.apk'yı indir
+# (artifact kotası özel depoda küçük olduğu için APK artık Release eki olarak yayımlanır; Release ekleri Actions kotasına girmez, dosya başına 2 GB sınırı var).
+# Sabit imza anahtarı ve artan sürüm numarası sayesinde yeni APK eskisinin üstüne kurulur.
+on:
+  workflow_dispatch:
+    inputs:
+      sessiz:
+        description: 'Sessiz sürüm (ses paketleri yok, kimlik com.hafizdunyasi.gezgin.sessiz). Sesli AAB için kapat (Release 2 GiB sınırını aşabilir)'
+        type: boolean
+        default: true
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter_app
+    steps:
+      - name: Disk aç (varlıklar çok büyük; derleme sırasında kopyalanıyor)
+        working-directory: .
+        run: |
+          df -h / | tail -1 | while read -r l; do echo "::notice::disk önce: $l"; done
+          sudo docker system prune -af >/dev/null 2>&1 || true
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL \
+            /usr/share/swift /usr/local/julia* /opt/az /usr/local/aws-cli /usr/share/miniconda /usr/local/graalvm \
+            /opt/microsoft /usr/local/share/powershell /usr/local/share/chromium /opt/google /usr/lib/google-cloud-sdk || true
+          df -h / | tail -1 | while read -r l; do echo "::notice::disk sonra: $l"; done
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Sessiz sürüm hazırlığı (ses paketlerini çıkar, ad ve kimliği ayır)
+        if: ${{ inputs.sessiz }}
+        run: |
+          rm -rf assets/paket/ses*
+          sed -i '/assets\/paket\/ses[0-9]*\//d' pubspec.yaml
+          grep -c "assets/paket/ses" pubspec.yaml || true
+          sed -i 's|android:label="Hafız Dünyası"|android:label="Hafız Dünyası (Sessiz)"|' android/app/src/main/AndroidManifest.xml
+          sed -i 's|applicationId = "com.hafizdunyasi.gezgin"|applicationId = "com.hafizdunyasi.gezgin.sessiz"|' android/app/build.gradle.kts
+          grep -n "label\|applicationId" android/app/src/main/AndroidManifest.xml android/app/build.gradle.kts | head
+          du -sh assets | while read -r l; do echo "::notice::sessiz varlık boyutu: $l"; done
+      - name: Paketleri Play Asset Delivery paketlerine böl
+        run: |
+          python3 ../tools/aab_paketle.py 350
+          du -sm assets | while read -r l; do echo "::notice::temel varlık (MB): $l"; done
+          for p in android/paket*; do du -sm "$p" | while read -r l; do echo "::notice::paket (MB): $l"; done; done
+      - run: flutter pub get
+      - name: AAB derle
+        run: |
+          set +e
+          if [ "${{ inputs.sessiz }}" = "true" ]; then EK="--dart-define=SESSIZ=true"; else EK=""; fi
+          flutter build appbundle --release $EK --build-number=$((1000 + GITHUB_RUN_NUMBER)) > build.txt 2>&1
+          kod=$?
+          df -h / | tail -1 | while read -r l; do echo "::notice::disk: $l"; done
+          if [ $kod -ne 0 ]; then
+            grep -nE "What went wrong|Execution failed|FAILURE|error:|Error:|No space|OutOfMemory|Could not|Exception|asset" -A2 build.txt | head -50 | while read -r l; do echo "::error::$l"; done
+            tail -25 build.txt | while read -r l; do echo "::error::son: $l"; done
+          fi
+          exit $kod
+      - name: AAB içeriğini denetle
+        run: |
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          ls -la build/app/outputs/bundle/release/
+          unzip -l "$AAB" | awk '{print $4}' | grep -E "^[^/]+/" | cut -d/ -f1 | sort | uniq -c | while read -r l; do echo "::notice::modül: $l"; done
+          unzip -l "$AAB" | grep -E "paket1/assets/flutter_assets/assets/paket/.*project.json" | head -2 | while read -r l; do echo "::notice::$l"; done
+          boyut=$(stat -c %s "$AAB"); echo "::notice::AAB boyutu: $boyut bayt ($((boyut/1048576)) MiB)"
+      - name: AAB'yi Release olarak yayımla
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          if [ "${{ inputs.sessiz }}" = "true" ]; then
+            ETIKET="aab-sessiz-${GITHUB_RUN_NUMBER}"; DOSYA="hafiz-dunyasi-SESSIZ-${GITHUB_RUN_NUMBER}.aab"
+          else
+            ETIKET="aab-sesli-${GITHUB_RUN_NUMBER}"; DOSYA="hafiz-dunyasi-SESLI-${GITHUB_RUN_NUMBER}.aab"
+          fi
+          cp "$AAB" "build/app/outputs/bundle/release/$DOSYA"
+          gh release create "$ETIKET" "build/app/outputs/bundle/release/$DOSYA" \
+            --repo "$GITHUB_REPOSITORY" --title "AAB $ETIKET (Play için)" --notes "Elle derlendi (sürüm no $((1000 + GITHUB_RUN_NUMBER))). Telefona doğrudan kurulmaz; Play Console'a yüklenir." --prerelease > rel.txt 2>&1
+          kod=$?
+          if [ $kod -ne 0 ]; then tail -8 rel.txt | while read -r l; do echo "::error::release: $l"; done; fi
+          exit $kod

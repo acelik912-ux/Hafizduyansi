@@ -140,7 +140,12 @@ class Depo {
       d._tekil = {for (final e in h.entries) e.key as String: e.value as String};
     } catch (_) {}
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-    final all = manifest.listAssets();
+    var all = manifest.listAssets();
+    // Play AAB: paketler asset-pack modüllerinde olduğu için manifestte yok; tools/aab_paketle.py yolları assets/paket_dizin.json'a yazar.
+    try {
+      final dz = jsonDecode(await rootBundle.loadString('assets/paket_dizin.json')) as List;
+      all = {...all, ...dz.cast<String>()}.toList();
+    } catch (_) {}
     for (final pj in all.where((a) => RegExp(r'^assets/paket/[^/]+/project\.json$').hasMatch(a))) {
       final base = pj.substring(0, pj.length - 'project.json'.length);
       final meta = jsonDecode(await rootBundle.loadString(pj)) as Map;
