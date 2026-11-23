@@ -62,6 +62,13 @@ jobs:
           if [ $kod -ne 0 ]; then
             grep -nE "What went wrong|Execution failed|FAILURE|error:|Error:|No space|OutOfMemory|Could not|Exception|asset" -A2 build.txt | head -50 | while read -r l; do echo "::error::$l"; done
             tail -25 build.txt | while read -r l; do echo "::error::son: $l"; done
+            cd "$GITHUB_WORKSPACE"
+            mkdir -p /tmp/log && cp flutter_app/build.txt /tmp/log/aab-build.txt
+            git config user.name ci && git config user.email ci@example.com
+            git checkout --orphan aab-log >/dev/null 2>&1
+            git rm -rf . >/dev/null 2>&1 || true
+            cp /tmp/log/aab-build.txt aab-build.txt
+            git add aab-build.txt && git commit -qm "AAB derleme günlüğü (hata)" && git push -f origin aab-log >/dev/null 2>&1 || true
           fi
           exit $kod
       - name: AAB içeriğini denetle
