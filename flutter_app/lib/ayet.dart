@@ -14,6 +14,8 @@ import 'package:share_plus/share_plus.dart';
 import 'capa.dart';
 import 'ortak.dart';
 import 'veri.dart';
+import 'kendi_ses_ekran.dart';
+import 'kendi_ses.dart';
 
 const _tekrarlar = [1, 2, 3, 5, 10, 0]; // 0 = sürekli
 const _hizlar = [0.75, 1.0, 1.25, 1.5];
@@ -50,6 +52,7 @@ class _AyetPaneliState extends State<AyetPaneli> {
   void initState() {
     super.initState();
     tercih.addListener(_yenile);
+    kendiSes.addListener(_yenile);
     if (widget.dinle) WidgetsBinding.instance.addPostFrameCallback((_) => _start());
   }
 
@@ -67,6 +70,7 @@ class _AyetPaneliState extends State<AyetPaneli> {
   @override
   void dispose() {
     tercih.removeListener(_yenile);
+    kendiSes.removeListener(_yenile);
     _stop();
     super.dispose();
   }
@@ -80,17 +84,29 @@ class _AyetPaneliState extends State<AyetPaneli> {
     if (mounted) setState(() => playing = false);
   }
 
-  Future<void> _start() async {
+  // kendi=true: kullanıcının kendi kaydı/dosyası. Sessiz sürümde hazır ses olmadığı için hep kendi kaydı çalınır.
+  Future<void> _start({bool kendi = false}) async {
     _stop();
-    final f = widget.depo.sesOf(a.sura, a.no);
-    if (f == null) {
-      bilgi(context, 'Bu ayetin sesi uygulamada yok.');
-      return;
+    final own = kendi || sessizSurum;
+    final Source src;
+    if (own) {
+      final y = kendiSes.yol(a.sura, a.no);
+      if (y == null) {
+        bilgi(context, 'Bu ayet için kendi kaydın yok. "Sesim" düğmesinden kaydedebilirsin.');
+        return;
+      }
+      src = DeviceFileSource(y);
+    } else {
+      final f = widget.depo.sesOf(a.sura, a.no);
+      if (f == null) {
+        bilgi(context, 'Bu ayetin sesi uygulamada yok.');
+        return;
+      }
+      src = AssetSource(f.replaceFirst('assets/', ''));
     }
     final p = AudioPlayer();
     _p = p;
     _repLeft = tercih.repeat;
-    final src = AssetSource(f.replaceFirst('assets/', ''));
     _sub = p.onPlayerComplete.listen((_) async {
       if (_p != p) return;
       _repLeft--;
@@ -291,9 +307,9 @@ class _AyetPaneliState extends State<AyetPaneli> {
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             CamIkon(Icons.skip_previous_rounded, idx > 0 ? widget.onPrev : null, size: 46, ipucu: 'Önceki ayet'),
             const SizedBox(width: 22),
-            if (!sessizSurum) ...[
+            if (!sessizSurum || kendiSes.varMi(a.sura, a.no)) ...[
               Bas(
-                onTap: playing ? _stop : _start,
+                onTap: playing ? _stop : () => _start(),
                 child: Container(
                   width: 64, height: 64,
                   decoration: const BoxDecoration(color: R.primary, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Color(0x661FA971), blurRadius: 16)]),
@@ -306,7 +322,7 @@ class _AyetPaneliState extends State<AyetPaneli> {
           ]),
           const SizedBox(height: 12),
           Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
-              if (!sessizSurum) ...[
+              if (!sessizSurum || kendiSes.varMi(a.sura, a.no)) ...[
                 Cip('Tekrar ${tekrarAd(tercih.repeat)}', icon: Icons.repeat_rounded, on: tercih.repeat != 1, cam: true,
                     onTap: () => _dongu(_tekrarlar, tercih.repeat, (v) => tercih.degistir((t) => t.repeat = v))),
                 Cip(hizAd(tercih.rate), icon: Icons.speed_rounded, on: tercih.rate != 1, cam: true, onTap: () => _dongu(_hizlar, tercih.rate, (v) {
@@ -315,6 +331,8 @@ class _AyetPaneliState extends State<AyetPaneli> {
                     })),
                 Cip('Otomatik', icon: Icons.playlist_play_rounded, on: tercih.auto, cam: true, onTap: () => tercih.degistir((t) => t.auto = !t.auto)),
               ],
+              if (kendiSes.kullanilabilir)
+                Cip('Sesim', icon: Icons.mic_rounded, on: kendiSes.varMi(a.sura, a.no), cam: true, onTap: () { _stop(); kendiSesAc(context, a, () => _start(kendi: true)); }),
               Cip('Meal', icon: Icons.translate_rounded, on: showMeal, cam: true, onTap: () => setState(() => showMeal = !showMeal)),
               Cip('Büyük', icon: Icons.text_fields_rounded, cam: true, onTap: () => setState(() => big = true)),
           ]),

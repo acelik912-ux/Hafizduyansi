@@ -360,3 +360,9 @@ Kullanıcı "uygulamayı görsellerle hafızlık açısından değerlendir, nele
 - Saklama: `getApplicationDocumentsDirectory()/ozel_gorsel/cN_I.png` + indeks `hd_ozel_v1` (SharedPreferences). Dosya işlemleri `ozel_dosya*.dart` (koşullu içe aktarma; web'de dosya yok, yalnız oturum boyunca bellekte). `path_provider` eklendi.
 - Bağlantı: `Depo.agacOf` özel görsel varsa `ozel:cN_I:<sürüm>` yolu döndürür (`asilAgacOf` paketin kendi görseli); `img()` (ortak.dart) ve `_resim()` (bahce3d.dart) bu yolu bellekten çizer. Anahtar cüz+sıra olduğu için temalar arası ortak (dedup) görseller etkilenmez. Değişiklikte `ozelGorsel.revizyon` artar, 3B bahçeler yeni anahtarla yeniden kurulur.
 - Bilinen sınırlar: çapalar gibi dışa aktarma/yedek yok; sesli ve sessiz sürüm ayrı uygulama kimliği → resimler geçmez; uygulama silinirse gider. Kırpma ekranı yok (oran tuvalle korunur). Gerçek cihazda denenmedi, derleme CI'da; APK alınmadı.
+
+
+## KENDİ SES (SESİM) – sesli ve sessiz sürümde (23 Kasım 2026)
+- Yedek: `yedek-kayit-oncesi` dalı. Ayet panelinde "Sesim" çipi (`kendi_ses_ekran.dart`): kullanıcı ayete kendi sesini kaydeder (`record`, m4a) ya da telefondan ses dosyası ekler (`file_picker`; hoca kaydı/indirilen dosya), çalar, siler. Depo: `kendi_ses.dart` (`kendiSes`, anahtar `sure:ayet`, dosyalar `<belgeler>/kendi_ses/`, indeks `hd_kendises_v1`), dosya işlemleri `kendi_dosya*.dart` (web'de yok → çip gizli).
+- Sessiz sürümde oynat/tekrar/hız yalnız o ayette kendi kaydı varken görünür ve yalnız kendi kaydını çalar. Paylaşma/dışa aktarma/internete gönderme YOK (Kurul açısından bilerek). Yedek yok; sesli/sessiz uygulama kimliği ayrı → kayıtlar geçmez, silinince gider.
+- İzin: Android `RECORD_AUDIO`, iOS `NSMicrophoneUsageDescription`. Gerçek cihazda denenmedi (kayıt, izin istemi, dosya seçici); derleme/analiz CI'da. Kurul'a yazılacak dilekçede bu özellik belirtilmeli.

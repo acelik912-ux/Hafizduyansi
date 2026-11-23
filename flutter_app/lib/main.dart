@@ -14,6 +14,7 @@ import 'cuzler.dart';
 import 'ortak.dart';
 import 'veri.dart';
 import 'ozel_gorsel.dart';
+import 'kendi_ses.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,6 +90,7 @@ class _KokState extends State<Kok> {
     try {
       await tercih.yukle();
       await ozelGorsel.yukle();
+      await kendiSes.yukle();
       profilAdi = await Kayit.profilAdi();
       final d = await Depo.yukle();
       setState(() => depo = d);

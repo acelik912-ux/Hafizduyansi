@@ -40,6 +40,8 @@ dependencies:
   video_player: ^2.10.0
   image_picker: ^1.1.2
   path_provider: ^2.1.5
+  record: ^6.1.1
+  file_picker: ^10.3.0
 
 dev_dependencies:
   flutter_test:

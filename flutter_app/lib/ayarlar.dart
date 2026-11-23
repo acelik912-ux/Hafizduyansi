@@ -158,7 +158,7 @@ class _AyarlarState extends State<Ayarlar> {
             const SizedBox(height: 6),
             Text('Kuran ezberi için görsel bahçe. Her cüz 20 sayfa, her sayfa bir ağaç; meyveler sayfanın ayet başları.\n\n' +
                 (sessizSurum
-                    ? 'Ayet görselleri Diyanet mushafından alınmıştır. Meal: Diyanet İşleri Başkanlığı.\n\nBu sürüm ses kaydı içermez.'
+                    ? 'Ayet görselleri Diyanet mushafından alınmıştır. Meal: Diyanet İşleri Başkanlığı.\n\nBu sürüm hazır ses kaydı içermez. Ayet ekranındaki "Sesim" düğmesiyle kendi sesini kaydedebilir ya da kendi ses dosyanı ekleyebilirsin; kayıtlar yalnızca bu telefonda kalır.'
                     : 'Ayet görselleri Diyanet mushafından alınmıştır. Meal: Diyanet İşleri Başkanlığı. Kıraat: Nâsır el-Katâmî.'),
                 style: ts(R.sub, 13.5, FontWeight.w400).copyWith(height: 1.5)),
           ]),
