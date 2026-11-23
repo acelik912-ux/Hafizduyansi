@@ -99,8 +99,7 @@ class _KendiSesState extends State<_KendiSes> {
   Future<void> _dosya() async {
     setState(() => hata = null);
     try {
-      final r = await FilePicker.platform.pickFiles(type: FileType.audio);
-      final f = r?.files.single;
+      final f = await FilePicker.pickFile(type: FileType.audio);
       if (f == null || f.path == null) return;
       setState(() => mesgul = true);
       final ad = f.name.contains('.') ? f.name.split('.').last.toLowerCase() : 'mp3';
