@@ -56,6 +56,7 @@ jobs:
         run: |
           set +e
           if [ "${{ inputs.sessiz }}" = "true" ]; then EK="--dart-define=SESSIZ=true"; else EK=""; fi
+          GH_TOKEN=${{ github.token }} nohup bash "$GITHUB_WORKSPACE/tools/ci_izle.sh" "$PWD/build.txt" > /dev/null 2>&1 &
           flutter build appbundle --release $EK --build-number=$((1000 + GITHUB_RUN_NUMBER)) > build.txt 2>&1
           kod=$?
           df -h / | tail -1 | while read -r l; do echo "::notice::disk: $l"; done
