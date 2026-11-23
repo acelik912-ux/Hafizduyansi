@@ -484,7 +484,7 @@ class _Fruit extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = fruitCol[k];
-    final rim = k == 0 ? const Color(0xBFEBEBEB) : color; // siyah meyvenin çerçevesi koyu zeminde görünsün
+    final rim = k == 0 ? const Color(0xE6EBEBEB) : color; // siyah meyvenin çerçevesi koyu zeminde görünsün
     final fs = dolgu ? d * 0.66 : d * 0.8;
     return Bas(
       onTap: onTap,
@@ -492,7 +492,7 @@ class _Fruit extends StatelessWidget {
         Container(
           width: d, height: d,
           decoration: BoxDecoration(
-            shape: BoxShape.circle, color: dolgu ? null : const Color(0x7308160E), gradient: dolgu ? RadialGradient(colors: [Color.lerp(color, Colors.white, 0.28)!, color], radius: 0.8) : null, border: Border.all(color: rim, width: 2.2),
+            shape: BoxShape.circle, color: dolgu ? null : const Color(0x7308160E), gradient: dolgu ? RadialGradient(colors: [Color.lerp(color, Colors.white, 0.28)!, color], radius: 0.8) : null, border: Border.all(color: rim, width: k == 0 ? 4.5 : 3),
             boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 8, offset: Offset(0, 3))],
           ),
         ),

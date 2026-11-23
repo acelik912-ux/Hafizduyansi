@@ -777,7 +777,7 @@ class _CamiIciState extends State<CamiIci> with SingleTickerProviderStateMixin {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(colors: [Color.lerp(fruitCol[renk], Colors.white, 0.28)!, fruitCol[renk]], radius: 0.8),
-                  border: Border.all(color: renk == 0 ? const Color(0xBFEBEBEB) : fruitCol[renk], width: 2),
+                  border: Border.all(color: renk == 0 ? const Color(0xE6EBEBEB) : fruitCol[renk], width: renk == 0 ? 4.5 : 3), // halka içe doğru kalınlaşır (daire boyu sabit, ayete yaklaşmaz)
                 ),
                 child: src != null ? img(src, w: fd * 0.64, h: fd * 0.64) : Text('${j + 1}', style: ts(fruitFg(renk), fd * 0.4, FontWeight.w800)),
               ),
