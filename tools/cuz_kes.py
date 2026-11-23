@@ -26,6 +26,7 @@ from scipy import ndimage
 AYAH_COUNT = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6]
 SURA_TR = {i + 1: n for i, n in enumerate(['Fâtiha', 'Bakara', 'Âl-i İmrân', 'Nisâ', 'Mâide', "En'âm", "A'râf", 'Enfâl', 'Tevbe', 'Yûnus', 'Hûd', 'Yûsuf', "Ra'd", 'İbrâhîm', 'Hicr', 'Nahl', 'İsrâ', 'Kehf', 'Meryem', 'Tâhâ', 'Enbiyâ', 'Hac', "Mü'minûn", 'Nûr', 'Furkân', 'Şuarâ', 'Neml', 'Kasas', 'Ankebût', 'Rûm', 'Lokmân', 'Secde', 'Ahzâb', "Sebe'", 'Fâtır', 'Yâsîn', 'Sâffât', 'Sâd', 'Zümer', "Mü'min", 'Fussilet', 'Şûrâ', 'Zuhruf', 'Duhân', 'Câsiye', 'Ahkâf', 'Muhammed', 'Fetih', 'Hucurât', 'Kâf', 'Zâriyât', 'Tûr', 'Necm', 'Kamer', 'Rahmân', 'Vâkıa', 'Hadîd', 'Mücâdele', 'Haşr', 'Mümtehine', 'Saff', 'Cuma', 'Münâfikûn', 'Teğâbün', 'Talâk', 'Tahrîm', 'Mülk', 'Kalem', 'Hâkka', 'Meâric', 'Nûh', 'Cin', 'Müzzemmil', 'Müddessir', 'Kıyâme', 'İnsan', 'Mürselât', "Nebe'", 'Nâziât', 'Abese', 'Tekvîr', 'İnfitâr', 'Mutaffifîn', 'İnşikâk', 'Burûc', 'Târık', "A'lâ", 'Gâşiye', 'Fecr', 'Beled', 'Şems', 'Leyl', 'Duhâ', 'İnşirâh', 'Tîn', 'Alak', 'Kadir', 'Beyyine', 'Zilzâl', 'Âdiyât', 'Kâria', 'Tekâsür', 'Asr', 'Hümeze', 'Fîl', 'Kureyş', 'Mâûn', 'Kevser', 'Kâfirûn', 'Nasr', 'Tebbet', 'İhlâs', 'Felak', 'Nâs'])}
 W0, H0 = 1700, 2460
+HEDEF = {}  # 'sure:ayet' -> ayet başı hedef genişliği (px)
 NLINES = 15
 
 
@@ -160,7 +161,63 @@ def first_word(ink, x0, x1, y0, y1, min_w=90, gap=12):
     return x0, x1
 
 
-def satir_sahibi(ink, bands):
+def kelime_araliklari(ink, x0, x1, y0, y1, gap=6):
+    """Satır parçasının sağından başlayarak her boşlukta biten aralıklar [(sx0, sx1, boşluk_px), ...] (sx1 sabit, sağ kenar).
+    Boşluk ne kadar genişse kelime sınırı olma olasılığı o kadar yüksek (harf arası boşluklar dardır)."""
+    cols = ink[y0:y1, x0:x1].any(0)[::-1]
+    out, started, i, n = [], None, 0, len(cols)
+    while i < n:
+        if cols[i]:
+            if started is None:
+                started = i
+            i += 1
+            continue
+        j = i
+        while j < n and not cols[j]:
+            j += 1
+        if started is not None and j < n and j - i >= gap:
+            out.append((x1 - i, x1 - started, j - i))
+        i = j
+    return out
+
+
+def eski_arali(ink, x0, x1, y0, y1, yol, olcekler=(1.03, 1.05, 1.07)):
+    """Eski ayet başı görselini (yol) birkaç ölçekte büyütüp satır parçasının mürekkebi üzerinde bulanık normalleştirilmiş
+    çapraz ilintiyle eşleştirir; eşleşen yatay aralığı (sx0, sx1) döndürür (en yakın boş sütuna oturtulur), zayıfsa None."""
+    from scipy.signal import fftconvolve
+    from scipy import ndimage as nd
+    o0 = Image.open(yol).convert('RGBA').split()[3]
+    m = nd.gaussian_filter((ink[y0:y1, x0:x1]).astype(np.float32), 2.0)
+    en = None
+    for sc in olcekler:
+        o = np.array(o0.resize((round(o0.width * sc), round(o0.height * sc)), Image.LANCZOS), np.float32) / 255.0
+        o = nd.gaussian_filter(o, 2.0)
+        if o.sum() < 30:
+            continue
+        mp = np.pad(m, ((o.shape[0], o.shape[0]), (0, max(0, o.shape[1] - m.shape[1]))))  # eski kesim kenar payı yüzünden satır parçasından geniş olabilir
+        num = fftconvolve(mp, o[::-1, ::-1], mode='valid')
+        yo = fftconvolve(mp * mp, np.ones_like(o), mode='valid')
+        ncc = num / (np.sqrt(np.maximum(yo, 1e-6)) * np.sqrt((o * o).sum()))
+        iy, ix = np.unravel_index(int(np.argmax(ncc)), ncc.shape)
+        if en is None or ncc[iy, ix] > en[0]:
+            en = (float(ncc[iy, ix]), ix, o.shape[1])
+    if os.environ.get('ESLESME_DBG'):
+        print('eslesme', yol.split('/')[-1], None if en is None else round(en[0], 2), file=sys.stderr)
+    if en is None or en[0] < 0.6:
+        return None
+    _, ix, ow = en
+    cols = ink[y0:y1, x0:x1].any(0)
+
+    def oturt(x):
+        for d in range(0, 11):
+            for t in (x - d, x + d):
+                if 0 <= t < len(cols) and not cols[t]:
+                    return t
+        return x
+    return x0 + min(oturt(ix), len(cols) - 1), x0 + min(oturt(ix + ow), len(cols))
+
+
+def satir_sahibi(ink, bands, rgb=None):
     """Her mürekkep pikseline satır numarası verir (-1: bant dışı). Bir harf/nokta kümesi ait olduğu satırın
     sütununa bütünüyle verilir (ağırlık merkezine göre); iki satıra yayılan çok yüksek kümeler satır sınırından bölünür.
     Böylece komşu satırın alt/üst taşan parçaları bu satırın kesitine girmez."""
@@ -171,17 +228,82 @@ def satir_sahibi(ink, bands):
     step = bands[0][1] - bands[0][0]
     lab, n = ndimage.label(ink, structure=np.ones((3, 3)))
     own = np.full((H, W), -1, np.int16)
+    kucuk = []  # hareke/nokta/vakıf işareti gibi küçük parçalar: satıra en yakın gövdeye göre verilir (aşağıda)
     for i, sl in enumerate(ndimage.find_objects(lab), 1):
         m = lab[sl] == i
         ys, xs = np.nonzero(m)
         y0 = sl[0].start
         h = sl[0].stop - sl[0].start
+        w = sl[1].stop - sl[1].start
+        if h <= 0.2 * step and w <= 0.3 * step:  # hareke, nokta, vakıf işareti (kısa harfler 0,28 satır ve üstüdür: gövde sayılır)
+            kucuk.append(i)
+            continue
         if h <= 1.7 * step:
             cy = int(round(ys.mean())) + y0
             li = rowband[min(H - 1, max(0, cy))]
             own[sl][m] = li
         else:
             own[sl][m] = rowband[y0 + ys]
+    # Küçük parçalar (hareke, nokta, vakıf işareti, kısa harfler): satır bantları ±15 px kayabildiği için ağırlık merkezine
+    # güvenilmez (harekeler satır aralığına taşar; yanlış satıra sayılınca silinip harekesiz kalıyordu). Önce en yakın gövdeye
+    # (öklid) bakılır; iki satır neredeyse eşit uzaklıktaysa (satır arasındaki hareke/vakıf işareti) dikey yöne bakılır:
+    # üstündeki satırın gövdesine yakınsa alt harekesi (kesre), altındaki satırın gövdesine yakınsa üst harekesi sayılır.
+    if kucuk:
+        gov = own.copy()  # yalnızca gövdeler (küçük parçalar birbirine tutunup zincirleme yanlış satıra gitmesin)
+        pad = int(step)
+        for i in kucuk:
+            m = lab == i
+            ys, xs = np.nonzero(m)
+            ya, yb, xa, xb = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
+            wy0, wy1, wx0, wx1 = max(0, ya - pad), min(H, yb + pad), max(0, xa - pad), min(W, xb + pad)
+            wm = m[wy0:wy1, wx0:wx1]
+            wo = gov[wy0:wy1, wx0:wx1]
+            dist = ndimage.distance_transform_edt(~wm)
+            dl = {}
+            for L in np.unique(wo[wo >= 0]):
+                dl[int(L)] = float(dist[wo == L].min())
+            if not dl:
+                own[m] = rowband[min(H - 1, max(0, int(round(ys.mean()))))]
+                continue
+            dmin = min(dl.values())
+            if dmin > 0.9 * step:
+                own[m] = rowband[min(H - 1, max(0, int(round(ys.mean()))))]
+                continue
+            if dmin <= 6:  # gövdeye bitişik/yan yana (kısa harf, nokta): en yakın satırı
+                own[m] = min(dl, key=dl.get)
+                continue
+            aday = [L for L, d in dl.items() if d <= 0.5 * step]
+            if len(aday) == 1:
+                own[m] = aday[0]
+                continue
+            # iki satır arasındaki parça: altındaki satırın gövdesine mi (üst harekesi / vakıf işareti), üstündeki satırın
+            # gövdesine mi (alt harekesi, kesre) ait? Kesre gövdeye yapışık durur (<= 0.11 satır); yüksekte asılı işaret
+            # (vakıf, med) her zaman altındaki satırın üstündedir.
+            def bosluklar(tol):
+                gu, uL, gd, dL = 1e9, None, 1e9, None
+                for L in aday:
+                    body = (wo == L)
+                    cols = body[:, max(0, xa - tol - wx0):xb + tol - wx0]
+                    vz = cols.any(0)
+                    if not vz.any():
+                        continue
+                    top = int(cols.argmax(0)[vz].min()) + wy0
+                    bot = (wy1 - 1) - int(cols[::-1].argmax(0)[vz].min())
+                    if ya - bot >= -3 and ya - bot < gu:
+                        gu, uL = ya - bot, L
+                    if top - yb >= -3 and top - yb < gd:
+                        gd, dL = top - yb, L
+                return gu, uL, gd, dL
+            gu, uL, gd, dL = bosluklar(4)  # işaretin tam altında/üstünde duran gövde
+            kirmizi = rgb is not None and float(((rgb[ys, xs, 0].astype(int) - rgb[ys, xs, 1]) > 60).mean()) > 0.5  # kırmızı vakıf/med işaretleri hiçbir zaman harfin altında durmaz
+            if uL is not None and not kirmizi and gu <= 0.2 * step and gu <= gd:
+                enL = uL                   # alt harekesi / nokta: üstündeki gövdeye yapışık
+            elif dL is not None and gd <= 0.2 * step:
+                enL = dL                   # üst harekesi: altındaki gövdeye yakın
+            else:
+                gu, uL, gd, dL = bosluklar(30)  # asılı işaret (vakıf, med): yana kayık olabilir, her zaman altındaki satırın üstünde
+                enL = dL if (dL is not None and gd <= 0.45 * step) else min(dl, key=dl.get)
+            own[m] = enL
     return own
 
 
@@ -237,7 +359,7 @@ def process_page(img, first, files, debug=None, pno=0, carry=None):
     # yalnızca çerçeve içindeki işaretler (kenar boşluğundaki cüz/hizb süsleri ayet sonu değildir)
     mk = [m for m in find_markers(marker, bands) if m['x0'] > box[0] and m['x1'] < box[2]]
     bg = page_bg(rgb, box)
-    own = satir_sahibi(ink, bands)
+    own = satir_sahibi(ink, bands, rgb)
     step_ = bands[0][1] - bands[0][0]
     atla = set()  # sûre başlığı ve besmele satırları ayetin parçası değildir
     besmele_sat = []
@@ -279,14 +401,15 @@ def process_page(img, first, files, debug=None, pno=0, carry=None):
             # besmele satırı: Tevbe'de yoktur (yerine ayet başlar), Fâtiha'da ayetin kendisidir
             if cur[1] == 1 and cur[0] not in (1, 9):
                 continue
+        ey0, ey1 = max(0, by0 - int(0.5 * step_)), min(H, by1 + int(0.5 * step_))  # harekeler bandın dışına taşabilir
         for m in by_line.get(li, []):
-            bb = ink_bbox(ink_l(li), m['x0'] - 4, right, by0, by1)
+            bb = ink_bbox(ink_l(li), m['x0'] - 4, right, ey0, ey1)
             if bb:
                 segs.append(bb + (li,))
             ayat.append((cur, segs))
             cur, segs = next_ayah(*cur), []
             right = m['x0'] - 2
-        bb = ink_bbox(ink_l(li), tx0, right, by0, by1)
+        bb = ink_bbox(ink_l(li), tx0, right, ey0, ey1)
         if bb and bb[2] - bb[0] > 25 and bb[3] - bb[1] > 0.3 * step_:  # çok ince artıklar (komşu satırın taşan ucu) ayet parçası sayılmaz
             segs.append(bb + (li,))
     eksik = bool(segs and cur[0] <= 114)
@@ -332,6 +455,11 @@ def process_page(img, first, files, debug=None, pno=0, carry=None):
             if (sx1 - sx0) <= lim:
                 break
             sx0, sx1 = first_word(ink_l(sli), x0, x1, y0, y1, gap=g)
+        hedef = HEDEF.get(f'{s}:{a}')
+        if hedef:  # eski (elle) kesimin kelime aralığı: eski ayet başı görseli yeni sayfa üzerinde eşleştirilir
+            eslesme = eski_arali(ink_l(sli), x0, x1, y0, y1, hedef)
+            if eslesme:
+                sx0, sx1 = eslesme
         sbb = ink_bbox(ink_l(sli), sx0, sx1, y0, y1) or (sx0, y0, sx1, y1)
         start = to_alpha(temizle(rgb, ink, own, sli, bg, (max(0, sbb[0] - pad), max(0, sbb[1] - pad), sbb[2] + pad, sbb[3] + pad)), bg)
         files[f'img/f_{key}.png'] = full
@@ -375,6 +503,7 @@ def main():
     ap.add_argument('--cikis', required=True)
     ap.add_argument('--meal', default=os.path.join(os.path.dirname(__file__), '..', 'veri', 'Kuran_meal_Diyanet.json'))
     ap.add_argument('--hata-ayikla')
+    ap.add_argument('--baslik-hedef', help="{'S:A': genişlik_px} JSON dosyası: ayet başı bu genişliğe en yakın kelime sınırında kesilir")
     o = ap.parse_args()
     tmp = tempfile.mkdtemp()
     if o.pdf:
@@ -386,6 +515,8 @@ def main():
         pnos = list(range(1, len(paths) + 1))
     if o.hata_ayikla:
         os.makedirs(o.hata_ayikla, exist_ok=True)
+    if o.baslik_hedef:
+        HEDEF.update(json.load(open(o.baslik_hedef)))
     meal = json.load(open(o.meal, encoding='utf-8'))
     s, n = (int(x) for x in o.bas.split(':'))
     cur = (s, n)
