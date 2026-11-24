@@ -83,7 +83,9 @@ class _BugunState extends State<Bugun> {
       padding: EdgeInsets.fromLTRB(16, pad.top + 12, 16, 24),
       children: [
         _ust(),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
+        _mushafDugme(),
+        const SizedBox(height: 14),
         KeyedSubtree(key: turAnahtar['ara'], child: _ara()),
         if (arama) ...[
           const SizedBox(height: 8),
@@ -232,6 +234,36 @@ class _BugunState extends State<Bugun> {
               ),
             ]),
           ),
+        ]),
+      ),
+    );
+  }
+
+  // Ana ekranın en üstünde: kaldığın sayfanın mushafını doğrudan açar
+  Widget _mushafDugme() {
+    final d = widget.depo;
+    if (d.cuz.isEmpty) return const SizedBox();
+    final last = _last;
+    final n = last != null && d.cuz.containsKey(last.cuz) ? last.cuz : d.cuz.keys.reduce((a, b) => a < b ? a : b);
+    final cd = d.cuz[n]!;
+    final flat = duzListe(cd);
+    final p = last != null && last.ayah >= 0 && last.ayah < flat.length ? flat[last.ayah].p : (last != null && last.tree >= 0 ? last.tree : 0);
+    return Bas(
+      onTap: () => widget.onOpen(n, tree: p, sheet: 1),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(color: R.goldSoft, borderRadius: BorderRadius.circular(R.r20), border: Border.all(color: R.gold, width: 1.4)),
+        child: Row(children: [
+          const Icon(Icons.menu_book_rounded, color: R.gold, size: 30),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Mushaf\'ı aç', style: ts(R.text, 17, FontWeight.w800)),
+              const SizedBox(height: 2),
+              Text('${cd.name} · Sayfa ${p + 1}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.sub, 12.5, FontWeight.w500)),
+            ]),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: R.gold),
         ]),
       ),
     );
