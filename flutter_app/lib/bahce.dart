@@ -15,6 +15,7 @@ import 'bilgi.dart';
 import 'veri.dart';
 import 'ozel_gorsel_ekran.dart';
 import 'ozel_gorsel.dart';
+import 'yardim.dart';
 
 class _Adim {
   final int p, s, n; // sayfa, sayfa içi grup, grup sayısı
@@ -72,6 +73,20 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
       }
     }
     _kaydet();
+    _turuDene();
+  }
+
+  final GlobalKey _kGorunum = GlobalKey(), _kGorsel = GlobalKey();
+
+  // ilk cüz açılışında bir kez: düğmeleri gösteren tanıtım turu
+  Future<void> _turuDene() async {
+    if (cur >= 0 || open >= 0) return;
+    if (await turGorulduMu('cuz')) return;
+    await Future<void>.delayed(const Duration(milliseconds: 1200));
+    if (!mounted || cur >= 0 || open >= 0) return;
+    await turIsaretle('cuz');
+    if (!mounted) return;
+    turBaslat(context, cuzTurAdimlari(_kGorunum, _kGorsel));
   }
 
   @override
@@ -129,6 +144,18 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
               tercih.degistir((t) => t.bahce = 'kart');
               gview = 'grid';
             }),
+            const SizedBox(height: 10),
+            Kart(
+              onTap: () { Navigator.pop(c); Navigator.of(context).push(MaterialPageRoute(builder: (_) => const YardimEkran())); },
+              color: R.surface2,
+              padding: const EdgeInsets.all(14),
+              child: Row(children: [
+                const Icon(Icons.help_outline_rounded, color: R.gold),
+                const SizedBox(width: 14),
+                Expanded(child: Text('Nasıl kullanılır?', style: ts(R.text, 15))),
+                const Icon(Icons.chevron_right_rounded, color: R.faint),
+              ]),
+            ),
           ]),
         ),
       ),
@@ -186,9 +213,9 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
             const SizedBox(width: 10),
             CamIkon(N ? Icons.light_mode_rounded : Icons.dark_mode_rounded, () => tercih.degistir((t) => t.night = !t.night), ipucu: 'Gece modu'),
             const SizedBox(width: 8),
-            CamIkon(Icons.add_photo_alternate_rounded, () => ozelGorselAc(context, widget.depo, widget.cd), ipucu: 'Görselleri değiştir'),
+            KeyedSubtree(key: _kGorsel, child: CamIkon(Icons.add_photo_alternate_rounded, () => ozelGorselAc(context, widget.depo, widget.cd), ipucu: 'Görselleri değiştir')),
             const SizedBox(width: 8),
-            CamIkon(Icons.tune_rounded, _gorunum, ipucu: 'Görünüm'),
+            KeyedSubtree(key: _kGorunum, child: CamEtiketIkon(Icons.layers_rounded, 'Görünüm', _gorunum)),
           ]),
         ),
       ]);

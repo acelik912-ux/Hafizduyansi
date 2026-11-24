@@ -86,6 +86,29 @@ class CamIkon extends StatelessWidget {
   }
 }
 
+// İkon + altında küçük yazı (görünüm değiştirme gibi, ne işe yaradığı anlaşılsın diye)
+class CamEtiketIkon extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  const CamEtiketIkon(this.icon, this.label, this.onTap, {super.key});
+  @override
+  Widget build(BuildContext context) => Bas(
+        onTap: onTap,
+        child: Cam(
+          radius: 22,
+          child: SizedBox(
+            width: 64, height: 52,
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(icon, color: Colors.white, size: 22),
+              const SizedBox(height: 1),
+              Text(label, style: ts(Colors.white, 10.5, FontWeight.w600)),
+            ]),
+          ),
+        ),
+      );
+}
+
 // Cam başlık hapı (ekran adı + alt satır)
 class CamBaslik extends StatelessWidget {
   final String title;

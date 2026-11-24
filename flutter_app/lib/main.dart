@@ -15,6 +15,7 @@ import 'ortak.dart';
 import 'veri.dart';
 import 'ozel_gorsel.dart';
 import 'kendi_ses.dart';
+import 'yardim.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,9 +95,20 @@ class _KokState extends State<Kok> {
       profilAdi = await Kayit.profilAdi();
       final d = await Depo.yukle();
       setState(() => depo = d);
+      _anaTur();
     } catch (e) {
       setState(() => hata = '$e');
     }
+  }
+
+  // ilk açılışta bir kez: ana ekran tanıtım turu
+  Future<void> _anaTur() async {
+    if (await turGorulduMu('ana')) return;
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
+    if (!mounted || sekme != 0) return;
+    await turIsaretle('ana');
+    if (!mounted) return;
+    turBaslat(context, anaTurAdimlari());
   }
 
   void _cuzAc(int n, {int ayah = -1, int tree = -1, int sheet = 0}) {
@@ -142,6 +154,7 @@ class _KokState extends State<Kok> {
     return Scaffold(
       body: IndexedStack(index: sekme, children: sayfalar),
       bottomNavigationBar: NavigationBar(
+        key: turAnahtar['nav'],
         selectedIndex: sekme,
         onDestinationSelected: (i) => setState(() => sekme = i),
         destinations: const [

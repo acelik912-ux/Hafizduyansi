@@ -9,6 +9,7 @@ import 'ortak.dart';
 import 'veri.dart';
 import 'ozel_gorsel_ekran.dart';
 import 'ozel_gorsel.dart';
+import 'yardim.dart';
 
 typedef CuzAc = void Function(int cuz, {int ayah, int tree, int sheet});
 
@@ -83,7 +84,7 @@ class _BugunState extends State<Bugun> {
       children: [
         _ust(),
         const SizedBox(height: 18),
-        _ara(),
+        KeyedSubtree(key: turAnahtar['ara'], child: _ara()),
         if (arama) ...[
           const SizedBox(height: 8),
           if (res.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('Sonuç bulunamadı.', style: ts(R.sub, 14, FontWeight.w500))),
@@ -101,12 +102,33 @@ class _BugunState extends State<Bugun> {
     );
   }
 
+  Future<void> _yardimAc() async {
+    final s = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => const YardimEkran(turDugmesi: true)));
+    if (s == 'tur' && mounted) turBaslat(context, anaTurAdimlari());
+  }
+
   Widget _ust() => Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(greeting(), style: ts(R.sub, 15, FontWeight.w500)),
             const SizedBox(height: 2),
             Text(widget.profilAdi.isEmpty ? 'Hafız Dünyası' : widget.profilAdi, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.text, 26, FontWeight.w800)),
+            const SizedBox(height: 10),
+            KeyedSubtree(
+              key: turAnahtar['bilgi'],
+              child: Bas(
+                onTap: _yardimAc,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(color: R.goldSoft, borderRadius: BorderRadius.circular(20), border: Border.all(color: R.gold)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.help_outline_rounded, color: R.gold, size: 18),
+                    const SizedBox(width: 7),
+                    Text('Nasıl kullanılır?', style: ts(R.gold, 13.5, FontWeight.w700)),
+                  ]),
+                ),
+              ),
+            ),
           ]),
         ),
         Bas(
@@ -256,7 +278,7 @@ class _BugunState extends State<Bugun> {
     final w = math.min(ekran.width, 600.0) - 32, h = math.min(ekran.height * 0.62, 620.0);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Baslik('3B stüdyo · ${cd.name}'),
-      Listener(
+      KeyedSubtree(key: turAnahtar['studyo'], child: Listener(
         onPointerDown: (_) { if (!_kilit) setState(() => _kilit = true); },
         onPointerUp: (_) { if (_kilit) setState(() => _kilit = false); },
         onPointerCancel: (_) { if (_kilit) setState(() => _kilit = false); },
@@ -279,7 +301,7 @@ class _BugunState extends State<Bugun> {
             ]),
           ),
         ),
-      ),
+      )),
     ]);
   }
 

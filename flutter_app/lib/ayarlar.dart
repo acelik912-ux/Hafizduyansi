@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'ayet.dart' show tekrarAd, hizAd;
 import 'ortak.dart';
 import 'tanitim.dart';
+import 'yardim.dart';
 import 'veri.dart';
 import 'ozel_gorsel_ekran.dart';
 
@@ -136,6 +137,22 @@ class _AyarlarState extends State<Ayarlar> {
           ),
         ],
         const Baslik('Tanıtım'),
+        Kart(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const YardimEkran())),
+          child: Row(children: [
+            const Icon(Icons.help_outline_rounded, color: R.sub),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Nasıl kullanılır?', style: ts(R.text, 15)),
+                const SizedBox(height: 2),
+                Text('Yazılı anlatım; istersen sesli dinle', style: ts(R.sub, 12.5, FontWeight.w400)),
+              ]),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: R.faint),
+          ]),
+        ),
+        const SizedBox(height: 10),
         Kart(
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TanitimVideosu())),
           child: Row(children: [

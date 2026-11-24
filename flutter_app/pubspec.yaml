@@ -42,6 +42,7 @@ dependencies:
   path_provider: ^2.1.5
   record: ^6.1.1
   file_picker: ^13.3.2
+  flutter_tts: ^4.2.0
 
 dev_dependencies:
   flutter_test:
