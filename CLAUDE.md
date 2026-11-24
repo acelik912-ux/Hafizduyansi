@@ -384,3 +384,11 @@ Kullanıcı "uygulamayı görsellerle hafızlık açısından değerlendir, nele
 - Play Uygulama İmzalama: Play'den kurulan uygulama sideload APK'dan farklı imzalıdır; telefonda biri kaldırılmadan diğeri kurulmaz. Kişisel hesapta herkese açık yayın için kapalı test: ≥12 test kullanıcısı, 14 gün (dahili test sayılmaz).
 - Geliştirici hesabı açıldı (kişisel, Ahmet Çelik, 24 Kasım). Kimlik belgesi ve adres belgesi yüklendi, Google inceliyor (e-posta gelecek); ardından telefon doğrulaması, sonra uygulama oluşturma. Hesap 2 adımlı doğrulamalı (geçiş anahtarı, Google istemi, telefon, yedek kodlar).
 - Hazır mağaza paketi (repo dışı, `/home/claude/out/play/`): ikon 512, öne çıkan görsel 1024×500, 7 ekran görüntüsü (mushaf sayfası bilerek yok: Diyanet izni gelene kadar), gizlilik politikası (md+html, yayınlanması gerekiyor), mağaza metinleri, form cevapları. Gizlilik politikası adresi henüz yok. "Diyanet onaylı" ifadesi kullanılmaz.
+
+
+## NASIL KULLANILIR + TANITIM TURU (24 Kasım 2026)
+- Yedek: `yedek-bilgi-oncesi` dalı. `lib/yardim.dart`: "Nasıl kullanılır?" ekranı (9 bölüm, yazılı) + "Sesli dinle" (`flutter_tts`, telefonun kendi Türkçe sesi, bölüm bölüm okur; Kur'an kıraati değil, yalnızca kullanım anlatımı → Diyanet dilekçesinde belirt). Android manifest'e TTS_SERVICE `queries` eklendi.
+- Girişler: Bugün sekmesinde adın altında altın "Nasıl kullanılır?" hapı (burada "Turu göster" düğmesi de var), Ayarlar → Tanıtım, cüz içi Görünüm sayfasının altı.
+- İlk açılış turu (karartma + şeffaf delik + balon, İleri/Geç; hareket yok): ana ekran turu (`hd_tur_ana`, `Kok._anaTur`) ve ilk cüz açılışında cüz turu (`hd_tur_cuz`, `CuzOkuyucu._turuDene`). Bayraklar SharedPreferences'ta, bir kez gösterilir. Hedefler `turAnahtar` / `_kGorunum`, `_kGorsel` GlobalKey'leri. Adımlar `anaTurAdimlari()`/`cuzTurAdimlari()`.
+- Görünüm düğmesi: `tune` yerine `layers` + altında "Görünüm" yazısı (`CamEtiketIkon`, ortak.dart).
+- CI web derlemesi başarılı, analiz yeni sorun yok. GERÇEK CİHAZDA DENENMEDİ (TTS sesi, turdaki delik konumları, kaydırma).
