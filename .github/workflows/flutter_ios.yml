@@ -1,0 +1,48 @@
+name: Flutter iOS (imzasız deneme derlemesi)
+# Elle çalıştır: GitHub > Actions > "Flutter iOS" > Run workflow.
+# Apple Developer hesabı GEREKMEZ: `--no-codesign` ile yalnızca "iPhone için derleniyor mu?" kontrol edilir; çıktı yüklenmez/yayınlanmaz.
+# Gerçek iPhone'a kurmak / TestFlight için Apple Developer üyeliği (99 USD/yıl) ve imza gerekir (henüz yok).
+# Not: macOS dakikaları Actions kotasında 10 kat sayılır (özel depo). Bu yüzden elle ve ayrı bir iş akışı.
+on:
+  workflow_dispatch:
+    inputs:
+      sessiz:
+        description: 'Sessiz sürüm (ses paketleri yok)'
+        type: boolean
+        default: true
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: flutter_app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Sessiz sürüm hazırlığı (ses paketlerini çıkar)
+        if: ${{ inputs.sessiz }}
+        run: |
+          rm -rf assets/paket/ses*
+          sed -i '' '/assets\/paket\/ses[0-9]*\//d' pubspec.yaml
+          du -sh assets | while read -r l; do echo "::notice::varlık boyutu: $l"; done
+      - run: flutter pub get
+      - name: iOS derle (imzasız)
+        run: |
+          set +e
+          df -h / | tail -1 | while read -r l; do echo "::notice::disk önce: $l"; done
+          if [ "${{ inputs.sessiz }}" = "true" ]; then EK="--dart-define=SESSIZ=true"; else EK=""; fi
+          flutter build ios --release --no-codesign $EK --build-number=$((1000 + GITHUB_RUN_NUMBER)) > build.txt 2>&1
+          kod=$?
+          df -h / | tail -1 | while read -r l; do echo "::notice::disk sonra: $l"; done
+          if [ $kod -ne 0 ]; then
+            grep -nE "error:|Error|FAILURE|No space|Could not|Exception|Unable|failed" -A2 build.txt | head -50 | while read -r l; do echo "::error::$l"; done
+            tail -25 build.txt | while read -r l; do echo "::error::son: $l"; done
+          else
+            du -sh build/ios/iphoneos/Runner.app | while read -r l; do echo "::notice::Runner.app boyutu: $l"; done
+            ls build/ios/iphoneos | while read -r l; do echo "::notice::çıktı: $l"; done
+          fi
+          exit $kod
