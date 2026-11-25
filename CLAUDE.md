@@ -418,3 +418,9 @@ Kullanıcı "uygulamayı görsellerle hafızlık açısından değerlendir, nele
 ## SESİM: BİR AYETE BİRDEN ÇOK KAYIT (25 Kasım 2026)
 - Eskiden ayet başına tek kayıt vardı (yeni kayıt eskisini siliyordu). Artık `kendi_ses.dart` `hd_kendises_v2`: anahtar `sure:ayet` → kayıt LİSTESİ (`KendiKayit{ad,t,isim}`); `hd_kendises_v1` ilk açılışta otomatik taşınır. `bagla`/`dosyaEkle` listeye EKLER, hiçbir şey silmez; `sil` tek kaydı siler (onaylı); kayıtlara ad verilebilir (kalem). `kendiSes.yol(s,n)` = seçili (sheet'ten "Çal"a basılan) ya da en yeni kayıt; ayet panelindeki oynat düğmesi onu çalar. "Sesim" çipi birden çok kayıtta "Sesim (N)" yazar. Kayıt sayısı sınırı YOK. Tüm ayetlere ayet panelinden (sayfa/ağaç/mushaf nereden açılırsa) ulaşılır.
 - Yerelde flutter yok: derleme/analiz CI'da. Gerçek cihazda denenmedi (kayıt, çoklu liste, taşıma).
+
+
+## KIRMIZI ARTIK İŞARET TEMİZLİĞİ (25 Kasım 2026)
+- Kullanıcı Bakara 145 ayet görselinin en üstünde kırmızı bir işaret kalmış olduğunu gösterdi (komşu satırdan kırpılmış parça). Yedek: `yedek-kirmizi-artik-oncesi` dalı.
+- `python3 tools/kirmizi_artik.py flutter_app/assets/paket [--uygula]` (kuru çalışma varsayılan): f_ ve s_ görsellerinde en üstteki/en alttaki küçük kırmızı bileşeni, YATAY örtüşen en yakın harfe dikey uzaklığı ≥45 px ise (havada duruyor) siler (alfa 0). Meşru medd/vakıf işaretleri harfe ≤~40 px yakındır, dokunulmaz. 30–45 px arası 56 aday (çoğu `مد`/`قصر` etiketi, büyük olasılıkla ayetin kendi işareti) bilerek bırakıldı.
+- Sonuç: 12472 görselde 109 artık silindi (cuz2'de 145, 148, 150, 239…; en çok cuz27/29/19/9/23). Yeniden tarama: 0. `bundle_guncelle.py` ile bundle'a eklendi. Gerçek cihazda denenmedi; rastgele 12 örnek gözle kontrol edildi.
