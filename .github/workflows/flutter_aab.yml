@@ -42,7 +42,6 @@ jobs:
           rm -rf assets/paket/ses*
           sed -i '/assets\/paket\/ses[0-9]*\//d' pubspec.yaml
           grep -c "assets/paket/ses" pubspec.yaml || true
-          sed -i 's|android:label="Hafız Dünyası"|android:label="Hafız Dünyası (Sessiz)"|' android/app/src/main/AndroidManifest.xml
           sed -i 's|applicationId = "com.hafizdunyasi.gezgin"|applicationId = "com.hafizdunyasi.gezgin.sessiz"|' android/app/build.gradle.kts
           grep -n "label\|applicationId" android/app/src/main/AndroidManifest.xml android/app/build.gradle.kts | head
           du -sh assets | while read -r l; do echo "::notice::sessiz varlık boyutu: $l"; done

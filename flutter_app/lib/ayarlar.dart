@@ -171,7 +171,7 @@ class _AyarlarState extends State<Ayarlar> {
         const Baslik('Hakkında'),
         Kart(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(sessizSurum ? 'Hafız Dünyası (Sessiz sürüm)' : 'Hafız Dünyası', style: ts(R.text, 16, FontWeight.w700)),
+            Text('Hafız Dünyası', style: ts(R.text, 16, FontWeight.w700)),
             const SizedBox(height: 6),
             Text('Kuran ezberi için görsel bahçe. Her cüz 20 sayfa, her sayfa bir ağaç; meyveler sayfanın ayet başları.\n\n' +
                 (sessizSurum
