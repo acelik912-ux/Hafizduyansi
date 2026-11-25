@@ -5,6 +5,7 @@ Yalnızca CI'da derlemeden önce çalışır (depodaki dosyalar PNG kalır; geri
 Her dosya çevrildikten sonra yeniden açılıp piksellerin aynı olduğu doğrulanır; farklıysa o PNG olduğu gibi bırakılır.
 project.json ve assets/dedup.json içindeki yollar .webp'ye çevrilir (yalnızca gerçekten çevrilenler)."""
 import json, os, re, sys, io
+import multiprocessing as mp
 from concurrent.futures import ProcessPoolExecutor
 from PIL import Image, ImageChops
 
@@ -43,12 +44,20 @@ def main():
                 dosyalar.append(os.path.join(r, f))
     print(len(dosyalar), 'PNG bulundu')
     cevrilen = set(); top_o = top_y = 0; sorun = []
-    with ProcessPoolExecutor() as ex:
-        for yol, d, o, y in ex.map(cevir, dosyalar, chunksize=16):
+    def isle(sonuclar):
+        nonlocal top_o, top_y
+        for yol, d, o, y in sonuclar:
             if d == 'OK':
                 cevrilen.add(os.path.relpath(yol, APP).replace(os.sep, '/')); top_o += o; top_y += y
             else:
                 sorun.append((yol, d))
+    try:  # Python 3.14 varsayılanı forkserver; burada 'fork' kullan (Linux)
+        with ProcessPoolExecutor(mp_context=mp.get_context('fork')) as ex:
+            isle(ex.map(cevir, dosyalar, chunksize=16))
+    except Exception as e:
+        print('Çoklu işlem başarısız, tek işlemle devam:', repr(e))
+        cevrilen.clear(); sorun.clear(); top_o = top_y = 0
+        isle(map(cevir, [d for d in dosyalar if os.path.exists(d)]))
     print(f'çevrilen {len(cevrilen)} | {top_o/1e6:.0f} MB -> {top_y/1e6:.0f} MB | atlanan {len(sorun)}')
     for s in sorun[:20]:
         print('  atlandı:', s)

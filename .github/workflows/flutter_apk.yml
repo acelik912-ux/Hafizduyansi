@@ -58,6 +58,9 @@ jobs:
           du -sm assets/paket | while read -r l; do echo "::notice::WebP öncesi paket: $l"; done
           python3 ../tools/webp_cevir.py > /tmp/webp.txt 2>&1 || { tail -30 /tmp/webp.txt; echo "::error::WebP dönüşümü başarısız"; exit 1; }
           tail -25 /tmp/webp.txt | while read -r l; do echo "::notice::$l"; done
+          N=$(find assets/paket -name '*.webp' | wc -l)
+          echo "::notice::WebP dosya sayısı: $N"
+          if [ "$N" -lt 1000 ]; then sed 's/^/::error::/' /tmp/webp.txt | tail -30; echo "::error::WebP dönüşümü yapılmadı"; exit 1; fi
           du -sm assets/paket | while read -r l; do echo "::notice::WebP sonrası paket: $l"; done
       - name: APK derle
         run: |
