@@ -33,13 +33,13 @@ ESYALAR = [
     ('Merkür', 'kure', 640, 120),
     ('Plüton', 'kure', 620, 120),
     ('Galaksi', 'oval', 1100, 120),
-    ('Yıldız', 'parla', 900, 120),
+    ('Yıldız', 'kure', 900, 120),
     ('Göktaşı', 'bulut', 900, 120),
     ('Bulut', 'bulut', 1000, 160),
     ('Yağmur Bulutu', 'bulut', 960, 100),
     ('Şimşek', 'parla', 1150, 60),
     ('Gökkuşağı', 'parla', 1050, 160),
-    ('Hortum', 'govde', 1000, 60),
+    ('Hortum', 'bulut', 1000, 60),
     ('Kar Tanesi', 'kar', 940, 120),
 ]
 ADLAR = [e[0] for e in ESYALAR]

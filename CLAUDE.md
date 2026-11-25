@@ -392,3 +392,9 @@ Kullanıcı "uygulamayı görsellerle hafızlık açısından değerlendir, nele
 - İlk açılış turu (karartma + şeffaf delik + balon, İleri/Geç; hareket yok): ana ekran turu (`hd_tur_ana`, `Kok._anaTur`) ve ilk cüz açılışında cüz turu (`hd_tur_cuz`, `CuzOkuyucu._turuDene`). Bayraklar SharedPreferences'ta, bir kez gösterilir. Hedefler `turAnahtar` / `_kGorunum`, `_kGorsel` GlobalKey'leri. Adımlar `anaTurAdimlari()`/`cuzTurAdimlari()`.
 - Görünüm düğmesi: `tune` yerine `layers` + altında "Görünüm" yazısı (`CamEtiketIkon`, ortak.dart).
 - CI web derlemesi başarılı, analiz yeni sorun yok. GERÇEK CİHAZDA DENENMEDİ (TTS sesi, turdaki delik konumları, kaydırma).
+
+
+## LİSANS RİSKLİ GÖRSELLERİN GEMİNİ İLE DEĞİŞTİRİLMESİ (25 Kasım 2026)
+- Yedek: `yedek-risk-gorsel-oncesi` dalı. Kullanıcı Canva klip-art/stok olabilecek görselleri tek bir Gemini istemiyle (17 görsel, sırayla "devam") yeniden üretti; 2048² beyaz zeminli görseller ilgili `tools/*_kaynak/` dosyalarının yerine kondu, aynı betiklerle kuruldu.
+- Cüz 2: Altın, Zümrüt, Bakır, Gümüş, Kehribar, Firuze, Demir (`maden_kaynak/`, `maden_gorsel.py`). Cüz 7: Hilal, Yıldız (Güneş benzeri küre; kip `kure`), Göktaşı, Bulut, Yağmur Bulutu, Hortum (kip `bulut`, `govde` bulut başlığını siliyordu), Kar Tanesi (`c07_gorsel.py`). Cüz 9: Safa ve Merve (insansız). Cüz 10: Pil (markasız gümüş/turkuaz).
+- **AÇIK: Cüz 9 Uhud Dağı** — Gemini yine okçu figürleri çizdi, KURULMADI (eski görsel duruyor). İnsansız yeniden istenecek. Hilal görseli dolgun/koyu bir ay (ince hilal değil); göktaşı kuyruğu hafif pembe. Gerçek cihazda denenmedi.
