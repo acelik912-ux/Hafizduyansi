@@ -305,12 +305,13 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
             ),
           if (sheetFor != null)
             Positioned.fill(
-              child: MushafSayfasi(
-                sheets: pages[sheetFor!.p].sheets,
-                baslik: '${widget.cd.name} · Sayfa ${sheetFor!.p + 1}',
+              child: MushafKitap(
+                key: ValueKey('kitap${widget.cd.no}_${sheetFor!.p}'),
+                depo: widget.depo,
+                cuz: widget.cd.no,
+                sayfa: sheetFor!.p,
                 focus: ozelSayfa(widget.cd, sheetFor!.p) && open < 0 ? null : sheetFor!.a,
                 gizle: sheetGizle,
-                capaAnahtar: _capaAnahtar(),
                 onClose: () => setState(() => sheetFor = null),
               ),
             ),

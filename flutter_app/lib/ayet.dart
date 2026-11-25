@@ -408,6 +408,72 @@ class _AyetPaneliState extends State<AyetPaneli> {
       );
 }
 
+// ---------------------------------------------------------------- MUSHAF KİTABI
+// Mushaf sayfasında yana kaydırınca sıradaki sayfaya geçilir; cüz sınırında sonraki/önceki cüze, Kur'an'ın sonuna/başına kadar.
+// Mushaf düzeni: sağdan sola (sağa kaydırınca sonraki sayfa). Büyütülmüşken (zoom>1) yana kaydırma sayfayı kaydırır; sayfa düğmeleri başlıktadır.
+class MushafKitap extends StatefulWidget {
+  final Depo depo;
+  final int cuz, sayfa;
+  final Ayet? focus; // yalnızca açılan sayfada
+  final bool gizle;
+  final VoidCallback onClose;
+  const MushafKitap({super.key, required this.depo, required this.cuz, required this.sayfa, this.focus, this.gizle = false, required this.onClose});
+  @override
+  State<MushafKitap> createState() => _MushafKitapState();
+}
+
+class _MushafKitapState extends State<MushafKitap> {
+  late final List<(int, int)> tum;
+  late final int ilk;
+  late final PageController pc;
+  late bool hide = widget.gizle;
+  double zoom = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    final keys = widget.depo.cuz.keys.toList()..sort();
+    tum = [for (final n in keys) for (var p = 0; p < widget.depo.cuz[n]!.pages.length; p++) if (widget.depo.cuz[n]!.pages[p].sheets.isNotEmpty) (n, p)];
+    final i = tum.indexOf((widget.cuz, widget.sayfa));
+    ilk = i < 0 ? 0 : i;
+    pc = PageController(initialPage: ilk);
+  }
+
+  @override
+  void dispose() {
+    pc.dispose();
+    super.dispose();
+  }
+
+  void _git(int d) => pc.animateToPage((pc.page?.round() ?? ilk) + d, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+
+  @override
+  Widget build(BuildContext context) {
+    return PageView.builder(
+      controller: pc,
+      reverse: true,
+      itemCount: tum.length,
+      itemBuilder: (c, i) {
+        final (cn, p) = tum[i];
+        final cd = widget.depo.cuz[cn]!;
+        return MushafSayfasi(
+          key: ValueKey('mushaf$cn-$p'),
+          sheets: cd.pages[p].sheets,
+          baslik: '${cd.name} · Sayfa ${p + 1}',
+          focus: i == ilk ? widget.focus : null,
+          gizle: hide,
+          zoom0: zoom,
+          capaAnahtar: 'c${cn}_mushaf$p',
+          onClose: widget.onClose,
+          onDurum: (h, z) { hide = h; zoom = z; },
+          onOnceki: i > 0 ? () => _git(-1) : null,
+          onSonraki: i < tum.length - 1 ? () => _git(1) : null,
+        );
+      },
+    );
+  }
+}
+
 // ---------------------------------------------------------------- MUSHAF SAYFASI
 class MushafSayfasi extends StatefulWidget {
   final List<Sheet> sheets;
@@ -416,7 +482,10 @@ class MushafSayfasi extends StatefulWidget {
   final bool gizle;
   final VoidCallback onClose;
   final String capaAnahtar; // çapalar sayfaya yapışık durur (kaydırınca/büyütünce birlikte hareket eder)
-  const MushafSayfasi({super.key, required this.sheets, required this.baslik, this.focus, this.gizle = false, required this.onClose, this.capaAnahtar = 'mushaf'});
+  final double zoom0; // başlangıç büyütmesi (sayfa çevrilince korunur)
+  final void Function(bool gizle, double zoom)? onDurum; // ezber modu / büyütme değişince bildirir
+  final VoidCallback? onOnceki, onSonraki; // başlıktaki sayfa düğmeleri (büyütülmüşken yana kaydırma sayfayı çevirmez)
+  const MushafSayfasi({super.key, required this.sheets, required this.baslik, this.focus, this.gizle = false, required this.onClose, this.capaAnahtar = 'mushaf', this.zoom0 = 1, this.onDurum, this.onOnceki, this.onSonraki});
   @override
   State<MushafSayfasi> createState() => _MushafSayfasiState();
 }
@@ -424,8 +493,9 @@ class MushafSayfasi extends StatefulWidget {
 class _MushafSayfasiState extends State<MushafSayfasi> {
   late bool hide = widget.gizle;
   Map<String, bool> shown = {};
-  double zoom = 1;
+  late double zoom = widget.zoom0;
   final sc = ScrollController();
+  void _bildir() => widget.onDurum?.call(hide, zoom);
   late final List<CapaKumanda> kumandalar = [for (final _ in widget.sheets) CapaKumanda()];
 
   // üstteki 📌: ekranın ortasındaki sayfa noktasına çapa bırakır
@@ -493,8 +563,8 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
             IconButton(onPressed: widget.onClose, icon: const Icon(Icons.arrow_back_rounded, color: R.text), tooltip: 'Geri'),
             Expanded(child: Text(widget.baslik, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.text, 16, FontWeight.w700))),
             IconButton(onPressed: _capaEkle, icon: const Text('📌', style: TextStyle(fontSize: 20)), tooltip: 'Çapa bırak (sayfaya basılı tutarak da bırakabilirsin)'),
-            IconButton(onPressed: () => setState(() => zoom = (zoom - 0.25).clamp(1, 3)), icon: const Icon(Icons.zoom_out_rounded, color: R.text), tooltip: 'Küçült'),
-            IconButton(onPressed: () => setState(() => zoom = (zoom + 0.25).clamp(1, 3)), icon: const Icon(Icons.zoom_in_rounded, color: R.text), tooltip: 'Büyüt'),
+            IconButton(onPressed: () { setState(() => zoom = (zoom - 0.25).clamp(1, 3)); _bildir(); }, icon: const Icon(Icons.zoom_out_rounded, color: R.text), tooltip: 'Küçült'),
+            IconButton(onPressed: () { setState(() => zoom = (zoom + 0.25).clamp(1, 3)); _bildir(); }, icon: const Icon(Icons.zoom_in_rounded, color: R.text), tooltip: 'Büyüt'),
             IconButton(onPressed: () => tercih.degistir((t) => t.night = !t.night), icon: Icon(N ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: R.text), tooltip: 'Gece modu'),
           ]),
         ),
@@ -502,11 +572,14 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
           color: R.bg,
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
           child: Row(children: [
-            Cip(hide ? 'Ezber modu açık' : 'Ezber modu', icon: hide ? Icons.visibility_off_rounded : Icons.visibility_rounded, on: hide, onTap: () => setState(() { hide = !hide; shown = {}; })),
+            Cip(hide ? 'Ezber modu açık' : 'Ezber modu', icon: hide ? Icons.visibility_off_rounded : Icons.visibility_rounded, on: hide, onTap: () { setState(() { hide = !hide; shown = {}; }); _bildir(); }),
             const SizedBox(width: 8),
             if (hide) ...[
               Cip('Hepsini aç', icon: Icons.lock_open_rounded, onTap: () => setState(() => shown = {for (final s in widget.sheets) for (final r in s.rects) r.key: true})),
             ],
+            const Spacer(),
+            if (widget.onOnceki != null) IconButton(onPressed: widget.onOnceki, icon: const Icon(Icons.skip_previous_rounded, color: R.text), tooltip: 'Önceki sayfa'),
+            if (widget.onSonraki != null) IconButton(onPressed: widget.onSonraki, icon: const Icon(Icons.skip_next_rounded, color: R.text), tooltip: 'Sonraki sayfa'),
           ]),
         ),
         if (hide)
