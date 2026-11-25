@@ -59,6 +59,8 @@ class Sheet {
 
 // Sessiz sürüm (--dart-define=SESSIZ=true): ses paketleri APK'ya girmez, ses ve okuyucu arayüzü gizlenir.
 const bool sessizSurum = bool.fromEnvironment('SESSIZ');
+// Tanıtım videosunun bağlantısı (YouTube). Boşken Ayarlar'da tanıtım videosu satırı görünmez.
+const String tanitimLinki = '';
 
 class Sayfa {
   final String kind; // 'ayat' | 'special'
@@ -206,7 +208,7 @@ class Depo {
       tema.trees[int.parse(k) - shift] = _c('${base}trees/${t['file']}');
       if (t['name'] is String) tema.adlar[int.parse(k) - shift] = t['name'];
     });
-    final re = RegExp(r'fruits/(\d+)_(\d)\.png$');
+    final re = RegExp(r'fruits/(\d+)_(\d)\.(?:png|webp)$');
     final meyveler = <String>{...all.where((a) => a.startsWith('${base}fruits/')), ..._tekil.keys.where((a) => a.startsWith('${base}fruits/'))};
     for (final a in meyveler) {
       final m = re.firstMatch(a);

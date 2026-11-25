@@ -9,6 +9,10 @@ on:
         description: 'Sessiz sürüm (ses paketleri yok, ayrı uygulama kimliği ve adı: Hafız Dünyası (Sessiz))'
         type: boolean
         default: false
+      webp:
+        description: "PNG'leri kayıpsız WebP'ye çevir (boyut küçülür; kalite aynı). Sorun olursa kapat"
+        type: boolean
+        default: true
 permissions:
   contents: write
 jobs:
@@ -47,6 +51,13 @@ jobs:
           grep -n "label\|applicationId" android/app/src/main/AndroidManifest.xml android/app/build.gradle.kts | head
           du -sh assets | while read -r l; do echo "::notice::sessiz varlık boyutu: $l"; done
       - run: flutter pub get
+      - name: "PNG'leri kayıpsız WebP'ye çevir (piksel piksel aynı, daha küçük; kapatılırsa PNG kalır)"
+        if: ${{ inputs.webp }}
+        run: |
+          python3 -c "import PIL" 2>/dev/null || python3 -m pip install --quiet pillow || python3 -m pip install --quiet --break-system-packages pillow
+          du -sm assets/paket | while read -r l; do echo "::notice::WebP öncesi paket: $l"; done
+          python3 ../tools/webp_cevir.py 2>&1 | tail -25 | while read -r l; do echo "::notice::$l"; done
+          du -sm assets/paket | while read -r l; do echo "::notice::WebP sonrası paket: $l"; done
       - name: APK derle
         run: |
           set +e

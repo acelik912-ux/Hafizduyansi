@@ -49,6 +49,6 @@ metin = open(ps, encoding='utf-8').read()
 satirlar = '\n'.join('    - ' + k for k in sorted(klasorler))
 yeni = re.sub(r'(    # PAKET-BAŞ\n).*?(    # PAKET-SON)', lambda m: m.group(1) + satirlar + '\n' + m.group(2), metin, flags=re.S)
 if '    - assets/dedup.json\n' not in yeni:
-    yeni = yeni.replace('    - assets/video/\n', '    - assets/video/\n    - assets/dedup.json\n', 1)
+    yeni = yeni.replace('    - assets/doku/\n', '    - assets/doku/\n    - assets/dedup.json\n', 1)
 open(ps, 'w', encoding='utf-8').write(yeni)
 print('pubspec.yaml güncellendi:', len(klasorler), 'klasör')

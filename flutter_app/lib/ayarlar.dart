@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'ayet.dart' show tekrarAd, hizAd;
 import 'ortak.dart';
-import 'tanitim.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'yardim.dart';
 import 'veri.dart';
 import 'ozel_gorsel_ekran.dart';
@@ -152,9 +152,10 @@ class _AyarlarState extends State<Ayarlar> {
             const Icon(Icons.chevron_right_rounded, color: R.faint),
           ]),
         ),
+        if (tanitimLinki.isNotEmpty) ...[
         const SizedBox(height: 10),
         Kart(
-          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TanitimVideosu())),
+          onTap: () => launchUrl(Uri.parse(tanitimLinki), mode: LaunchMode.externalApplication),
           child: Row(children: [
             const Icon(Icons.play_circle_outline_rounded, color: R.sub),
             const SizedBox(width: 12),
@@ -162,12 +163,13 @@ class _AyarlarState extends State<Ayarlar> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('Tanıtım videosu', style: ts(R.text, 15)),
                 const SizedBox(height: 2),
-                Text('Uygulamanın nasıl kullanıldığını anlatır (yaklaşık 1 dk 45 sn)', style: ts(R.sub, 12.5, FontWeight.w400)),
+                Text('YouTube\'da açılır (yaklaşık 1 dk 45 sn)', style: ts(R.sub, 12.5, FontWeight.w400)),
               ]),
             ),
-            const Icon(Icons.chevron_right_rounded, color: R.faint),
+            const Icon(Icons.open_in_new_rounded, color: R.faint),
           ]),
         ),
+        ],
         const Baslik('Hakkında'),
         Kart(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

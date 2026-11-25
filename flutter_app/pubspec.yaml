@@ -37,7 +37,7 @@ dependencies:
   shared_preferences: ^2.5.6
   audioplayers: ^6.7.1
   share_plus: ^13.3.1
-  video_player: ^2.10.0
+  url_launcher: ^6.3.0
   image_picker: ^1.1.2
   path_provider: ^2.1.5
   record: ^6.1.1
@@ -69,7 +69,6 @@ flutter:
     - assets/logo.png
     - assets/ozel/
     - assets/doku/
-    - assets/video/
     - assets/dedup.json
     # PAKET-BAŞ
     - assets/paket/cuz1/
