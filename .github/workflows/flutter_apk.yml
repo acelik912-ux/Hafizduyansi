@@ -56,7 +56,8 @@ jobs:
         run: |
           python3 -c "import PIL" 2>/dev/null || python3 -m pip install --quiet pillow || python3 -m pip install --quiet --break-system-packages pillow
           du -sm assets/paket | while read -r l; do echo "::notice::WebP öncesi paket: $l"; done
-          python3 ../tools/webp_cevir.py 2>&1 | tail -25 | while read -r l; do echo "::notice::$l"; done
+          python3 ../tools/webp_cevir.py > /tmp/webp.txt 2>&1 || { tail -30 /tmp/webp.txt; echo "::error::WebP dönüşümü başarısız"; exit 1; }
+          tail -25 /tmp/webp.txt | while read -r l; do echo "::notice::$l"; done
           du -sm assets/paket | while read -r l; do echo "::notice::WebP sonrası paket: $l"; done
       - name: APK derle
         run: |

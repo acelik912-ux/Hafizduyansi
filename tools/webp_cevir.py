@@ -82,4 +82,5 @@ def main():
         print('UYARI: bazı dosyalar çevrilemedi/doğrulanamadı; PNG kaldı')
 
 
-main()
+if __name__ == '__main__':
+    main()
