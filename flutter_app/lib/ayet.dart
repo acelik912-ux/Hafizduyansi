@@ -332,7 +332,7 @@ class _AyetPaneliState extends State<AyetPaneli> {
                 Cip('Otomatik', icon: Icons.playlist_play_rounded, on: tercih.auto, cam: true, onTap: () => tercih.degistir((t) => t.auto = !t.auto)),
               ],
               if (kendiSes.kullanilabilir)
-                Cip('Sesim', icon: Icons.mic_rounded, on: kendiSes.varMi(a.sura, a.no), cam: true, onTap: () { _stop(); kendiSesAc(context, a, () => _start(kendi: true)); }),
+                Cip(kendiSes.sayi(a.sura, a.no) > 1 ? 'Sesim (${kendiSes.sayi(a.sura, a.no)})' : 'Sesim', icon: Icons.mic_rounded, on: kendiSes.varMi(a.sura, a.no), cam: true, onTap: () { _stop(); kendiSesAc(context, a, () => _start(kendi: true)); }),
               Cip('Meal', icon: Icons.translate_rounded, on: showMeal, cam: true, onTap: () => setState(() => showMeal = !showMeal)),
               Cip('Büyük', icon: Icons.text_fields_rounded, cam: true, onTap: () => setState(() => big = true)),
           ]),

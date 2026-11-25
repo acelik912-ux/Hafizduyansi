@@ -103,7 +103,8 @@ class _KendiSesState extends State<_KendiSes> {
       if (f == null || f.path == null) return;
       setState(() => mesgul = true);
       final ad = f.name.contains('.') ? f.name.split('.').last.toLowerCase() : 'mp3';
-      await kendiSes.dosyaEkle(widget.a.sura, widget.a.no, f.path!, ad);
+      final isim = f.name.contains('.') ? f.name.substring(0, f.name.lastIndexOf('.')) : f.name;
+      await kendiSes.dosyaEkle(widget.a.sura, widget.a.no, f.path!, ad, isim: isim);
     } catch (e) {
       hata = 'Dosya eklenemedi: $e';
     }
@@ -112,17 +113,82 @@ class _KendiSesState extends State<_KendiSes> {
 
   String _sure(int s) => '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
 
+  String _tarih(int ms) {
+    if (ms <= 0) return '';
+    final d = DateTime.fromMillisecondsSinceEpoch(ms);
+    String i(int v) => v.toString().padLeft(2, '0');
+    return '${i(d.day)}.${i(d.month)}.${d.year} ${i(d.hour)}:${i(d.minute)}';
+  }
+
+  Future<void> _adlandir(KendiKayit k) async {
+    final c = TextEditingController(text: k.isim ?? '');
+    final yeni = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Kaydın adı'),
+        content: TextField(controller: c, autofocus: true, maxLength: 40, decoration: const InputDecoration(hintText: 'Örn. Hocamla, yavaş okuyuş')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Vazgeç')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, c.text), child: const Text('Kaydet')),
+        ],
+      ),
+    );
+    if (yeni != null) await kendiSes.adlandir(widget.a.sura, widget.a.no, k, yeni);
+  }
+
+  Future<void> _sil(KendiKayit k) async {
+    final onay = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Bu kayıt silinsin mi?'),
+        content: const Text('Silinen kayıt geri getirilemez.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Sil')),
+        ],
+      ),
+    );
+    if (onay == true) await kendiSes.sil(widget.a.sura, widget.a.no, k);
+  }
+
+  Widget _satir(int i, KendiKayit k, bool secili) {
+    final a = widget.a;
+    final ad = k.isim ?? 'Kayıt ${i + 1}';
+    final tr = _tarih(k.t);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(6, 4, 2, 4),
+      decoration: BoxDecoration(color: R.surface2, borderRadius: BorderRadius.circular(14), border: Border.all(color: secili ? R.primary : R.outline)),
+      child: Row(children: [
+        IconButton(
+          tooltip: 'Çal',
+          icon: const Icon(Icons.play_circle_fill_rounded, color: R.primary, size: 34),
+          onPressed: mesgul ? null : () { kendiSes.sec(a.sura, a.no, k); Navigator.pop(context); widget.onCal(); },
+        ),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(ad, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.text, 14.5, FontWeight.w600)),
+            if (tr.isNotEmpty) Text(tr, style: ts(R.sub, 11.5, FontWeight.w400)),
+          ]),
+        ),
+        IconButton(tooltip: 'Adını değiştir', icon: const Icon(Icons.edit_outlined, size: 20), color: R.sub, onPressed: mesgul ? null : () => _adlandir(k)),
+        IconButton(tooltip: 'Sil', icon: const Icon(Icons.delete_outline_rounded, size: 21), color: R.sub, onPressed: mesgul ? null : () => _sil(k)),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final a = widget.a;
-    final var_ = kendiSes.varMi(a.sura, a.no);
+    final liste = kendiSes.liste(a.sura, a.no);
+    final secili = kendiSes.secili(a.sura, a.no);
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, 18 + MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text('Sesim · ${a.sname} ${a.no}. ayet', style: ts(R.text, 18, FontWeight.w700)),
           const SizedBox(height: 6),
-          Text(var_ ? 'Bu ayette kendi kaydın var.' : 'Bu ayet için henüz kayıt yok.', style: ts(R.sub, 13.5, FontWeight.w400)),
+          Text(liste.isEmpty ? 'Bu ayet için henüz kayıt yok. İstediğin kadar kayıt ekleyebilirsin.' : '${liste.length} kaydın var. Yeni kayıt eklemek eskilerini silmez.', style: ts(R.sub, 13.5, FontWeight.w400)),
           const SizedBox(height: 14),
           if (kayitta)
             Row(children: [
@@ -133,23 +199,13 @@ class _KendiSesState extends State<_KendiSes> {
             ])
           else ...[
             Row(children: [
-              Expanded(child: FilledButton.icon(onPressed: mesgul ? null : _basla, icon: const Icon(Icons.mic_rounded), label: Text(var_ ? 'Yeniden kaydet' : 'Kaydet'))),
+              Expanded(child: FilledButton.icon(onPressed: mesgul ? null : _basla, icon: const Icon(Icons.mic_rounded), label: const Text('Yeni kayıt'))),
               const SizedBox(width: 10),
               Expanded(child: OutlinedButton.icon(onPressed: mesgul ? null : _dosya, icon: const Icon(Icons.audio_file_rounded), label: const Text('Ses dosyası ekle'))),
             ]),
-            if (var_) ...[
-              const SizedBox(height: 10),
-              Row(children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () { Navigator.pop(context); widget.onCal(); },
-                    icon: const Icon(Icons.play_arrow_rounded),
-                    label: const Text('Çal'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(child: OutlinedButton.icon(onPressed: mesgul ? null : () => kendiSes.sil(a.sura, a.no), icon: const Icon(Icons.delete_outline_rounded), label: const Text('Sil'))),
-              ]),
+            if (liste.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              for (var i = 0; i < liste.length; i++) _satir(i, liste[i], liste[i] == secili),
             ],
           ],
           if (hata != null) Padding(padding: const EdgeInsets.only(top: 10), child: Text(hata!, style: ts(const Color(0xFFD64545), 13, FontWeight.w500))),
