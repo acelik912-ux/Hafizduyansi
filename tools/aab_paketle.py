@@ -21,14 +21,29 @@ def boyut(d):
 
 
 dizinler = sorted(os.listdir(paket), key=lambda s: (re.sub(r'\d+', '', s), int(re.sub(r'\D', '', s) or 0)))
-gruplar, cur, curb = [], [], 0
+# KALICI ESLEME (tools/paket_atama.json: klasör -> paketN). Neden: klasörleri her derlemede boyuta göre baştan dizersek, bir temanın
+# boyutu azıcık değişince klasörler paketler arasında kayar ve Play'in "yalnız değişeni indir" (delta) yaması hemen hemen tüm paketler
+# için büyür (kullanıcı güncellemede 1,6 GB'ın tamamını indiriyordu). Bilinen klasör hep aynı pakette kalır; yeni klasör (ör. ses*,
+# yeni cüz) en son pakete, sığmazsa yeni pakete eklenir. Eşleme dosyasını silme/değiştirme.
+eslem_yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'paket_atama.json')
+eslem = json.load(open(eslem_yol)) if os.path.exists(eslem_yol) else {}
+boy = {d: boyut(os.path.join(paket, d)) for d in dizinler}
+paketler = {}  # paketN -> [klasör]
 for d in dizinler:
-    b = boyut(os.path.join(paket, d))
-    if cur and curb + b > LIM * 1048576:
-        gruplar.append(cur); cur, curb = [], 0
-    cur.append(d); curb += b
-if cur:
-    gruplar.append(cur)
+    if d in eslem:
+        paketler.setdefault(eslem[d], []).append(d)
+sirali = sorted(paketler, key=lambda a: int(a[5:])) if paketler else []
+son = int(sirali[-1][5:]) if sirali else 0
+for d in dizinler:
+    if d in eslem:
+        continue
+    ad = f'paket{son}' if son else None
+    if ad is None or sum(boy[x] for x in paketler.get(ad, [])) + boy[d] > LIM * 1048576:
+        son += 1; ad = f'paket{son}'
+    paketler.setdefault(ad, []).append(d)
+    eslem[d] = ad
+gruplar = [paketler[a] for a in sorted(paketler, key=lambda a: int(a[5:]))]
+adlar_sirali = sorted(paketler, key=lambda a: int(a[5:]))
 
 yollar = []
 for r, _, fs in os.walk(paket):
@@ -39,8 +54,8 @@ with open(os.path.join(kok, 'assets', 'paket_dizin.json'), 'w') as f:
     json.dump(yollar, f)
 
 adlar = []
-for i, g in enumerate(gruplar, 1):
-    ad = f'paket{i}'
+for ad, g in zip(adlar_sirali, gruplar):
+    i = int(ad[5:])
     adlar.append(ad)
     hedef = os.path.join(andr, ad, 'src', 'main', 'assets', 'flutter_assets', 'assets', 'paket')
     os.makedirs(hedef)
