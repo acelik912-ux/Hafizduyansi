@@ -27,7 +27,7 @@ jobs:
             /usr/share/swift /usr/local/julia* /opt/az /usr/local/aws-cli /usr/share/miniconda /usr/local/graalvm \
             /opt/microsoft /usr/local/share/powershell /usr/local/share/chromium /opt/google /usr/lib/google-cloud-sdk || true
           df -h / | tail -1 | while read -r l; do echo "::notice::disk sonra: $l"; done
-      - name: Takas alanı ekle (runner belleği 8 GB, derleme belleği aşıyordu: çıkış kodu 143)
+      - name: "Takas alanı ekle (runner belleği 8 GB, derleme belleği aşıyordu, çıkış kodu 143)"
         working-directory: .
         run: |
           sudo swapoff -a || true
