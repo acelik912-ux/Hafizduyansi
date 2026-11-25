@@ -98,7 +98,7 @@ class _BugunState extends State<Bugun> {
           _hizli(),
           _studyo(),
           const SizedBox(height: 28),
-          Center(child: Text('Meal: Diyanet İşleri · Kıraat: Nâsır el-Katâmî', style: ts(R.faint, 12, FontWeight.w500))),
+          Center(child: Text(sessizSurum ? 'Meal: Diyanet İşleri' : 'Meal: Diyanet İşleri · Kıraat: Nâsır el-Katâmî', style: ts(R.faint, 12, FontWeight.w500))),
         ],
       ],
     );
