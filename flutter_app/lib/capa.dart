@@ -12,12 +12,13 @@ import 'ortak.dart';
 
 class Capa {
   double x, z;
+  bool sabit; // true: yerine sabitlendi (sürüklenmez); false: taşınabilir, yanında ✓ düğmesi görünür
   final String metin;
   final String? resim; // küçük resim (base64, JPEG)
   late final Uint8List? bayt = resim == null ? null : _coz(resim!);
-  Capa(this.x, this.z, this.metin, {this.resim});
-  Capa yeni(String m, String? r) => Capa(x, z, m, resim: r);
-  Map<String, dynamic> toJson() => {'x': x, 'z': z, 't': metin, if (resim != null) 'r': resim};
+  Capa(this.x, this.z, this.metin, {this.resim, this.sabit = true});
+  Capa yeni(String m, String? r) => Capa(x, z, m, resim: r, sabit: sabit);
+  Map<String, dynamic> toJson() => {'x': x, 'z': z, 't': metin, if (resim != null) 'r': resim, if (!sabit) 's': false};
   static Uint8List? _coz(String s) {
     try {
       return base64Decode(s);
@@ -50,7 +51,7 @@ class CapaDeposu {
     if (l is! List) return [];
     return [
       for (final e in l)
-        if (e is Map) Capa((e['x'] as num).toDouble(), (e['z'] as num).toDouble(), '${e['t']}', resim: e['r'] is String ? e['r'] as String : null)
+        if (e is Map) Capa((e['x'] as num).toDouble(), (e['z'] as num).toDouble(), '${e['t']}', resim: e['r'] is String ? e['r'] as String : null, sabit: e['s'] != false)
     ];
   }
 
@@ -67,14 +68,15 @@ class CapaSonuc {
   final String metin;
   final String? resim;
   final bool sil;
-  const CapaSonuc(this.metin, this.resim, {this.sil = false});
+  final bool tasi; // "Taşı": çapanın sabitlemesini kaldırır
+  const CapaSonuc(this.metin, this.resim, {this.sil = false, this.tasi = false});
 }
 
 const _hizliEmoji = ['📌', '⭐', '❓', '💡', '❗', '👁️', '🔑', '📖', '🌿', '💧'];
 
 /// Çapa kutusu: telefonun kendi klavyesiyle not/emoji, istersen galeriden küçük resim.
 /// Dönüş: null = vazgeç; [CapaSonuc.sil] = sil; aksi hâlde yeni içerik.
-Future<CapaSonuc?> capaSor(BuildContext context, {Capa? mevcut}) {
+Future<CapaSonuc?> capaSor(BuildContext context, {Capa? mevcut, bool tasinabilir = false}) {
   final ctl = TextEditingController(text: mevcut?.metin ?? '');
   String? resim = mevcut?.resim;
   return showDialog<CapaSonuc>(
@@ -145,6 +147,7 @@ Future<CapaSonuc?> capaSor(BuildContext context, {Capa? mevcut}) {
           ]),
         ),
         actions: [
+          if (mevcut != null && tasinabilir && mevcut.sabit) TextButton(onPressed: () => Navigator.pop(c, CapaSonuc(ctl.text.trim(), resim, tasi: true)), child: Text('Taşı', style: ts(R.primary, 15, FontWeight.w600))),
           if (mevcut != null) TextButton(onPressed: () => Navigator.pop(c, const CapaSonuc('', null, sil: true)), child: Text('Sil', style: ts(const Color(0xFFE57373), 15, FontWeight.w600))),
           TextButton(onPressed: () => Navigator.pop(c), child: Text('Vazgeç', style: ts(R.sub, 15, FontWeight.w500))),
           TextButton(onPressed: () => Navigator.pop(c, CapaSonuc(ctl.text.trim(), resim)), child: Text('Tamam', style: ts(R.gold, 15, FontWeight.w700))),
@@ -162,7 +165,8 @@ class CapaDugme extends StatelessWidget {
   final String metin;
   final Uint8List? bayt;
   final VoidCallback onTap;
-  const CapaDugme({super.key, required this.metin, required this.onTap, this.bayt});
+  final bool tasinabilir; // sabitlenmemiş: yeşil kenar
+  const CapaDugme({super.key, required this.metin, required this.onTap, this.bayt, this.tasinabilir = false});
   @override
   Widget build(BuildContext context) => Bas(
         onTap: onTap,
@@ -172,7 +176,7 @@ class CapaDugme extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xE6FFF8E1),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: R.gold, width: 1.5),
+            border: Border.all(color: tasinabilir ? R.primary : R.gold, width: tasinabilir ? 2.5 : 1.5),
             boxShadow: const [BoxShadow(color: Color(0x55000000), blurRadius: 6, offset: Offset(0, 2))],
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -241,12 +245,12 @@ class _CapaKatmanState extends State<CapaKatman> {
   Future<void> _birak(double fx, double fz) async {
     final s = await capaSor(context);
     if (s == null || s.sil || !mounted) return;
-    setState(() => liste = [...liste, Capa(fx, fz, capaMetni(s), resim: s.resim)]);
+    setState(() => liste = [...liste, Capa(fx, fz, capaMetni(s), resim: s.resim, sabit: false)]);
     _kaydet();
   }
 
   Future<void> _duzenle(int i) async {
-    final s = await capaSor(context, mevcut: liste[i]);
+    final s = await capaSor(context, mevcut: liste[i], tasinabilir: true);
     if (s == null || !mounted) return;
     setState(() {
       final l = [...liste];
@@ -254,6 +258,7 @@ class _CapaKatmanState extends State<CapaKatman> {
         l.removeAt(i);
       } else {
         l[i] = l[i].yeni(capaMetni(s), s.resim);
+        if (s.tasi) l[i].sabit = false;
       }
       liste = l;
     });
@@ -282,15 +287,36 @@ class _CapaKatmanState extends State<CapaKatman> {
               top: (a.top + liste[i].z * ah - 20).clamp(0.0, math.max(0.0, h - 40)),
               width: 120,
               child: GestureDetector(
-                onPanUpdate: (g) => setState(() {
+                onPanUpdate: liste[i].sabit ? null : (g) => setState(() {
                   final cp = liste[i];
                   cp.x = (cp.x + g.delta.dx / aw).clamp(lo, hi);
                   cp.z = (cp.z + g.delta.dy / ah).clamp(serbest ? lo : 0.02, serbest ? hi : 0.98);
                 }),
-                onPanEnd: (_) => _kaydet(),
-                child: Center(child: CapaDugme(metin: liste[i].metin, bayt: liste[i].bayt, onTap: () => _duzenle(i))),
+                onPanEnd: liste[i].sabit ? null : (_) => _kaydet(),
+                child: Center(child: CapaDugme(metin: liste[i].metin, bayt: liste[i].bayt, tasinabilir: !liste[i].sabit, onTap: () => _duzenle(i))),
               ),
             ),
+          // taşınabilir çapanın yanında ✓: basınca çapa o yerde sabitlenir
+          for (var i = 0; i < liste.length; i++)
+            if (!liste[i].sabit)
+              Positioned(
+                left: (a.left + liste[i].x * aw + 62).clamp(0.0, math.max(0.0, w - 44)),
+                top: (a.top + liste[i].z * ah - 22).clamp(0.0, math.max(0.0, h - 44)),
+                child: Bas(
+                  onTap: () {
+                    setState(() => liste[i].sabit = true);
+                    _kaydet();
+                  },
+                  child: Tooltip(
+                    message: 'Tamam: çapayı bu yerde sabitle',
+                    child: Container(
+                      width: 44, height: 44,
+                      decoration: BoxDecoration(color: R.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2), boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 6, offset: Offset(0, 2))]),
+                      child: const Icon(Icons.check_rounded, color: Colors.white, size: 26),
+                    ),
+                  ),
+                ),
+              ),
           if (widget.dugme)
             Positioned(
               left: 8,
