@@ -506,7 +506,7 @@ class _MetinOkuState extends State<MetinOku> {
         decoration: BoxDecoration(color: R.cream, borderRadius: BorderRadius.circular(R.r16)),
         child: Directionality(
           textDirection: TextDirection.rtl,
-          child: Text(b['arapca'].toString(), textAlign: TextAlign.center, style: TextStyle(color: R.ink, fontSize: boy + 7, height: 1.9)),
+          child: Text(b['arapca'].toString(), textAlign: TextAlign.center, style: TextStyle(fontFamily: 'AmiriQuran', color: R.ink, fontSize: boy + 7, height: 2.0)),
         ),
       ));
     }

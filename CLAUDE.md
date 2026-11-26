@@ -438,3 +438,10 @@ Kullanıcı "uygulamayı görsellerle hafızlık açısından değerlendir, nele
 ## BUGÜN: BAŞLA BÖLÜMÜ (26 Kasım 2026)
 - Kullanıcı Bugün sekmesindeki alt kısımdaki canlı 3B stüdyoyu istemedi. Yerine eski "BAŞLA / KALDIĞIN YER" kartının yeri **Başla** bölümü oldu (`bugun.dart` `_basla()`): solda büyük **3B stüdyo** (260 dp), sağda iki küçük giriş **Derinlikli orman** ve **Izgara** (125 dp). Önizlemeler **1. cüzün** gerçek ağaç görselleri ve bahçe arka planıyla, sabit resim (hareket yok). Dokununca `tercih.bahce` ('3d'|'orman'|'kart') ayarlanır ve KALDIĞIN cüz/sayfa (yoksa 1. cüz) o görünümle açılır; "Kaldığın yer: …" satırı bölüm başlığının altında. Altındaki hızlı erişim kutuları (Bahçe, Mushaf, Ezber, + Merasim sekmesi açıksa Merasim) daha küçük. `_studyo()` (gömülü canlı 3B) ve `_devam()` kodda duruyor ama kullanılmıyor (`ignore: unused_element`). Tur adımı `turAnahtar['studyo']` artık 3B stüdyo girişini gösterir.
 - Yerel derleme yok: `flutter analyze` çalışmadı; gerçek cihazda denenmedi (önizleme oranları/yerleşimi gözle bakılmalı).
+
+
+## MERASİM: TELKİN DUASI + TESBİHAT ÖRNEĞİ, ARAPÇA YAZI TİPİ (26 Kasım 2026)
+- Kullanıcı iki sayfa görseli verdi (Telkin Duası, Tesbihat Örneği); Arapçası RESİM değil yazı olarak eklendi (`tools/merasim_ek.py` → `metinler.json`, yeniden çalıştırılabilir; `dua-telkin`, `dua-tesbihat`, grup "Telkin ve tesbihat"). Arapça kutusu artık `AmiriQuran` (OFL, `assets/fonts/`, kaynak google/fonts `ofl/amiriquran`) ile çiziliyor; mevcut Arapça salavat bölümleri de bu yazı tipini alır.
+- Tesbihat görseli düşük çözünürlüklüydü: Arapçası yaygın okunuşa göre yazıldı (metinde dipnot var); hocaya okutulmalı. Telkin görseli net, ona göre yazıldı (son cümlede görseldeki `تَذَرْهُ` esas alındı).
+- Kullanıcı 26 Kasım'da depoyu geçici olarak PUBLIC yaptı (keystore + şifre depoda; riski söylendi, "Play'de yüklü, sorun yok" dedi); iş bitince private'a alacak. Hâlâ: depoyu private tut.
+- Yerel derleme yok; Arapçanın cihazda nasıl göründüğü (harekelerin oturması, satır aralığı) denenmedi.
