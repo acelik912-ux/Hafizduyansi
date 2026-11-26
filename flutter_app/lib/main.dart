@@ -16,6 +16,8 @@ import 'veri.dart';
 import 'ozel_gorsel.dart';
 import 'kendi_ses.dart';
 import 'merasim.dart';
+import 'ezber.dart';
+import 'namaz.dart';
 import 'yardim.dart';
 
 void main() {
@@ -70,7 +72,7 @@ class _KokState extends State<Kok> {
   Depo? depo;
   String? hata;
   String profilAdi = '';
-  String _sekme = 'bugun'; // açık sekmenin kimliği ('bugun' | 'cuzler' | 'merasim' | 'ayarlar')
+  String _sekme = 'bugun'; // açık sekmenin kimliği ('bugun' | 'cuzler' | 'ezber' | 'namaz' | 'merasim' | 'ayarlar')
   int _rev = 0; // okuyucudan dönünce "kaldığın yer" yenilensin
 
   @override
@@ -97,6 +99,8 @@ class _KokState extends State<Kok> {
       await tercih.yukle();
       await ozelGorsel.yukle();
       await kendiSes.yukle();
+      await ezber.yukle();
+      await namaz.yukle();
       profilAdi = await Kayit.profilAdi();
       final d = await Depo.yukle();
       setState(() => depo = d);
@@ -118,7 +122,7 @@ class _KokState extends State<Kok> {
 
   /// Ayarlar dışındaki bölümler Ayarlar'dan kapatılabilir; Ayarlar her zaman açıktır (aksi hâlde geri açılamazdı).
   List<String> _acikBolumler() => [
-        for (final b in const ['bugun', 'cuzler', 'merasim'])
+        for (final b in const ['bugun', 'cuzler', 'ezber', 'namaz', 'merasim'])
           if (tercih.acik(b)) b,
         'ayarlar',
       ];
@@ -171,6 +175,10 @@ class _KokState extends State<Kok> {
           return CapaKatman(anahtar: 'sekme_bugun', child: Bugun(key: ValueKey('bugun$_rev$profilAdi'), depo: d, profilAdi: profilAdi, onOpen: _cuzAc, onProfil: () => setState(() => _sekme = 'ayarlar'), onMerasim: tercih.acik('merasim') ? () => setState(() => _sekme = 'merasim') : null));
         case 'cuzler':
           return CapaKatman(anahtar: 'sekme_cuzler', child: Cuzler(depo: d, onOpen: _cuzAc));
+        case 'ezber':
+          return CapaKatman(anahtar: 'sekme_ezber', child: Ezberlerim(depo: d, onOpen: _cuzAc));
+        case 'namaz':
+          return CapaKatman(anahtar: 'sekme_namaz', child: const Namaz());
         case 'merasim':
           return CapaKatman(anahtar: 'sekme_merasim', child: const Merasim());
         default:
@@ -184,6 +192,10 @@ class _KokState extends State<Kok> {
           return const NavigationDestination(icon: Icon(Icons.wb_sunny_outlined), selectedIcon: Icon(Icons.wb_sunny_rounded), label: 'Bugün');
         case 'cuzler':
           return const NavigationDestination(icon: Icon(Icons.auto_stories_outlined), selectedIcon: Icon(Icons.auto_stories_rounded), label: 'Cüzler');
+        case 'ezber':
+          return const NavigationDestination(icon: Icon(Icons.bookmark_border_rounded), selectedIcon: Icon(Icons.bookmark_rounded), label: 'Ezberlerim');
+        case 'namaz':
+          return const NavigationDestination(icon: Icon(Icons.access_time_rounded), selectedIcon: Icon(Icons.access_time_filled_rounded), label: 'Namaz');
         case 'merasim':
           return const NavigationDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book_rounded), label: 'Merasim');
         default:
@@ -199,6 +211,7 @@ class _KokState extends State<Kok> {
           : NavigationBar(
               key: turAnahtar['nav'],
               selectedIndex: acik.indexOf(su),
+              labelBehavior: acik.length > 5 ? NavigationDestinationLabelBehavior.onlyShowSelected : NavigationDestinationLabelBehavior.alwaysShow,
               onDestinationSelected: (i) => setState(() => _sekme = acik[i]),
               destinations: [for (final b in acik) hedef(b)],
             ),

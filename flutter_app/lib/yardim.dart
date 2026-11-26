@@ -34,6 +34,10 @@ const yardimBolumleri = <YardimBolum>[
       'Görselleri değiştir düğmesiyle bir nesneyi kendi resminizle değiştirebilirsiniz. Ayet panelindeki Sesim düğmesiyle kendi sesinizi kaydedebilir veya telefonunuzdan bir ses dosyası ekleyebilirsiniz.'),
   YardimBolum(Icons.menu_book_rounded, 'Merasim',
       'Merasim sekmesinde dualar, Mevlid-i Şerif ve ilahi sözleri vardır. Üstteki kutudan başlığa ya da sözün kendisine göre arayabilirsiniz. Sağ üstteki artı düğmesiyle kendi dualarınızı, mevlid ya da ilahi sözlerinizi ekleyebilirsiniz; bunlar yalnızca bu telefonda saklanır. İsterseniz Ayarlar\'dan ana ekran bölümlerini kapatabilirsiniz.'),
+  YardimBolum(Icons.bookmark_rounded, 'Ezberlerim',
+      'Ezberlerim sekmesinde ezberlediğiniz cüzleri, sûreleri, sayfaları ve ayetleri kendiniz kaydedersiniz. Ekle düğmesine basın, türünü seçin ve Kaydet deyin. Listedeki bir satıra dokunursanız o yer açılır. Listede puan, yüzde ya da sıralama yoktur; yalnızca sizin işaretledikleriniz durur. Bilgiler yalnızca bu telefonda saklanır.'),
+  YardimBolum(Icons.access_time_filled_rounded, 'Namaz vakitleri',
+      'Namaz sekmesinde Konumumu bul düğmesine basarsanız vakitler bulunduğunuz yere göre hesaplanır; bunun için internet gerekmez. İsterseniz İl seç düğmesiyle il merkezini seçebilirsiniz. Oklarla önceki ve sonraki günlere bakabilirsiniz. Vakitler Diyanet yöntemiyle hesaplanır, Diyanet takvimiyle bir iki dakika fark olabilir.'),
   YardimBolum(Icons.spa_outlined, 'Başka',
       'Gece modu ve görünüm ayarları üstteki düğmelerdedir. Uygulamada puan ya da sıralama yoktur. Kendi hızınızda ilerlersiniz.'),
 ];

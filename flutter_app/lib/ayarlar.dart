@@ -77,6 +77,10 @@ class _AyarlarState extends State<Ayarlar> {
             const Divider(height: 1, color: R.outline, indent: 56),
             _anahtar(Icons.auto_stories_rounded, 'Cüzler', t.acik('cuzler') ? '30 cüzün listesi' : 'Kapalıyken cüz listesine başka yerden ulaşılamaz', t.acik('cuzler'), (v) => _bolumAc('cuzler', v)),
             const Divider(height: 1, color: R.outline, indent: 56),
+            _anahtar(Icons.bookmark_rounded, 'Ezberlerim', 'Ezberlediğin cüz, sûre, sayfa ve ayetler', t.acik('ezber'), (v) => _bolumAc('ezber', v)),
+            const Divider(height: 1, color: R.outline, indent: 56),
+            _anahtar(Icons.access_time_filled_rounded, 'Namaz vakitleri', 'Konumuna göre vakitler (internetsiz)', t.acik('namaz'), (v) => _bolumAc('namaz', v)),
+            const Divider(height: 1, color: R.outline, indent: 56),
             _anahtar(Icons.menu_book_rounded, 'Merasim', 'Dualar, Mevlid-i Şerif, ilahi sözleri', t.acik('merasim'), (v) => _bolumAc('merasim', v)),
             const Divider(height: 1, color: R.outline, indent: 56),
             SwitchListTile(

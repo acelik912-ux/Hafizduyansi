@@ -445,3 +445,12 @@ Kullanıcı "uygulamayı görsellerle hafızlık açısından değerlendir, nele
 - Tesbihat görseli düşük çözünürlüklüydü: Arapçası yaygın okunuşa göre yazıldı (metinde dipnot var); hocaya okutulmalı. Telkin görseli net, ona göre yazıldı (son cümlede görseldeki `تَذَرْهُ` esas alındı).
 - Kullanıcı 26 Kasım'da depoyu geçici olarak PUBLIC yaptı (keystore + şifre depoda; riski söylendi, "Play'de yüklü, sorun yok" dedi); iş bitince private'a alacak. Hâlâ: depoyu private tut.
 - Yerel derleme yok; Arapçanın cihazda nasıl göründüğü (harekelerin oturması, satır aralığı) denenmedi.
+
+
+## EZBERLERİM + NAMAZ VAKİTLERİ SEKMELERİ (26 Kasım 2026)
+- `lib/ezber.dart` (`ezber` deposu, `hd_ezber_v1`): kişinin kendi kaydettiği cüz/sûre/sayfa/ayet listesi (Ekle → tür seç → Kaydet; satıra dokununca ilgili yer açılır; ✕ ile onaylı silme). DÜZ LİSTE: puan/yüzde/seri/çubuk YOK. Yalnız telefonda, paylaşılmaz.
+- `lib/namaz.dart` (`namaz` deposu, `hd_namaz_v1`): vakitler İNTERNETSİZ hesaplanır; `VakitHesap` = D-FON `PrayerTimes.kt`'nin (acelik912-ux/D-FON) Dart portu (Diyanet yöntemi: imsak 18°, yatsı 17°, ikindi 1 boy, temkinler −7/+5/+4/+7 dk). Konum: `geolocator` ile telefondan (GPS, internetsiz) ya da D-FON'daki 81 il merkezinden seçim. Kıble açısı (sayı) gösterilir. Gün ileri/geri. 30 sn'de bir yalnız "kalan süre" yazısı yenilenir.
+- **İLÇE SEÇİMİ YOK:** koordinatlı ilçe verisi bulunamadı (D-FON ve açık veri kümeleri yalnız il merkezi veriyor); ilçe yerine GPS konumu daha hassas. Kullanıcıya söylendi.
+- Android manifest: ACCESS_COARSE/FINE_LOCATION eklendi (Play "Veri güvenliği" formunda KONUM beyan edilmeli: yalnız cihazda, paylaşılmaz). iOS Info.plist: NSLocationWhenInUseUsageDescription.
+- Sekmeler: bugun, cuzler, ezber, namaz, merasim, ayarlar (hepsi Ayarlar'dan kapatılabilir, Ayarlar hariç); 5'ten fazla sekmede etiketler yalnız seçilide görünür.
+- Derleme/analiz CI'da; gerçek cihazda denenmedi (konum izni, GPS, vakit doğruluğu Diyanet ile karşılaştırılmadı).

@@ -4,6 +4,8 @@
 	<dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Namaz vakitlerini bulunduğunuz yere göre hesaplamak için konumunuz kullanılır. Konum hiçbir yere gönderilmez.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Ayetleri kendi sesinle kaydedebilmen için mikrofon gerekir.</string>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
