@@ -242,7 +242,8 @@ Widget img(String path, {double? w, double? h, BoxFit fit = BoxFit.contain, int?
     if (b == null) return SizedBox(width: w, height: h);
     return Image.memory(b, width: w, height: h, fit: fit, filterQuality: FilterQuality.high, gaplessPlayback: true, cacheWidth: cacheWidth);
   }
-  return Image.asset(path, width: w, height: h, fit: fit, filterQuality: FilterQuality.high, gaplessPlayback: true, cacheWidth: cacheWidth);
+  return Image.asset(path, width: w, height: h, fit: fit, filterQuality: FilterQuality.high, gaplessPlayback: true, cacheWidth: cacheWidth,
+      errorBuilder: (c, e, s) => SizedBox(width: w, height: h)); // indirilmemiş cüz paketi: boş bırak
 }
 
 void bilgi(BuildContext context, String t) => ScaffoldMessenger.of(context)

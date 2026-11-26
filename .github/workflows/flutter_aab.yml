@@ -9,6 +9,10 @@ on:
         description: 'Sessiz sürüm (ses paketleri yok, kimlik com.hafizdunyasi.gezgin.sessiz). Sesli AAB için kapat (Release 2 GiB sınırını aşabilir)'
         type: boolean
         default: true
+      bolme:
+        description: 'İsteğe bağlı paketler (yalnız sessiz sürümde): ilk indirmede 1,22,23,29,30. cüzler, kalanı ilk açılışta iner (tools/paket_gruplari.json)'
+        type: boolean
+        default: true
       webp:
         description: "PNG'leri kayıpsız WebP'ye çevir (boyut küçülür; kalite aynı). Sorun olursa kapat"
         type: boolean
@@ -71,7 +75,11 @@ jobs:
           du -sm assets/paket | while read -r l; do echo "::notice::WebP sonrası paket: $l"; done
       - name: Paketleri Play Asset Delivery paketlerine böl
         run: |
-          python3 ../tools/aab_paketle.py 350
+          if [ "${{ inputs.sessiz }}" = "true" ] && [ "${{ inputs.bolme }}" = "true" ]; then
+            python3 ../tools/aab_paketle_bolme.py
+          else
+            python3 ../tools/aab_paketle.py 350
+          fi
           du -sm assets | while read -r l; do echo "::notice::temel varlık (MB): $l"; done
           for p in android/paket*; do du -sm "$p" | while read -r l; do echo "::notice::paket (MB): $l"; done; done
       - run: flutter pub get
@@ -100,7 +108,7 @@ jobs:
           AAB=build/app/outputs/bundle/release/app-release.aab
           ls -la build/app/outputs/bundle/release/
           unzip -l "$AAB" | awk '{print $4}' | grep -E "^[^/]+/" | cut -d/ -f1 | sort | uniq -c | while read -r l; do echo "::notice::modül: $l"; done
-          unzip -l "$AAB" | grep -E "paket1/assets/flutter_assets/assets/paket/.*project.json" | head -2 | while read -r l; do echo "::notice::$l"; done
+          unzip -l "$AAB" | grep -E "(paket1|ilk)/assets/flutter_assets/assets/paket/.*project.json" | head -2 | while read -r l; do echo "::notice::$l"; done
           boyut=$(stat -c %s "$AAB"); echo "::notice::AAB boyutu: $boyut bayt ($((boyut/1048576)) MiB)"
       - name: AAB'yi Release olarak yayımla
         env:

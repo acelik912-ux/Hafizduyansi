@@ -12,6 +12,7 @@ import 'bahce.dart';
 import 'bugun.dart';
 import 'cuzler.dart';
 import 'ortak.dart';
+import 'paket.dart';
 import 'veri.dart';
 import 'ozel_gorsel.dart';
 import 'kendi_ses.dart';
@@ -20,9 +21,10 @@ import 'ezber.dart';
 import 'namaz.dart';
 import 'yardim.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const HafizDunyasi());
+  await paket.yukle(); // isteğe bağlı paket haritası (yalnız bölünmüş Play AAB'sinde)
+  runApp(DefaultAssetBundle(bundle: paketBundle, child: const HafizDunyasi()));
 }
 
 class HafizDunyasi extends StatelessWidget {
@@ -132,10 +134,19 @@ class _KokState extends State<Kok> {
     return l.contains(_sekme) ? _sekme : l.first;
   }
 
-  void _cuzAc(int n, {int ayah = -1, int tree = -1, int sheet = 0}) {
+  Future<void> _cuzAc(int n, {int ayah = -1, int tree = -1, int sheet = 0}) async {
     final d = depo!;
     final cd = d.cuz[n];
     if (cd == null) return;
+    // cüzün görselleri isteğe bağlı pakette ve henüz inmediyse önce indir
+    final pk = paket.paketAdi(n);
+    if (pk != null && !await paket.hazir(n)) {
+      if (!mounted) return;
+      final ok = await showDialog<bool>(context: context, barrierDismissible: false, builder: (_) => PaketIndirPenceresi(cuz: n, paket: pk));
+      if (ok != true || !mounted) return;
+      setState(() => _rev++);
+    }
+    if (!mounted) return;
     Navigator.of(context)
         .push(PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 260),

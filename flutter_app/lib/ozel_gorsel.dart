@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ozel_dosya.dart';
+import 'paket.dart';
 
 class OzelGorsel extends ChangeNotifier {
   static const _pref = 'hd_ozel_v1';
@@ -279,7 +280,7 @@ Future<({Uint8List png, int w, int h})> gorselHazirla(RgbaResim kaynak, {require
 /// Mevcut (paket) görselin oranı.
 Future<double> varlikOrani(String yol) async {
   try {
-    final b = yol.startsWith('ozel:') ? ozelGorsel.bayt(yol)! : (await rootBundle.load(yol)).buffer.asUint8List();
+    final b = yol.startsWith('ozel:') ? ozelGorsel.bayt(yol)! : (await paketBundle.load(yol)).buffer.asUint8List();
     final codec = await ui.instantiateImageCodec(b);
     final im = (await codec.getNextFrame()).image;
     final o = im.width / im.height;

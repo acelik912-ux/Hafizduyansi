@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 
 import 'capa.dart';
 import 'ortak.dart';
+import 'paket.dart';
 import 'veri.dart';
 import 'ozel_gorsel.dart';
 
@@ -53,7 +54,7 @@ class _Zemin {
   static bool get hazir => prog != null && gI != null && gK != null && pI != null && pK != null;
 
   static Future<ui.Image> _img(String yol) async {
-    final b = await rootBundle.load(yol);
+    final b = await paketBundle.load(yol);
     final codec = await ui.instantiateImageCodec(b.buffer.asUint8List());
     return (await codec.getNextFrame()).image;
   }
@@ -195,7 +196,7 @@ Future<void> _resim(String p) async {
     for (final k in _resimler.keys.where((k) => k.startsWith(onek)).toList()) { _resimler.remove(k)?.dispose(); }
   }
   final ozel = ozelGorsel.bayt(p); // 'ozel:...' = kullanıcının kendi resmi
-  final bayt = ozel ?? (await rootBundle.load(p)).buffer.asUint8List();
+  final bayt = ozel ?? (await paketBundle.load(p)).buffer.asUint8List();
   final codec = await ui.instantiateImageCodec(bayt);
   _resimler[p] = (await codec.getNextFrame()).image;
 }

@@ -1,5 +1,95 @@
 package com.hafizdunyasi.hafiz_dunyasi
 
+import com.google.android.play.core.assetpacks.AssetPackManager
+import com.google.android.play.core.assetpacks.AssetPackManagerFactory
+import com.google.android.play.core.assetpacks.AssetPackStateUpdateListener
+import com.google.android.play.core.assetpacks.model.AssetPackStatus
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+import java.util.concurrent.ConcurrentHashMap
 
-class MainActivity : FlutterActivity()
+// İsteğe bağlı (on-demand) Play Asset Delivery paketleri için Dart köprüsü ("hd/paket"):
+//   konum(paket) -> indirilmişse assets klasörünün yolu, değilse null
+//   indir(paket) -> indirmeyi başlatır
+//   durum(paket) -> {durum, indirilen, toplam, hata}
+//   iptal(paket)
+// Play yoksa (doğrudan kurulan APK) çağrılar hata/boş döner; Dart tarafı bunu "paket yok" sayar.
+class MainActivity : FlutterActivity() {
+    private var yonetici: AssetPackManager? = null
+    private val durumlar = ConcurrentHashMap<String, Map<String, Any>>()
+    private var onayGosterildi = false
+
+    private val dinleyici = AssetPackStateUpdateListener { st ->
+        durumlar[st.name()] = mapOf(
+            "durum" to st.status(),
+            "indirilen" to st.bytesDownloaded(),
+            "toplam" to st.totalBytesToDownload(),
+            "hata" to st.errorCode(),
+        )
+        try {
+            when (st.status()) {
+                AssetPackStatus.WAITING_FOR_WIFI -> yonetici?.showCellularDataConfirmation(this)
+                AssetPackStatus.REQUIRES_USER_CONFIRMATION -> {
+                    if (!onayGosterildi) {
+                        onayGosterildi = true
+                        yonetici?.showConfirmationDialog(this)
+                    }
+                }
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        try {
+            yonetici = AssetPackManagerFactory.getInstance(applicationContext)
+            yonetici?.registerListener(dinleyici)
+        } catch (_: Exception) {
+        }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hd/paket").setMethodCallHandler { cagri, sonuc ->
+            val m = yonetici
+            val ad = cagri.arguments as? String
+            if (m == null || ad == null) {
+                sonuc.error("yok", "Paket yöneticisi yok", null)
+                return@setMethodCallHandler
+            }
+            try {
+                when (cagri.method) {
+                    "konum" -> sonuc.success(m.getPackLocation(ad)?.assetsPath())
+                    "indir" -> {
+                        onayGosterildi = false
+                        durumlar.remove(ad)
+                        m.fetch(listOf(ad)).addOnFailureListener {
+                            durumlar[ad] = mapOf("durum" to AssetPackStatus.FAILED, "indirilen" to 0L, "toplam" to 0L, "hata" to -100)
+                        }
+                        sonuc.success(null)
+                    }
+                    "durum" -> {
+                        if (m.getPackLocation(ad) != null) {
+                            sonuc.success(mapOf("durum" to AssetPackStatus.COMPLETED, "indirilen" to 0L, "toplam" to 0L, "hata" to 0))
+                        } else {
+                            sonuc.success(durumlar[ad] ?: mapOf("durum" to AssetPackStatus.PENDING, "indirilen" to 0L, "toplam" to 0L, "hata" to 0))
+                        }
+                    }
+                    "iptal" -> {
+                        m.cancel(listOf(ad))
+                        sonuc.success(null)
+                    }
+                    else -> sonuc.notImplemented()
+                }
+            } catch (e: Exception) {
+                sonuc.error("hata", e.message, null)
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        try {
+            yonetici?.unregisterListener(dinleyici)
+        } catch (_: Exception) {
+        }
+        super.onDestroy()
+    }
+}

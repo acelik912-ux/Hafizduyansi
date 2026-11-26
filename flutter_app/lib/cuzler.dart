@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'bugun.dart' show CuzAc;
 import 'ortak.dart';
+import 'paket.dart';
 import 'veri.dart';
 
 class Cuzler extends StatelessWidget {
@@ -88,7 +89,9 @@ class Cuzler extends StatelessWidget {
         width: boy * 0.8, height: boy,
         decoration: BoxDecoration(color: const Color(0xFF0C1A14), borderRadius: BorderRadius.circular(R.r12)),
         padding: const EdgeInsets.all(3),
-        child: tree == null ? null : img(tree, cacheWidth: (boy * 0.8 * dpr).round()),
+        child: cd != null && !paket.hazirSenk(cd.no)
+            ? Center(child: Icon(Icons.cloud_download_outlined, color: R.sub, size: boy * 0.34)) // henüz indirilmemiş cüz
+            : (tree == null ? null : img(tree, cacheWidth: (boy * 0.8 * dpr).round())),
       ),
     );
   }

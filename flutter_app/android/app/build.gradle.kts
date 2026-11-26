@@ -54,6 +54,11 @@ kotlin {
     }
 }
 
+dependencies {
+    // İsteğe bağlı paketler (Play Asset Delivery): MainActivity.kt köprüsü bunu kullanır
+    implementation("com.google.android.play:asset-delivery:2.2.2")
+}
+
 flutter {
     source = "../.."
 }
