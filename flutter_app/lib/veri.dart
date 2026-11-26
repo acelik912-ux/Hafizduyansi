@@ -240,6 +240,9 @@ class Tercihler extends ChangeNotifier {
   String cuzGor = 'tek'; // Cüzler sekmesi görünümü: 'tek' | 'iki' | 'dort' | 'liste'
   double zoom = 1, mealSize = 17, rate = 1;
   int repeat = 1;
+  /// Ana ekranda KAPATILMIŞ bölümler ('bugun', 'cuzler', 'merasim' ...). Ayarlar kapatılamaz. Kapatmak içindeki kayıtları silmez.
+  Set<String> kapali = {};
+  bool acik(String bolum) => !kapali.contains(bolum);
   SharedPreferences? _sp;
 
   Future<void> yukle() async {
@@ -256,6 +259,7 @@ class Tercihler extends ChangeNotifier {
         mealSize = (m['mealSize'] as num?)?.toDouble() ?? mealSize;
         rate = (m['rate'] as num?)?.toDouble() ?? rate;
         repeat = (m['repeat'] as num?)?.toInt() ?? repeat;
+        kapali = {...((m['kapali'] as List?)?.map((e) => e.toString()) ?? const <String>[])};
       }
     } catch (_) {}
   }
@@ -263,7 +267,7 @@ class Tercihler extends ChangeNotifier {
   void degistir(void Function(Tercihler t) f) {
     f(this);
     notifyListeners();
-    _sp?.setString(_key, jsonEncode({'night': night, 'auto': auto, 'bahce': bahce, 'cuzGor': cuzGor, 'zoom': zoom, 'mealSize': mealSize, 'rate': rate, 'repeat': repeat}));
+    _sp?.setString(_key, jsonEncode({'night': night, 'auto': auto, 'bahce': bahce, 'cuzGor': cuzGor, 'zoom': zoom, 'mealSize': mealSize, 'rate': rate, 'repeat': repeat, 'kapali': kapali.toList()}));
   }
 }
 

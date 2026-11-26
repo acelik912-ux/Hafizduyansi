@@ -32,6 +32,8 @@ const yardimBolumleri = <YardimBolum>[
       'Ekranda herhangi bir yere basılı tutun, oraya bir çapa bırakılır. Çapaya not yazabilir, emoji ekleyebilir veya galerinizden kendi resminizi koyabilirsiniz. Takıldığınız yere kendi görselinizi bağlayın. Böylece hafızanızda kendi çapalarınızı kurarsınız. Dokununca düzenlersiniz, sürükleyince taşırsınız.'),
   YardimBolum(Icons.add_photo_alternate_outlined, 'Kendi görselleriniz ve sesiniz',
       'Görselleri değiştir düğmesiyle bir nesneyi kendi resminizle değiştirebilirsiniz. Ayet panelindeki Sesim düğmesiyle kendi sesinizi kaydedebilir veya telefonunuzdan bir ses dosyası ekleyebilirsiniz.'),
+  YardimBolum(Icons.menu_book_rounded, 'Merasim',
+      'Merasim sekmesinde dualar, Mevlid-i Şerif ve ilahi sözleri vardır. Üstteki kutudan başlığa ya da sözün kendisine göre arayabilirsiniz. Sağ üstteki artı düğmesiyle kendi dualarınızı, mevlid ya da ilahi sözlerinizi ekleyebilirsiniz; bunlar yalnızca bu telefonda saklanır. İsterseniz Ayarlar\'dan ana ekran bölümlerini kapatabilirsiniz.'),
   YardimBolum(Icons.spa_outlined, 'Başka',
       'Gece modu ve görünüm ayarları üstteki düğmelerdedir. Uygulamada puan ya da sıralama yoktur. Kendi hızınızda ilerlersiniz.'),
 ];

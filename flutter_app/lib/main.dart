@@ -1,6 +1,6 @@
 // ============================================================================
 //  HAFIZ DÜNYASI – Flutter sürümü
-//  Sekmeler: Bugün · Cüzler · Ayarlar. Cüz okuyucu (bahçe → ağaç → ayet) tam ekran açılır.
+//  Sekmeler: Bugün · Cüzler · Merasim · Ayarlar (Ayarlar'dan Ayarlar dışındakiler kapatılabilir). Cüz okuyucu (bahçe → ağaç → ayet) tam ekran açılır.
 //  Gömülü paketler: assets/paket/<ad>/ (tools/flutter_varlik.py ile bundle/ parçalarından açılır).
 // ============================================================================
 import 'capa.dart';
@@ -15,6 +15,7 @@ import 'ortak.dart';
 import 'veri.dart';
 import 'ozel_gorsel.dart';
 import 'kendi_ses.dart';
+import 'merasim.dart';
 import 'yardim.dart';
 
 void main() {
@@ -69,7 +70,7 @@ class _KokState extends State<Kok> {
   Depo? depo;
   String? hata;
   String profilAdi = '';
-  int sekme = 0;
+  String _sekme = 'bugun'; // açık sekmenin kimliği ('bugun' | 'cuzler' | 'merasim' | 'ayarlar')
   int _rev = 0; // okuyucudan dönünce "kaldığın yer" yenilensin
 
   @override
@@ -77,13 +78,17 @@ class _KokState extends State<Kok> {
     super.initState();
     _yukle();
     ozelGorsel.addListener(_ozelDegisti);
+    tercih.addListener(_tercihDegisti);
   }
+
+  void _tercihDegisti() { if (mounted) setState(() {}); }
 
   void _ozelDegisti() { if (mounted) setState(() => _rev++); }
 
   @override
   void dispose() {
     ozelGorsel.removeListener(_ozelDegisti);
+    tercih.removeListener(_tercihDegisti);
     super.dispose();
   }
 
@@ -105,10 +110,22 @@ class _KokState extends State<Kok> {
   Future<void> _anaTur() async {
     if (await turGorulduMu('ana')) return;
     await Future<void>.delayed(const Duration(milliseconds: 1500));
-    if (!mounted || sekme != 0) return;
+    if (!mounted || _acikSekme() != 'bugun') return;
     await turIsaretle('ana');
     if (!mounted) return;
     turBaslat(context, anaTurAdimlari());
+  }
+
+  /// Ayarlar dışındaki bölümler Ayarlar'dan kapatılabilir; Ayarlar her zaman açıktır (aksi hâlde geri açılamazdı).
+  List<String> _acikBolumler() => [
+        for (final b in const ['bugun', 'cuzler', 'merasim'])
+          if (tercih.acik(b)) b,
+        'ayarlar',
+      ];
+
+  String _acikSekme() {
+    final l = _acikBolumler();
+    return l.contains(_sekme) ? _sekme : l.first;
   }
 
   void _cuzAc(int n, {int ayah = -1, int tree = -1, int sheet = 0}) {
@@ -146,23 +163,45 @@ class _KokState extends State<Kok> {
       setState(() => profilAdi = ad);
     }
 
-    final sayfalar = [
-      CapaKatman(anahtar: 'sekme_bugun', child: Bugun(key: ValueKey('bugun$_rev$profilAdi'), depo: d, profilAdi: profilAdi, onOpen: _cuzAc, onProfil: () => setState(() => sekme = 2))),
-      CapaKatman(anahtar: 'sekme_cuzler', child: Cuzler(depo: d, onOpen: _cuzAc)),
-      CapaKatman(anahtar: 'sekme_ayarlar', child: Ayarlar(profilAdi: profilAdi, onAd: adKaydet, depo: d)),
-    ];
+    final acik = _acikBolumler();
+    final su = _acikSekme();
+    Widget sayfa(String b) {
+      switch (b) {
+        case 'bugun':
+          return CapaKatman(anahtar: 'sekme_bugun', child: Bugun(key: ValueKey('bugun$_rev$profilAdi'), depo: d, profilAdi: profilAdi, onOpen: _cuzAc, onProfil: () => setState(() => _sekme = 'ayarlar')));
+        case 'cuzler':
+          return CapaKatman(anahtar: 'sekme_cuzler', child: Cuzler(depo: d, onOpen: _cuzAc));
+        case 'merasim':
+          return CapaKatman(anahtar: 'sekme_merasim', child: const Merasim());
+        default:
+          return CapaKatman(anahtar: 'sekme_ayarlar', child: Ayarlar(profilAdi: profilAdi, onAd: adKaydet, depo: d));
+      }
+    }
+
+    NavigationDestination hedef(String b) {
+      switch (b) {
+        case 'bugun':
+          return const NavigationDestination(icon: Icon(Icons.wb_sunny_outlined), selectedIcon: Icon(Icons.wb_sunny_rounded), label: 'Bugün');
+        case 'cuzler':
+          return const NavigationDestination(icon: Icon(Icons.auto_stories_outlined), selectedIcon: Icon(Icons.auto_stories_rounded), label: 'Cüzler');
+        case 'merasim':
+          return const NavigationDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book_rounded), label: 'Merasim');
+        default:
+          return const NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings_rounded), label: 'Ayarlar');
+      }
+    }
+
     return Scaffold(
-      body: IndexedStack(index: sekme, children: sayfalar),
-      bottomNavigationBar: NavigationBar(
-        key: turAnahtar['nav'],
-        selectedIndex: sekme,
-        onDestinationSelected: (i) => setState(() => sekme = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.wb_sunny_outlined), selectedIcon: Icon(Icons.wb_sunny_rounded), label: 'Bugün'),
-          NavigationDestination(icon: Icon(Icons.auto_stories_outlined), selectedIcon: Icon(Icons.auto_stories_rounded), label: 'Cüzler'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings_rounded), label: 'Ayarlar'),
-        ],
-      ),
+      body: IndexedStack(index: acik.indexOf(su), children: [for (final b in acik) sayfa(b)]),
+      // tek bölüm kaldıysa (yalnız Ayarlar) alt çubuk gösterilmez; NavigationBar en az iki hedef ister
+      bottomNavigationBar: acik.length < 2
+          ? null
+          : NavigationBar(
+              key: turAnahtar['nav'],
+              selectedIndex: acik.indexOf(su),
+              onDestinationSelected: (i) => setState(() => _sekme = acik[i]),
+              destinations: [for (final b in acik) hedef(b)],
+            ),
     );
   }
 }

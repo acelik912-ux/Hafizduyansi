@@ -29,6 +29,14 @@ class _AyarlarState extends State<Ayarlar> {
 
   void _yenile() => setState(() {});
 
+  void _bolumAc(String b, bool acik) => tercih.degistir((x) {
+        if (acik) {
+          x.kapali.remove(b);
+        } else {
+          x.kapali.add(b);
+        }
+      });
+
   @override
   void dispose() {
     tercih.removeListener(_yenile);
@@ -60,6 +68,29 @@ class _AyarlarState extends State<Ayarlar> {
             ),
             TextButton(onPressed: () { widget.onAd(_ad.text.trim()); FocusScope.of(context).unfocus(); bilgi(context, 'Kaydedildi'); }, child: const Text('Kaydet')),
           ]),
+        ),
+        const Baslik('Ana ekran bölümleri'),
+        Kart(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(children: [
+            _anahtar(Icons.wb_sunny_rounded, 'Bugün', 'Kaldığın yer ve 3B stüdyo', t.acik('bugun'), (v) => _bolumAc('bugun', v)),
+            const Divider(height: 1, color: R.outline, indent: 56),
+            _anahtar(Icons.auto_stories_rounded, 'Cüzler', t.acik('cuzler') ? '30 cüzün listesi' : 'Kapalıyken cüz listesine başka yerden ulaşılamaz', t.acik('cuzler'), (v) => _bolumAc('cuzler', v)),
+            const Divider(height: 1, color: R.outline, indent: 56),
+            _anahtar(Icons.menu_book_rounded, 'Merasim', 'Dualar, Mevlid-i Şerif, ilahi sözleri', t.acik('merasim'), (v) => _bolumAc('merasim', v)),
+            const Divider(height: 1, color: R.outline, indent: 56),
+            SwitchListTile(
+              value: true,
+              onChanged: null,
+              secondary: const Icon(Icons.settings_rounded, color: R.sub),
+              title: Text('Ayarlar', style: ts(R.text, 15)),
+              subtitle: Text('Kapatılamaz; diğer bölümleri geri açmak için gerekir', style: ts(R.sub, 12.5, FontWeight.w400)),
+            ),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
+          child: Text('Bir bölümü kapatmak içindeki kayıtları silmez; tekrar açınca aynen görünür.', style: ts(R.faint, 12.5, FontWeight.w500)),
         ),
         const Baslik('Görünüm'),
         Kart(
