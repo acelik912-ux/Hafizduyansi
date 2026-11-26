@@ -1,4 +1,4 @@
-// BUGÜN sekmesi: selamlama, kaldığın yerden devam, hızlı erişim (bahçe / mushaf / ezber modu), arama, günün ayeti.
+// BUGÜN sekmesi: selamlama, mushaf, arama, BAŞLA (3B stüdyo / derinlikli orman / ızgara girişleri; önizleme 1. cüzden), hızlı erişim (bahçe / mushaf / ezber / merasim).
 // Puan, rozet, ilerleme takibi yok: yalnızca son konum hatırlanır.
 import 'package:flutter/material.dart';
 
@@ -26,7 +26,8 @@ class Bugun extends StatefulWidget {
   final String profilAdi;
   final CuzAc onOpen;
   final VoidCallback onProfil;
-  const Bugun({super.key, required this.depo, required this.profilAdi, required this.onOpen, required this.onProfil});
+  final VoidCallback? onMerasim; // Merasim sekmesi açıksa hızlı erişimde görünür
+  const Bugun({super.key, required this.depo, required this.profilAdi, required this.onOpen, required this.onProfil, this.onMerasim});
   @override
   State<Bugun> createState() => _BugunState();
 }
@@ -93,10 +94,9 @@ class _BugunState extends State<Bugun> {
           for (final r in res) _sonuc(r),
         ] else ...[
           const SizedBox(height: 18),
-          _devam(),
+          _basla(),
           const SizedBox(height: 14),
           _hizli(),
-          _studyo(),
           const SizedBox(height: 28),
           Center(child: Text(sessizSurum ? 'Meal: Diyanet İşleri' : 'Meal: Diyanet İşleri · Kıraat: Nâsır el-Katâmî', style: ts(R.faint, 12, FontWeight.w500))),
         ],
@@ -185,6 +185,8 @@ class _BugunState extends State<Bugun> {
         ),
       );
 
+  // (eski) 'kaldığın yer' kartı: yerini BAŞLA bölümü aldı
+  // ignore: unused_element
   Widget _devam() {
     final d = widget.depo;
     final last = _last;
@@ -269,6 +271,147 @@ class _BugunState extends State<Bugun> {
     );
   }
 
+
+  // ---------------------------------------------------------------- BAŞLA: üç giriş (3B stüdyo büyük, solda; orman ve ızgara sağda)
+  // Önizlemeler 1. cüzün gerçek görselleriyle, sabit resimlerdir (hareket yok). Dokununca kaldığın cüz o görünümle açılır.
+  void _gir(String gorunum) {
+    final d = widget.depo;
+    if (d.cuz.isEmpty) return;
+    tercih.degistir((x) => x.bahce = gorunum);
+    final last = _last;
+    final cd = last == null ? null : d.cuz[last.cuz];
+    if (last == null || cd == null) {
+      widget.onOpen(d.cuz.containsKey(1) ? 1 : d.cuz.keys.reduce((a, b) => a < b ? a : b));
+      return;
+    }
+    final flat = duzListe(cd);
+    final ayah = last.ayah >= 0 && last.ayah < flat.length ? flat[last.ayah] : null;
+    final p = ayah?.p ?? (last.tree >= 0 ? last.tree : 0);
+    final devam = last.ayah >= 0 || last.tree >= 0;
+    if (devam) {
+      widget.onOpen(cd.no, ayah: ayah != null ? last.ayah : -1, tree: p);
+    } else {
+      widget.onOpen(cd.no);
+    }
+  }
+
+  Widget _basla() {
+    final d = widget.depo;
+    if (d.cuz.isEmpty) return const SizedBox();
+    final oz = d.cuz[1] ?? d.cuz[d.cuz.keys.reduce((a, b) => a < b ? a : b)]!; // önizleme: 1. cüz
+    final bg = d.temaOf(oz.no).ui['bgGarden'] ?? d.temaOf(oz.no).ui['bgPage'];
+    String? agac(int i) => i < oz.pages.length ? d.agacOf(oz, i) : null;
+    final last = _last;
+    final cd = last == null ? null : d.cuz[last.cuz];
+    String alt = 'İlk cüzle başla';
+    if (last != null && cd != null) {
+      final flat = duzListe(cd);
+      final ay = last.ayah >= 0 && last.ayah < flat.length ? flat[last.ayah] : null;
+      final p = ay?.p ?? (last.tree >= 0 ? last.tree : 0);
+      alt = 'Kaldığın yer: ${cd.name} · Sayfa ${p + 1}';
+    }
+
+    Widget cerceve(double h, String ad, String ac, Widget onizleme, VoidCallback f, {double yazi = 17}) => Bas(
+          onTap: f,
+          child: Container(
+            height: h,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(R.r20), border: Border.all(color: R.outline), color: R.surface),
+            child: Stack(children: [
+              if (bg != null) Positioned.fill(child: img(bg, fit: BoxFit.cover, cacheWidth: 700)),
+              Positioned.fill(child: onizleme),
+              const Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, stops: [0.45, 1], colors: [Color(0x000A0F1C), Color(0xEE0A0F1C)])),
+                ),
+              ),
+              Positioned(
+                left: 12, right: 8, bottom: 10,
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                  Text(ad, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(Colors.white, yazi, FontWeight.w800)),
+                  Text(ac, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(const Color(0xCCFFFFFF), 12, FontWeight.w500)),
+                ]),
+              ),
+            ]),
+          ),
+        );
+
+    // 3B stüdyo: ortada büyük ağaç, iki yanda geride daha küçük ağaçlar
+    Widget studyoOnizleme() => LayoutBuilder(builder: (c, b) {
+          final w = b.maxWidth, h = b.maxHeight;
+          Widget a(int i, double l, double bt, double ww, double hh) {
+            final y = agac(i);
+            return y == null ? const SizedBox() : Positioned(left: l, bottom: bt, width: ww, height: hh, child: img(y));
+          }
+          return Stack(children: [
+            a(2, -w * 0.08, h * 0.30, w * 0.50, h * 0.40),
+            a(3, w * 0.58, h * 0.30, w * 0.50, h * 0.40),
+            a(0, w * 0.14, h * 0.14, w * 0.72, h * 0.60),
+          ]);
+        });
+
+    // Derinlikli orman: ağaçlar uzaktan yakına, soldan sağa zikzak
+    Widget ormanOnizleme() => LayoutBuilder(builder: (c, b) {
+          final w = b.maxWidth, h = b.maxHeight;
+          Widget a(int i, double l, double bt, double s) {
+            final y = agac(i);
+            return y == null ? const SizedBox() : Positioned(left: l, bottom: bt, width: w * s, height: h * s * 1.1, child: img(y));
+          }
+          return Stack(children: [
+            a(4, w * 0.40, h * 0.50, 0.20),
+            a(3, w * 0.10, h * 0.40, 0.30),
+            a(2, w * 0.55, h * 0.28, 0.36),
+            a(1, w * 0.02, h * 0.14, 0.44),
+          ]);
+        });
+
+    // Izgara: 2×2 küçük kart (ağaç + ayet başı etiketi)
+    Widget izgaraOnizleme() => LayoutBuilder(builder: (c, b) {
+          final w = b.maxWidth, h = b.maxHeight;
+          final hu = (w - 30) / 2, yu = (h * 0.62 - 6) / 2;
+          Widget kart(int i) {
+            final y = agac(i);
+            return Container(
+              width: hu, height: yu,
+              decoration: BoxDecoration(color: const Color(0x990A0F1C), borderRadius: BorderRadius.circular(10), border: Border.all(color: R.outline)),
+              padding: const EdgeInsets.fromLTRB(4, 3, 4, 3),
+              child: Column(children: [
+                Expanded(child: y == null ? const SizedBox() : img(y)),
+                Container(height: 5, width: hu * 0.6, margin: const EdgeInsets.only(top: 2), decoration: BoxDecoration(color: R.cream, borderRadius: BorderRadius.circular(3))),
+              ]),
+            );
+          }
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [kart(1), const SizedBox(width: 10), kart(0)]),
+              const SizedBox(height: 6),
+              Row(children: [kart(3), const SizedBox(width: 10), kart(2)]),
+            ]),
+          );
+        });
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const Baslik('Başla'),
+      Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 10), child: Text(alt, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.sub, 13, FontWeight.w500))),
+      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(
+          flex: 11,
+          child: KeyedSubtree(key: turAnahtar['studyo'], child: cerceve(260, '3B stüdyo', 'Bahçede yürü', studyoOnizleme(), () => _gir('3d'), yazi: 20)),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 9,
+          child: Column(children: [
+            cerceve(125, 'Derinlikli orman', 'Ağaçlar arasında ilerle', ormanOnizleme(), () => _gir('orman'), yazi: 14.5),
+            const SizedBox(height: 10),
+            cerceve(125, 'Izgara', '20 ağaç tek bakışta', izgaraOnizleme(), () => _gir('kart'), yazi: 14.5),
+          ]),
+        ),
+      ]),
+    ]);
+  }
+
   Widget _hizli() {
     final d = widget.depo;
     if (d.cuz.isEmpty) return const SizedBox();
@@ -280,7 +423,7 @@ class _BugunState extends State<Bugun> {
     Widget kutu(IconData ic, String t, String s, Color c, VoidCallback f) => Expanded(
           child: Kart(
             onTap: f,
-            padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+            padding: const EdgeInsets.fromLTRB(10, 12, 8, 12),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Container(width: 38, height: 38, decoration: BoxDecoration(color: c.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(12)), child: Icon(ic, color: c, size: 21)),
               const SizedBox(height: 10),
@@ -295,9 +438,15 @@ class _BugunState extends State<Bugun> {
       kutu(Icons.menu_book_rounded, 'Mushaf', 'Sayfa ${p + 1}', R.gold, () => widget.onOpen(n, tree: p, sheet: 1)),
       const SizedBox(width: 10),
       kutu(Icons.visibility_off_rounded, 'Ezber', 'Ayetleri gizle', const Color(0xFF6EA8FE), () => widget.onOpen(n, tree: p, sheet: 2)),
+      if (widget.onMerasim != null) ...[
+        const SizedBox(width: 10),
+        kutu(Icons.auto_awesome_rounded, 'Merasim', 'Dua · Mevlid', const Color(0xFFE08AD6), widget.onMerasim!),
+      ],
     ]);
   }
 
+  // (eski) ana sayfaya gömülü canlı 3B stüdyo: artık gösterilmiyor, BAŞLA bölümündeki 3B stüdyo girişi kullanılıyor
+  // ignore: unused_element
   // 3B stüdyo: kaldığın cüzün bahçesi doğrudan ana sayfada (ağaca dokun = ağaç sayfası, ayet başına dokun = ayet paneli)
   Widget _studyo() {
     final d = widget.depo;

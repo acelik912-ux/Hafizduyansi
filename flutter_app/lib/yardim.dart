@@ -206,7 +206,7 @@ List<TurAdim> anaTurAdimlari() => [
         hedef: turAnahtar['studyo'],
         baslik: '3B stüdyo',
         kaydir: true,
-        metin: 'Burası ağaçların arasında yürüdüğünüz bahçe. Yürümek için yere dokunun, etrafa bakmak için parmağınızı kaydırın. Bir ağaca dokunursanız sayfasına gidersiniz. Ağacın üstündeki renkli daireler ayet başlarıdır.',
+        metin: 'Başla bölümünde üç giriş var. 3B stüdyo, ağaçların arasında yürüdüğünüz bahçedir: yürümek için yere dokunun, etrafa bakmak için parmağınızı kaydırın, bir ağaca dokunursanız sayfasına gidersiniz. Derinlikli orman ve ızgara aynı cüze başka yoldan girer.',
       ),
       TurAdim(
         hedef: turAnahtar['nav'],
