@@ -16,6 +16,7 @@ import 'ortak.dart';
 import 'veri.dart';
 import 'kendi_ses_ekran.dart';
 import 'kendi_ses.dart';
+import 'okuma.dart';
 
 const _tekrarlar = [1, 2, 3, 5, 10, 0]; // 0 = sürekli
 const _hizlar = [0.75, 1.0, 1.25, 1.5];
@@ -40,6 +41,8 @@ class AyetPaneli extends StatefulWidget {
 class _AyetPaneliState extends State<AyetPaneli> {
   bool showMeal = false, big = false, playing = false;
   AudioPlayer? _p;
+  final MealSesi _meal = MealSesi();
+  Object? _jeton; // yalnız-meal okumada geçerlilik işareti
   StreamSubscription? _sub;
   int _repLeft = 0;
   bool _auto = false; // otomatik geçişte yeni ayetin sesi kendiliğinden başlar
@@ -62,8 +65,8 @@ class _AyetPaneliState extends State<AyetPaneli> {
   void didUpdateWidget(AyetPaneli old) {
     super.didUpdateWidget(old);
     if (old.idx != widget.idx) {
-      _stop();
-      if (_auto) { _auto = false; _start(); }
+      _stop(arkaKapat: false);
+      if (_auto) { _auto = false; _start(); } else { OkumaArka.kapat(); }
     }
   }
 
@@ -75,7 +78,10 @@ class _AyetPaneliState extends State<AyetPaneli> {
     super.dispose();
   }
 
-  void _stop() {
+  void _stop({bool arkaKapat = true}) {
+    _jeton = null;
+    if (!sessizSurum) _meal.durdur();
+    if (arkaKapat) OkumaArka.kapat();
     _sub?.cancel();
     _sub = null;
     final p = _p;
@@ -85,14 +91,50 @@ class _AyetPaneliState extends State<AyetPaneli> {
   }
 
   // kendi=true: kullanıcının kendi kaydı/dosyası. Sessiz sürümde hazır ses olmadığı için hep kendi kaydı çalınır.
+  void _ilerle() {
+    final sonraki = widget.idx < widget.total - 1;
+    if (widget.dinle ? !widget.sayfaSonu && sonraki : tercih.auto && sonraki) {
+      _auto = true;
+      widget.onNext();
+    } else {
+      OkumaArka.kapat();
+    }
+  }
+
+  // Meal sesi açıksa ayetten sonra meal okunur (sesli sürüm). true = okundu/bitti, false = durduruldu.
+  Future<bool> _mealOku(Object jeton) async {
+    if (sessizSurum || !tercih.mealSes || a.meal.isEmpty) return true;
+    if (mounted) setState(() => playing = true);
+    await _meal.soyle(a.meal);
+    return _jeton == jeton;
+  }
+
   Future<void> _start({bool kendi = false}) async {
-    _stop();
+    _stop(arkaKapat: false);
     final own = kendi || sessizSurum;
+    final jeton = Object();
+    _jeton = jeton;
+    await OkumaArka.ac();
+    // yalnız meal: Kur'an sesi kapalıyken ayet sesi çalınmaz, meal okunur
+    if (!own && !tercih.ayetSes) {
+      if (!tercih.mealSes) {
+        bilgi(context, 'Kur\'an sesi ve meal sesi kapalı. Ayarlar → Sesli okuma bölümünden aç.');
+        OkumaArka.kapat();
+        return;
+      }
+      if (mounted) setState(() => playing = true);
+      final ok = await _mealOku(jeton);
+      if (!ok || !mounted) return;
+      setState(() => playing = false);
+      _ilerle();
+      return;
+    }
     final Source src;
     if (own) {
       final y = kendiSes.yol(a.sura, a.no);
       if (y == null) {
         bilgi(context, 'Bu ayet için kendi kaydın yok. "Sesim" düğmesinden kaydedebilirsin.');
+        OkumaArka.kapat();
         return;
       }
       src = DeviceFileSource(y);
@@ -100,6 +142,7 @@ class _AyetPaneliState extends State<AyetPaneli> {
       final f = widget.depo.sesOf(a.sura, a.no);
       if (f == null) {
         bilgi(context, 'Bu ayetin sesi uygulamada yok.');
+        OkumaArka.kapat();
         return;
       }
       src = AssetSource(f.replaceFirst('assets/', ''));
@@ -114,9 +157,15 @@ class _AyetPaneliState extends State<AyetPaneli> {
         await p.play(src);
         return;
       }
-      if (mounted) setState(() => playing = false);
-      final sonraki = widget.idx < widget.total - 1;
-      if (widget.dinle ? !widget.sayfaSonu && sonraki : tercih.auto && sonraki) { _auto = true; widget.onNext(); }
+      if (own) {
+        if (mounted) setState(() => playing = false);
+        _ilerle();
+        return;
+      }
+      final ok = await _mealOku(jeton);
+      if (_p != p || !ok || !mounted) return;
+      setState(() => playing = false);
+      _ilerle();
     });
     try {
       await p.setPlaybackRate(tercih.rate);
@@ -334,6 +383,10 @@ class _AyetPaneliState extends State<AyetPaneli> {
               if (kendiSes.kullanilabilir)
                 Cip(kendiSes.sayi(a.sura, a.no) > 1 ? 'Sesim (${kendiSes.sayi(a.sura, a.no)})' : 'Sesim', icon: Icons.mic_rounded, on: kendiSes.varMi(a.sura, a.no), cam: true, onTap: () { _stop(); kendiSesAc(context, a, () => _start(kendi: true)); }),
               Cip('Meal', icon: Icons.translate_rounded, on: showMeal, cam: true, onTap: () => setState(() => showMeal = !showMeal)),
+              if (!sessizSurum) ...[
+                Cip('Kur\'an sesi', icon: Icons.graphic_eq_rounded, on: tercih.ayetSes, cam: true, onTap: () => tercih.degistir((t) => t.ayetSes = !t.ayetSes)),
+                Cip('Meal sesi', icon: Icons.record_voice_over_rounded, on: tercih.mealSes, cam: true, onTap: () => tercih.degistir((t) => t.mealSes = !t.mealSes)),
+              ],
               Cip('Büyük', icon: Icons.text_fields_rounded, cam: true, onTap: () => setState(() => big = true)),
           ]),
         ]),
@@ -428,6 +481,7 @@ class _MushafKitapState extends State<MushafKitap> {
   late final PageController pc;
   late bool hide = widget.gizle;
   double zoom = 1;
+  int _devamIdx = -1; // otomatik geçişte okumanın kendiliğinden başlayacağı sayfa
 
   @override
   void initState() {
@@ -468,6 +522,11 @@ class _MushafKitapState extends State<MushafKitap> {
           onDurum: (h, z) { hide = h; zoom = z; },
           onOnceki: i > 0 ? () => _git(-1) : null,
           onSonraki: i < tum.length - 1 ? () => _git(1) : null,
+          depo: widget.depo,
+          ayat: cd.pages[p].ayat,
+          otoBasla: _devamIdx == i,
+          onBasladi: () => _devamIdx = -1,
+          onBitti: tercih.auto && i < tum.length - 1 ? () { _devamIdx = i + 1; _git(1); } : null,
         );
       },
     );
@@ -485,7 +544,11 @@ class MushafSayfasi extends StatefulWidget {
   final double zoom0; // başlangıç büyütmesi (sayfa çevrilince korunur)
   final void Function(bool gizle, double zoom)? onDurum; // ezber modu / büyütme değişince bildirir
   final VoidCallback? onOnceki, onSonraki; // başlıktaki sayfa düğmeleri (büyütülmüşken yana kaydırma sayfayı çevirmez)
-  const MushafSayfasi({super.key, required this.sheets, required this.baslik, this.focus, this.gizle = false, required this.onClose, this.capaAnahtar = 'mushaf', this.zoom0 = 1, this.onDurum, this.onOnceki, this.onSonraki});
+  final Depo? depo; // sesli okuma için (sesli sürümde)
+  final List<Ayet> ayat; // bu sayfanın ayetleri (sırayla okunur)
+  final bool otoBasla; // önceki sayfadan otomatik geçişte okuma kendiliğinden başlar
+  final VoidCallback? onBasladi, onBitti;
+  const MushafSayfasi({super.key, required this.sheets, required this.baslik, this.focus, this.gizle = false, required this.onClose, this.capaAnahtar = 'mushaf', this.zoom0 = 1, this.onDurum, this.onOnceki, this.onSonraki, this.depo, this.ayat = const [], this.otoBasla = false, this.onBasladi, this.onBitti});
   @override
   State<MushafSayfasi> createState() => _MushafSayfasiState();
 }
@@ -522,15 +585,101 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
     super.initState();
     tercih.addListener(_yenile);
     Future.delayed(const Duration(milliseconds: 250), _odakla);
+    final d = widget.depo;
+    if (d != null && !sessizSurum && widget.ayat.isNotEmpty) {
+      final o = Okuyucu(d);
+      okuyucu = o;
+      o.addListener(_okuma);
+      o.onBitti = widget.onBitti;
+      if (widget.otoBasla) {
+        widget.onBasladi?.call();
+        WidgetsBinding.instance.addPostFrameCallback((_) => o.baslat(widget.ayat, 0));
+      }
+    }
   }
 
+  Okuyucu? okuyucu;
+  Ayet? _sonTakip;
+
   void _yenile() => setState(() {});
+
+  // okunan ayet değişince mushafta o ayete kaydır (takip açıksa)
+  void _okuma() {
+    if (!mounted) return;
+    final a = okuyucu?.aktif;
+    if (a != null && tercih.mushafTakip && (_sonTakip?.sura != a.sura || _sonTakip?.no != a.no)) {
+      _sonTakip = a;
+      _kaydir(a);
+    }
+    setState(() {});
+  }
+
+  void _kaydir(Ayet f) {
+    if (!sc.hasClients) return;
+    final baseW = math.min(MediaQuery.sizeOf(context).width - 16, 760.0) * zoom;
+    var y = 0.0;
+    for (final sh in widget.sheets) {
+      final ih = baseW * (sh.g.h / sh.g.w);
+      final r = sh.rects.where((q) => q.sura == f.sura && q.no == f.no).firstOrNull;
+      if (r != null) {
+        sc.animateTo(math.min(sc.position.maxScrollExtent, math.max(0, y + r.y * ih - 140)), duration: const Duration(milliseconds: 350), curve: Curves.easeOut);
+        return;
+      }
+      y += ih + 12;
+    }
+  }
 
   @override
   void dispose() {
     tercih.removeListener(_yenile);
+    okuyucu?.removeListener(_okuma);
+    okuyucu?.dispose();
     sc.dispose();
     super.dispose();
+  }
+
+  // alttaki okuma çubuğu: ▶ okuyuş, önceki/sonraki ayet, açılıp kapanan üç tercih
+  Widget _okumaCubugu(double altBosluk) {
+    final o = okuyucu!;
+    final cal = o.caliyor;
+    return Container(
+      color: R.bg,
+      padding: EdgeInsets.fromLTRB(12, 8, 12, altBosluk + 8),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        if (o.mesaj != null) Padding(padding: const EdgeInsets.only(bottom: 6), child: Text(o.mesaj!, style: ts(R.gold, 12.5, FontWeight.w600))),
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          CamIkon(Icons.skip_previous_rounded, o.sira > 0 ? () => o.atla(-1) : null, size: 42, ipucu: 'Önceki ayet'),
+          const SizedBox(width: 16),
+          Bas(
+            onTap: () {
+              if (cal) { o.durdur(); return; }
+              final f = widget.focus;
+              var bas = o.aktif != null ? o.sira : 0;
+              if (o.aktif == null && f != null) {
+                final k = widget.ayat.indexWhere((x) => x.sura == f.sura && x.no == f.no);
+                if (k >= 0) bas = k;
+              }
+              o.baslat(widget.ayat, bas);
+            },
+            child: Container(
+              width: 56, height: 56,
+              decoration: const BoxDecoration(color: R.primary, shape: BoxShape.circle),
+              child: Icon(cal ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 32),
+            ),
+          ),
+          const SizedBox(width: 16),
+          CamIkon(Icons.skip_next_rounded, o.sira < widget.ayat.length - 1 ? () => o.atla(1) : null, size: 42, ipucu: 'Sonraki ayet'),
+        ]),
+        const SizedBox(height: 8),
+        Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
+          Cip('Kur\'an sesi', icon: Icons.graphic_eq_rounded, on: tercih.ayetSes, onTap: () => tercih.degistir((t) => t.ayetSes = !t.ayetSes)),
+          Cip('Meal sesi', icon: Icons.record_voice_over_rounded, on: tercih.mealSes, onTap: () => tercih.degistir((t) => t.mealSes = !t.mealSes)),
+          Cip('Takip', icon: Icons.my_location_rounded, on: tercih.mushafTakip, onTap: () => tercih.degistir((t) => t.mushafTakip = !t.mushafTakip)),
+          Cip('Arka planda', icon: Icons.phonelink_lock_rounded, on: tercih.arkaPlan, onTap: () => tercih.degistir((t) => t.arkaPlan = !t.arkaPlan)),
+          Cip('Otomatik sayfa', icon: Icons.playlist_play_rounded, on: tercih.auto, onTap: () => tercih.degistir((t) => t.auto = !t.auto)),
+        ]),
+      ]),
+    );
   }
 
   void _odakla() {
@@ -622,13 +771,15 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
             ),
           ),
         ),
+        if (okuyucu != null) _okumaCubugu(pad.bottom),
       ]),
     );
   }
 
   Widget _kapak(AyetRect r, double iw, double ih, Ayet? f) {
     final covered = hide && shown[r.key] != true;
-    final isF = !hide && f != null && r.sura == f.sura && r.no == f.no;
+    final ak = okuyucu?.aktif;
+    final isF = !hide && ((f != null && r.sura == f.sura && r.no == f.no && ak == null) || (ak != null && r.sura == ak.sura && r.no == ak.no));
     final box = Container(
       decoration: BoxDecoration(
         color: covered ? const Color(0xFFEADFB6) : isF ? const Color(0x401FA971) : Colors.transparent,

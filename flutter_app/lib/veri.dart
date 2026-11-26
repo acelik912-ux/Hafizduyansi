@@ -240,6 +240,8 @@ class Tercihler extends ChangeNotifier {
   String cuzGor = 'tek'; // Cüzler sekmesi görünümü: 'tek' | 'iki' | 'dort' | 'liste'
   double zoom = 1, mealSize = 17, rate = 1;
   int repeat = 1;
+  /// Sesli okuma (yalnız sesli sürüm): Kur'an sesi, meal sesi (telefonun sesiyle), mushafta takip, arka planda devam. Hepsi ayrı ayrı açılıp kapanır.
+  bool ayetSes = true, mealSes = false, mushafTakip = true, arkaPlan = true;
   /// Ana ekranda KAPATILMIŞ bölümler ('bugun', 'cuzler', 'merasim' ...). Ayarlar kapatılamaz. Kapatmak içindeki kayıtları silmez.
   Set<String> kapali = {};
   bool acik(String bolum) => !kapali.contains(bolum);
@@ -259,6 +261,10 @@ class Tercihler extends ChangeNotifier {
         mealSize = (m['mealSize'] as num?)?.toDouble() ?? mealSize;
         rate = (m['rate'] as num?)?.toDouble() ?? rate;
         repeat = (m['repeat'] as num?)?.toInt() ?? repeat;
+        ayetSes = m['ayetSes'] ?? ayetSes;
+        mealSes = m['mealSes'] ?? mealSes;
+        mushafTakip = m['mushafTakip'] ?? mushafTakip;
+        arkaPlan = m['arkaPlan'] ?? arkaPlan;
         kapali = {...((m['kapali'] as List?)?.map((e) => e.toString()) ?? const <String>[])};
       }
     } catch (_) {}
@@ -267,7 +273,7 @@ class Tercihler extends ChangeNotifier {
   void degistir(void Function(Tercihler t) f) {
     f(this);
     notifyListeners();
-    _sp?.setString(_key, jsonEncode({'night': night, 'auto': auto, 'bahce': bahce, 'cuzGor': cuzGor, 'zoom': zoom, 'mealSize': mealSize, 'rate': rate, 'repeat': repeat, 'kapali': kapali.toList()}));
+    _sp?.setString(_key, jsonEncode({'night': night, 'auto': auto, 'bahce': bahce, 'cuzGor': cuzGor, 'zoom': zoom, 'mealSize': mealSize, 'rate': rate, 'repeat': repeat, 'ayetSes': ayetSes, 'mealSes': mealSes, 'mushafTakip': mushafTakip, 'arkaPlan': arkaPlan, 'kapali': kapali.toList()}));
   }
 }
 

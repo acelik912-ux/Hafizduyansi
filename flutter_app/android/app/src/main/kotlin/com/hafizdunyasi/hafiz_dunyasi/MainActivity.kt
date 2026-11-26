@@ -89,6 +89,24 @@ class MainActivity : FlutterActivity() {
         }
 
         // Ezanda sessize alma köprüsü ("hd/ezan"): ayarla, durum, dene, sesliYap, kontrol, dndAyar, alarmAyar
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hd/okuma").setMethodCallHandler { cagri, sonuc ->
+            try {
+                when (cagri.method) {
+                    "ac" -> {
+                        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7002)
+                        }
+                        val i = Intent(this, OkumaServisi::class.java)
+                        if (Build.VERSION.SDK_INT >= 26) startForegroundService(i) else startService(i)
+                        sonuc.success(null)
+                    }
+                    "kapat" -> { stopService(Intent(this, OkumaServisi::class.java)); sonuc.success(null) }
+                    else -> sonuc.notImplemented()
+                }
+            } catch (e: Exception) {
+                sonuc.error("hata", e.message, null)
+            }
+        }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hd/ezan").setMethodCallHandler { cagri, sonuc ->
             try {
                 val c = applicationContext
