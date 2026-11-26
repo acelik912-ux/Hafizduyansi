@@ -454,3 +454,10 @@ Kullanıcı "uygulamayı görsellerle hafızlık açısından değerlendir, nele
 - Android manifest: ACCESS_COARSE/FINE_LOCATION eklendi (Play "Veri güvenliği" formunda KONUM beyan edilmeli: yalnız cihazda, paylaşılmaz). iOS Info.plist: NSLocationWhenInUseUsageDescription.
 - Sekmeler: bugun, cuzler, ezber, namaz, merasim, ayarlar (hepsi Ayarlar'dan kapatılabilir, Ayarlar hariç); 5'ten fazla sekmede etiketler yalnız seçilide görünür.
 - Derleme/analiz CI'da; gerçek cihazda denenmedi (konum izni, GPS, vakit doğruluğu Diyanet ile karşılaştırılmadı).
+
+
+## İSTEĞE BAĞLI PAKETLER – ilk indirme küçük (26 Kasım 2026) – `paket-bolme` dalı
+- Yedek: `yedek-bolme-oncesi`. Kullanıcı: ayetler/görseller hiç değişmiyor, güncellemeler yalnız yazılım; her güncellemede 1,1 GB inmesin. Sessiz AAB (`flutter_aab.yml`, girdi `bolme` varsayılan açık) artık `tools/aab_paketle_bolme.py` ile bölünür: `ilk` (install-time: cüz 1, 22, 23, 29, 30 + varsayılan tema) ve on-demand `g1`(2–6) `g2`(7–11) `g3`(12–16) `g4`(17–21) `g5`(24–28). Eşleme `tools/paket_gruplari.json` (KALICI; değiştirme: Play yalnız değişen paketi indirir).
+- Her klasörün `project.json`'u temel modülde kalır (uygulama açılışta tüm cüzleri tanır); görseller/ayetler pakete taşınır. `dedup.json` kısayolu başka isteğe bağlı pakete işaret ediyorsa kalan dosya geri kopyalanır. Sesli sürüm (ses* klasörü) bölünmez (eski `aab_paketle.py`).
+- Uygulama: `lib/paket.dart` (`paket` yöneticisi, `PaketBundle` = tüm `rootBundle.load` yerine, `PaketIndirPenceresi`), `paket_dosya*.dart` (dosya okuma, web'de yok), Android `MainActivity.kt` köprüsü (`hd/paket`: konum/indir/durum/iptal; `com.google.android.play:asset-delivery:2.2.2`). `_cuzAc` cüz paketi inmediyse indirme penceresi açar; Cüzler küçük resminde indirilmemiş cüze bulut simgesi. `assets/paket_harita.json` yoksa (APK/web/eski AAB) her şey kurulu sayılır.
+- Ölçüm (PNG hâliyle): ilk 244 MB, gruplar 174–217 MB. GERÇEK CİHAZDA/PLAY'DE DENENMEDİ (isteğe bağlı paket yalnız Play'den çalışır; Dahili test şart). Derleme Actions'ta; flutter yerelde yok.
