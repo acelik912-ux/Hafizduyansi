@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'ezan.dart';
 import 'merasim.dart' show katla;
 import 'ortak.dart';
 
@@ -409,6 +410,8 @@ class _NamazState extends State<Namaz> {
             ),
           ]),
         ),
+        const SizedBox(height: 10),
+        const EzanBolumu(),
         const SizedBox(height: 14),
         Text(
           'Vakitler telefonda, internet olmadan hesaplanır (Diyanet yöntemi). Diyanet takvimiyle 1–3 dakika fark olabilir; kesin vakit için Diyanet takvimine bakın. Konumun yalnızca bu telefonda saklanır, hiçbir yere gönderilmez.',

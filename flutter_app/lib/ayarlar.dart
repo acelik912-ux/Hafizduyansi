@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 
 import 'ayet.dart' show tekrarAd, hizAd;
+import 'ezan.dart';
+import 'namaz.dart' show namaz;
 import 'ortak.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'yardim.dart';
@@ -69,6 +71,29 @@ class _AyarlarState extends State<Ayarlar> {
             TextButton(onPressed: () { widget.onAd(_ad.text.trim()); FocusScope.of(context).unfocus(); bilgi(context, 'Kaydedildi'); }, child: const Text('Kaydet')),
           ]),
         ),
+        if (ezan.destek) ...[
+          const Baslik('Ezan'),
+          ListenableBuilder(
+            listenable: ezan,
+            builder: (c, _) => Kart(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: _anahtar(
+                Icons.notifications_off_rounded,
+                'Ezanda sessize al',
+                ezan.acik ? 'Açık. Vakit, süre ve izinler Namaz sekmesinde' : 'Ezan vaktinde telefonu kendiliğinden sessize alır. Ayrıntılar Namaz sekmesinde',
+                ezan.acik,
+                (v) {
+                  if (v && namaz.konum == null) {
+                    bilgi(context, 'Önce Namaz sekmesinden konumunu seç.');
+                    return;
+                  }
+                  ezan.degistir(() => ezan.acik = v);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
         const Baslik('Ana ekran bölümleri'),
         Kart(
           padding: const EdgeInsets.symmetric(vertical: 4),

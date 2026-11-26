@@ -7,6 +7,10 @@ import com.google.android.play.core.assetpacks.model.AssetPackStatus
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import java.util.concurrent.ConcurrentHashMap
 
 // İsteğe bağlı (on-demand) Play Asset Delivery paketleri için Dart köprüsü ("hd/paket"):
@@ -75,6 +79,48 @@ class MainActivity : FlutterActivity() {
                     }
                     "iptal" -> {
                         m.cancel(listOf(ad))
+                        sonuc.success(null)
+                    }
+                    else -> sonuc.notImplemented()
+                }
+            } catch (e: Exception) {
+                sonuc.error("hata", e.message, null)
+            }
+        }
+
+        // Ezanda sessize alma köprüsü ("hd/ezan"): ayarla, durum, dene, sesliYap, kontrol, dndAyar, alarmAyar
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hd/ezan").setMethodCallHandler { cagri, sonuc ->
+            try {
+                val c = applicationContext
+                when (cagri.method) {
+                    "ayarla" -> {
+                        val a = cagri.arguments as Map<*, *>
+                        EzanSessiz.ayarla(c, a["acik"] as Boolean, a["mod"] as String, a["olaylar"] as List<*>)
+                        sonuc.success(null)
+                    }
+                    "durum" -> sonuc.success(EzanSessiz.durum(c))
+                    "kontrol" -> { EzanSessiz.kontrol(c); sonuc.success(null) }
+                    "dene" -> {
+                        val mod = (cagri.arguments as? String) ?: "sessiz"
+                        val r = EzanSessiz.sessizeAl(c, System.currentTimeMillis() + 60_000L, mod)
+                        sonuc.success(r)
+                    }
+                    "sesliYap" -> {
+                        EzanSessiz.geriAl(c, true)
+                        EzanSessiz.dogrula(c)
+                        sonuc.success(null)
+                    }
+                    "dndAyar" -> {
+                        startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        sonuc.success(null)
+                    }
+                    "alarmAyar" -> {
+                        if (Build.VERSION.SDK_INT >= 31) {
+                            startActivity(
+                                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + packageName))
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            )
+                        }
                         sonuc.success(null)
                     }
                     else -> sonuc.notImplemented()
