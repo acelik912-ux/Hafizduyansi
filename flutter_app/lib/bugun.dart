@@ -360,7 +360,7 @@ class _BugunState extends State<Bugun> {
           final w = b.maxWidth, h = b.maxHeight;
           Widget a(int i, double l, double bt, double ww, double hh) {
             final y = agac(i);
-            return y == null ? const SizedBox() : Positioned(left: l, bottom: bt, width: ww, height: hh, child: img(y));
+            return y == null ? const SizedBox() : Positioned(left: l, bottom: bt, width: ww, height: hh, child: img(y, cacheWidth: 600));
           }
           return Stack(children: [
             a(2, -w * 0.08, h * 0.30, w * 0.50, h * 0.40),
@@ -374,7 +374,7 @@ class _BugunState extends State<Bugun> {
           final w = b.maxWidth, h = b.maxHeight;
           Widget a(int i, double l, double bt, double s) {
             final y = agac(i);
-            return y == null ? const SizedBox() : Positioned(left: l, bottom: bt, width: w * s, height: h * s * 1.1, child: img(y));
+            return y == null ? const SizedBox() : Positioned(left: l, bottom: bt, width: w * s, height: h * s * 1.1, child: img(y, cacheWidth: 600));
           }
           return Stack(children: [
             a(4, w * 0.40, h * 0.50, 0.20),
@@ -395,7 +395,7 @@ class _BugunState extends State<Bugun> {
               decoration: BoxDecoration(color: const Color(0x990A0F1C), borderRadius: BorderRadius.circular(10), border: Border.all(color: R.outline)),
               padding: const EdgeInsets.fromLTRB(4, 3, 4, 3),
               child: Column(children: [
-                Expanded(child: y == null ? const SizedBox() : img(y)),
+                Expanded(child: y == null ? const SizedBox() : img(y, cacheWidth: 600)),
                 Container(height: 5, width: hu * 0.6, margin: const EdgeInsets.only(top: 2), decoration: BoxDecoration(color: R.cream, borderRadius: BorderRadius.circular(3))),
               ]),
             );
