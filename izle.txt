@@ -1,0 +1,5 @@
+Fri Nov 27 09:09:11 UTC 2026
+/dev/root       145G   54G   91G  38% /
+Mem:           15983        1047        3028          50       12302       14935
+--- du
+--- build.txt son
