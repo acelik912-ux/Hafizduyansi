@@ -2,6 +2,7 @@
 // Puan, rozet, ilerleme takibi yok: yalnızca son konum hatırlanır.
 import 'package:flutter/material.dart';
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'bahce3d.dart';
@@ -9,6 +10,7 @@ import 'ortak.dart';
 import 'veri.dart';
 import 'ozel_gorsel_ekran.dart';
 import 'ozel_gorsel.dart';
+import 'namaz.dart' show namaz, VakitHesap;
 import 'yardim.dart';
 
 typedef CuzAc = void Function(int cuz, {int ayah, int tree, int sheet});
@@ -27,7 +29,8 @@ class Bugun extends StatefulWidget {
   final CuzAc onOpen;
   final VoidCallback onProfil;
   final VoidCallback? onMerasim; // Merasim sekmesi açıksa hızlı erişimde görünür
-  const Bugun({super.key, required this.depo, required this.profilAdi, required this.onOpen, required this.onProfil, this.onMerasim});
+  final VoidCallback? onNamaz; // namaz vakitleri kartına dokununca Namaz sekmesi
+  const Bugun({super.key, required this.depo, required this.profilAdi, required this.onOpen, required this.onProfil, this.onMerasim, this.onNamaz});
   @override
   State<Bugun> createState() => _BugunState();
 }
@@ -36,6 +39,7 @@ class _BugunState extends State<Bugun> {
   final _q = TextEditingController();
   Konum? _last;
   late final List<_Satir> _index = _dizin();
+  Timer? _dk;
   bool _kilit = false; // parmak 3B stüdyodayken sayfa kaymasın
 
   @override
@@ -43,10 +47,18 @@ class _BugunState extends State<Bugun> {
     super.initState();
     Kayit.sonKonum().then((k) { if (mounted) setState(() => _last = k); });
     _q.addListener(() => setState(() {}));
+    namaz.addListener(_namazYenile);
+    _dk = Timer.periodic(const Duration(seconds: 60), (_) => _namazYenile()); // yalnız sıradaki vakit vurgusu yenilenir
+  }
+
+  void _namazYenile() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _dk?.cancel();
+    namaz.removeListener(_namazYenile);
     _q.dispose();
     super.dispose();
   }
@@ -85,7 +97,7 @@ class _BugunState extends State<Bugun> {
       children: [
         _ust(),
         const SizedBox(height: 16),
-        _mushafDugme(),
+        _namazKart(),
         const SizedBox(height: 14),
         KeyedSubtree(key: turAnahtar['ara'], child: _ara()),
         if (arama) ...[
@@ -241,36 +253,43 @@ class _BugunState extends State<Bugun> {
     );
   }
 
-  // Ana ekranın en üstünde: kaldığın sayfanın mushafını doğrudan açar
-  Widget _mushafDugme() {
-    final d = widget.depo;
-    if (d.cuz.isEmpty) return const SizedBox();
-    final last = _last;
-    final n = last != null && d.cuz.containsKey(last.cuz) ? last.cuz : d.cuz.keys.reduce((a, b) => a < b ? a : b);
-    final cd = d.cuz[n]!;
-    final flat = duzListe(cd);
-    final p = last != null && last.ayah >= 0 && last.ayah < flat.length ? flat[last.ayah].p : (last != null && last.tree >= 0 ? last.tree : 0);
-    return Bas(
-      onTap: () => widget.onOpen(n, tree: p, sheet: 1),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(color: R.goldSoft, borderRadius: BorderRadius.circular(R.r20), border: Border.all(color: R.gold, width: 1.4)),
-        child: Row(children: [
-          const Icon(Icons.menu_book_rounded, color: R.gold, size: 30),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Mushaf\'ı aç', style: ts(R.text, 17, FontWeight.w800)),
-              const SizedBox(height: 2),
-              Text('${cd.name} · Sayfa ${p + 1}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.sub, 12.5, FontWeight.w500)),
-            ]),
-          ),
-          const Icon(Icons.chevron_right_rounded, color: R.gold),
-        ]),
-      ),
-    );
+  // Ana ekranın en üstünde: bugünün altı namaz vakti (internetsiz hesap). Dokununca Namaz sekmesi açılır.
+  Widget _namazKart() {
+    final k = namaz.konum;
+    final kap = BoxDecoration(color: R.goldSoft, borderRadius: BorderRadius.circular(R.r20), border: Border.all(color: R.gold, width: 1.4));
+    Widget cerceve(Widget c) => Bas(
+          onTap: widget.onNamaz,
+          child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), decoration: kap, child: c),
+        );
+    if (k == null) {
+      return cerceve(Row(children: [
+        const Icon(Icons.access_time_rounded, color: R.gold, size: 30),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Namaz vakitleri', style: ts(R.text, 17, FontWeight.w800)),
+            const SizedBox(height: 2),
+            Text('Konumunu seç, vakitler burada görünsün', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.sub, 12.5, FontWeight.w500)),
+          ]),
+        ),
+        const Icon(Icons.chevron_right_rounded, color: R.gold),
+      ]));
+    }
+    final simdi = DateTime.now();
+    final v = VakitHesap.gun(simdi, k.lat, k.lon);
+    final sira = v.indexWhere((t) => t.isAfter(simdi)); // -1 = bugünün vakitleri bitti
+    String z(DateTime t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+    return cerceve(Row(children: [
+      for (var i = 0; i < 6; i++)
+        Expanded(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(VakitHesap.adlar[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(sira == i ? R.gold : R.sub, 12, sira == i ? FontWeight.w800 : FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(z(v[i]), maxLines: 1, style: ts(sira == i ? R.gold : R.text, 15.5, FontWeight.w800)),
+          ]),
+        ),
+    ]));
   }
-
 
   // ---------------------------------------------------------------- BAŞLA: üç giriş (3B stüdyo büyük, solda; orman ve ızgara sağda)
   // Önizlemeler 1. cüzün gerçek görselleriyle, sabit resimlerdir (hareket yok). Dokununca kaldığın cüz o görünümle açılır.

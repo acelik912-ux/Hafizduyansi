@@ -187,7 +187,7 @@ class _KokState extends State<Kok> {
     Widget sayfa(String b) {
       switch (b) {
         case 'bugun':
-          return CapaKatman(anahtar: 'sekme_bugun', child: Bugun(key: ValueKey('bugun$_rev$profilAdi'), depo: d, profilAdi: profilAdi, onOpen: _cuzAc, onProfil: () => setState(() => _sekme = 'ayarlar'), onMerasim: tercih.acik('merasim') ? () => setState(() => _sekme = 'merasim') : null));
+          return CapaKatman(anahtar: 'sekme_bugun', child: Bugun(key: ValueKey('bugun$_rev$profilAdi'), depo: d, profilAdi: profilAdi, onOpen: _cuzAc, onProfil: () => setState(() => _sekme = 'ayarlar'), onMerasim: tercih.acik('merasim') ? () => setState(() => _sekme = 'merasim') : null, onNamaz: () { if (!tercih.acik('namaz')) tercih.degistir((t) => t.kapali.remove('namaz')); setState(() => _sekme = 'namaz'); }));
         case 'cuzler':
           return CapaKatman(anahtar: 'sekme_cuzler', child: Cuzler(depo: d, onOpen: _cuzAc));
         case 'ezber':

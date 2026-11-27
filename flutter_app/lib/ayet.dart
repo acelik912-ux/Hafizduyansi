@@ -584,6 +584,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
   void initState() {
     super.initState();
     tercih.addListener(_yenile);
+    kendiSes.addListener(_yenile);
     Future.delayed(const Duration(milliseconds: 250), _odakla);
     final d = widget.depo;
     if (d != null && !sessizSurum && widget.ayat.isNotEmpty) {
@@ -600,6 +601,103 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
 
   Okuyucu? okuyucu;
   Ayet? _sonTakip;
+
+  // Seçili ayet (sayfaya dokunarak ya da ◀ ▶ ile): "Sesim" ve kendi kaydını çalma bu ayete bağlıdır.
+  Ayet? _secAyet;
+  AudioPlayer? _kp; // yalnız kendi kaydını çalan oynatıcı
+  bool _kCal = false;
+
+  Ayet? get _gecerli {
+    final a = okuyucu?.aktif;
+    if (a != null) return a;
+    if (_secAyet != null) return _secAyet;
+    final f = widget.focus;
+    if (f != null) {
+      final k = widget.ayat.where((x) => x.sura == f.sura && x.no == f.no).firstOrNull;
+      if (k != null) return k;
+    }
+    return widget.ayat.isEmpty ? null : widget.ayat.first;
+  }
+
+  Future<void> _kDurdur() async {
+    final p = _kp;
+    _kp = null;
+    _kCal = false;
+    try { await p?.stop(); await p?.dispose(); } catch (_) {}
+    if (mounted) setState(() {});
+  }
+
+  void _sec(Ayet a) {
+    if (_gecerli?.sura == a.sura && _gecerli?.no == a.no) return;
+    _kDurdur();
+    setState(() => _secAyet = a);
+  }
+
+  void _komsu(int d) {
+    final l = widget.ayat;
+    final g = _gecerli;
+    if (g == null) return;
+    final i = l.indexWhere((x) => x.sura == g.sura && x.no == g.no);
+    final j = i + d;
+    if (j < 0 || j >= l.length) return;
+    _sec(l[j]);
+    _kaydir(l[j]);
+  }
+
+  Future<void> _kOynat() async {
+    final a = _gecerli;
+    if (a == null) return;
+    if (_kCal) { await _kDurdur(); return; }
+    final y = kendiSes.yol(a.sura, a.no);
+    if (y == null) { if (mounted) bilgi(context, 'Bu ayet için kendi kaydın yok. "Sesim" düğmesinden kaydedebilirsin.'); return; }
+    await _kDurdur();
+    final p = AudioPlayer();
+    _kp = p;
+    p.onPlayerComplete.listen((_) {
+      if (_kp != p) return;
+      if (tercih.repeat == 0) { p.play(DeviceFileSource(y)); return; }
+      _kDurdur();
+    });
+    try {
+      await p.setPlaybackRate(tercih.rate);
+      await p.play(DeviceFileSource(y));
+      if (mounted) setState(() => _kCal = true);
+    } catch (_) {
+      _kp = null;
+    }
+  }
+
+  // sessiz sürümde (ve okuma motoru olmayan her yerde) alttaki çubuk: ayet seç, kendi kaydını çal, "Sesim"
+  Widget _sesimCubugu(double altBosluk) {
+    final a = _gecerli;
+    if (a == null) return const SizedBox();
+    final var_ = kendiSes.varMi(a.sura, a.no);
+    final i = widget.ayat.indexWhere((x) => x.sura == a.sura && x.no == a.no);
+    return Container(
+      color: R.bg,
+      padding: EdgeInsets.fromLTRB(12, 8, 12, altBosluk + 8),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          CamIkon(Icons.skip_previous_rounded, i > 0 ? () => _komsu(-1) : null, size: 42, ipucu: 'Önceki ayet'),
+          const SizedBox(width: 14),
+          Flexible(child: Text('${a.sname} ${a.no}', maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.text, 15.5, FontWeight.w700))),
+          const SizedBox(width: 14),
+          CamIkon(Icons.skip_next_rounded, i >= 0 && i < widget.ayat.length - 1 ? () => _komsu(1) : null, size: 42, ipucu: 'Sonraki ayet'),
+        ]),
+        const SizedBox(height: 8),
+        Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
+          if (var_) Cip(_kCal ? 'Durdur' : 'Sesimi çal', icon: _kCal ? Icons.pause_rounded : Icons.play_arrow_rounded, on: _kCal, onTap: _kOynat),
+          if (kendiSes.kullanilabilir) _sesimCipi(a),
+        ]),
+      ]),
+    );
+  }
+
+  Widget _sesimCipi(Ayet a) => Cip(kendiSes.sayi(a.sura, a.no) > 1 ? 'Sesim (${kendiSes.sayi(a.sura, a.no)})' : 'Sesim', icon: Icons.mic_rounded, on: kendiSes.varMi(a.sura, a.no), onTap: () {
+        okuyucu?.durdur();
+        _kDurdur();
+        kendiSesAc(context, a, _kOynat);
+      });
 
   void _yenile() => setState(() {});
 
@@ -632,6 +730,10 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
   @override
   void dispose() {
     tercih.removeListener(_yenile);
+    kendiSes.removeListener(_yenile);
+    final kp = _kp;
+    _kp = null;
+    kp?.dispose();
     okuyucu?.removeListener(_okuma);
     okuyucu?.dispose();
     sc.dispose();
@@ -677,6 +779,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
           Cip('Takip', icon: Icons.my_location_rounded, on: tercih.mushafTakip, onTap: () => tercih.degistir((t) => t.mushafTakip = !t.mushafTakip)),
           Cip('Arka planda', icon: Icons.phonelink_lock_rounded, on: tercih.arkaPlan, onTap: () => tercih.degistir((t) => t.arkaPlan = !t.arkaPlan)),
           Cip('Otomatik sayfa', icon: Icons.playlist_play_rounded, on: tercih.auto, onTap: () => tercih.degistir((t) => t.auto = !t.auto)),
+          if (kendiSes.kullanilabilir && _gecerli != null) _sesimCipi(_gecerli!),
         ]),
       ]),
     );
@@ -771,7 +874,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
             ),
           ),
         ),
-        if (okuyucu != null) _okumaCubugu(pad.bottom),
+        if (okuyucu != null) _okumaCubugu(pad.bottom) else if (widget.ayat.isNotEmpty) _sesimCubugu(pad.bottom),
       ]),
     );
   }
@@ -779,7 +882,8 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
   Widget _kapak(AyetRect r, double iw, double ih, Ayet? f) {
     final covered = hide && shown[r.key] != true;
     final ak = okuyucu?.aktif;
-    final isF = !hide && ((f != null && r.sura == f.sura && r.no == f.no && ak == null) || (ak != null && r.sura == ak.sura && r.no == ak.no));
+    final sf = _secAyet ?? f;
+    final isF = !hide && ((sf != null && r.sura == sf.sura && r.no == sf.no && ak == null) || (ak != null && r.sura == ak.sura && r.no == ak.no));
     final box = Container(
       decoration: BoxDecoration(
         color: covered ? const Color(0xFFEADFB6) : isF ? const Color(0x401FA971) : Colors.transparent,
@@ -789,7 +893,16 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
     );
     return Positioned(
       left: r.x * iw, top: r.y * ih, width: r.w * iw, height: r.h * ih,
-      child: hide ? GestureDetector(onTap: () => setState(() => shown = {...shown, r.key: !(shown[r.key] ?? false)}), child: box) : IgnorePointer(child: box),
+      child: hide
+          ? GestureDetector(onTap: () => setState(() => shown = {...shown, r.key: !(shown[r.key] ?? false)}), child: box)
+          : GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                final k = widget.ayat.where((x) => x.sura == r.sura && x.no == r.no).firstOrNull;
+                if (k != null) _sec(k);
+              },
+              child: box,
+            ),
     );
   }
 }
