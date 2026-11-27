@@ -1,13 +1,10 @@
-Fri Nov 27 09:13:17 UTC 2026
-/dev/root       145G   61G   84G  42% /
-Mem:           15983        5652         894          51        9833       10331
+Fri Nov 27 09:14:19 UTC 2026
+/dev/root       145G   62G   83G  43% /
+Mem:           15983        6822         154          51        9403        9160
 --- du
-240	/home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/build
-4371	/home/runner/.gradle
+1408	/home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/build
+4700	/home/runner/.gradle
 --- build.txt son
-[====================                   ] 51% Unzipping... android-ndk-r28c/tool
-[====================                   ] 52% Unzipping... android-ndk-r28c/tool
-[=====================                  ] 53% Unzipping... android-ndk-r28c/tool
 [=====================                  ] 54% Unzipping... android-ndk-r28c/tool
 [=====================                  ] 54% Unzipping... android-ndk-r28c/buil
 [=====================                  ] 54% Unzipping... android-ndk-r28c/sour
@@ -45,3 +42,6 @@ Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184
 │ To avoid crashes on Windows, consider removing multiple 'return;' statements in `main()`.See     │
 │ https://github.com/flutter/flutter/issues/190809 for details.                                    │
 └──────────────────────────────────────────────────────────────────────────────────────────────────┘
+Caught exception: Already watching path: /home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/android
+Note: /home/runner/.pub-cache/hosted/pub.dev/geolocator_android-5.2.1/android/src/main/java/com/baseflow/geolocator/location/LocationMapper.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
