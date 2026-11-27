@@ -1,31 +1,10 @@
-Fri Nov 27 09:12:15 UTC 2026
-/dev/root       145G   60G   85G  42% /
-Mem:           15983        5247         164          51       10968       10735
+Fri Nov 27 09:13:17 UTC 2026
+/dev/root       145G   61G   84G  42% /
+Mem:           15983        5652         894          51        9833       10331
 --- du
-3897	/home/runner/.gradle
+240	/home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/build
+4371	/home/runner/.gradle
 --- build.txt son
-[=============                          ] 33% Unzipping... android-ndk-r28c/tool
-[=============                          ] 34% Unzipping... android-ndk-r28c/tool
-[=============                          ] 35% Unzipping... android-ndk-r28c/tool
-[==============                         ] 35% Unzipping... android-ndk-r28c/tool
-[==============                         ] 36% Unzipping... android-ndk-r28c/tool
-[==============                         ] 37% Unzipping... android-ndk-r28c/tool
-[===============                        ] 38% Unzipping... android-ndk-r28c/tool
-[===============                        ] 39% Unzipping... android-ndk-r28c/tool
-[===============                        ] 40% Unzipping... android-ndk-r28c/tool
-[================                       ] 40% Unzipping... android-ndk-r28c/tool
-[================                       ] 41% Unzipping... android-ndk-r28c/tool
-[================                       ] 42% Unzipping... android-ndk-r28c/tool
-[=================                      ] 43% Unzipping... android-ndk-r28c/tool
-[=================                      ] 44% Unzipping... android-ndk-r28c/tool
-[=================                      ] 45% Unzipping... android-ndk-r28c/tool
-[==================                     ] 45% Unzipping... android-ndk-r28c/tool
-[==================                     ] 46% Unzipping... android-ndk-r28c/tool
-[==================                     ] 47% Unzipping... android-ndk-r28c/tool
-[===================                    ] 48% Unzipping... android-ndk-r28c/tool
-[===================                    ] 49% Unzipping... android-ndk-r28c/tool
-[===================                    ] 50% Unzipping... android-ndk-r28c/tool
-[====================                   ] 50% Unzipping... android-ndk-r28c/tool
 [====================                   ] 51% Unzipping... android-ndk-r28c/tool
 [====================                   ] 52% Unzipping... android-ndk-r28c/tool
 [=====================                  ] 53% Unzipping... android-ndk-r28c/tool
@@ -44,3 +23,25 @@ Mem:           15983        5247         164          51       10968       10735
 [=====================                  ] 55% Unzipping... android-ndk-r28c/CHAN
 [=======================================] 100% Unzipping... android-ndk-r28c/CHA
 
+WARNING: Your Android app project: app located at: /home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/android/app/build.gradle.kts
+applies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter.
+Please migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers
+
+WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): audioplayers_android, flutter_tts, record_android, shared_preferences_android
+Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
+
+Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
+If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
+an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
+
+If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+Font asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 844 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 15732 bytes (99.0% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+
+┌─ Shader Warning ─────────────────────────────────────────────────────────────────────────────────┐
+│ [WARNING] "/home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/shaders/zemin.frag": Fragment │
+│ shader uses texture samplers alongside multiple 'return' statements in `main()`. This has the    │
+│ potential to cause compilation errors during shader compilation on Windows.                      │
+│ To avoid crashes on Windows, consider removing multiple 'return;' statements in `main()`.See     │
+│ https://github.com/flutter/flutter/issues/190809 for details.                                    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
