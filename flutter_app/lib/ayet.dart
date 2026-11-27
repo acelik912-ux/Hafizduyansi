@@ -17,6 +17,13 @@ import 'veri.dart';
 import 'kendi_ses_ekran.dart';
 import 'kendi_ses.dart';
 import 'okuma.dart';
+import 'ezber.dart' show ezber, EzberKayit;
+
+/// Ayeti "Ezberlerim" listesine ekler (aynısı varsa eklemez).
+Future<void> ezbereEkle(BuildContext context, Ayet a) async {
+  final yeni = await ezber.ekle(EzberKayit('ayet', s: a.sura, a1: a.no, a2: a.no));
+  if (context.mounted) bilgi(context, yeni ? '${a.sname} ${a.no} Ezberlerim listesine eklendi' : 'Bu ayet zaten Ezberlerim listesinde');
+}
 
 const _tekrarlar = [1, 2, 3, 5, 10, 0]; // 0 = sürekli
 const _hizlar = [0.75, 1.0, 1.25, 1.5];
@@ -382,6 +389,7 @@ class _AyetPaneliState extends State<AyetPaneli> {
               ],
               if (kendiSes.kullanilabilir)
                 Cip(kendiSes.sayi(a.sura, a.no) > 1 ? 'Sesim (${kendiSes.sayi(a.sura, a.no)})' : 'Sesim', icon: Icons.mic_rounded, on: kendiSes.varMi(a.sura, a.no), cam: true, onTap: () { _stop(); kendiSesAc(context, a, () => _start(kendi: true)); }),
+              Cip('Ezberlerime ekle', icon: Icons.bookmark_add_rounded, cam: true, onTap: () => ezbereEkle(context, a)),
               Cip('Meal', icon: Icons.translate_rounded, on: showMeal, cam: true, onTap: () => setState(() => showMeal = !showMeal)),
               if (!sessizSurum) ...[
                 Cip('Kur\'an sesi', icon: Icons.graphic_eq_rounded, on: tercih.ayetSes, cam: true, onTap: () => tercih.degistir((t) => t.ayetSes = !t.ayetSes)),
@@ -687,6 +695,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
         const SizedBox(height: 8),
         Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
           if (var_) Cip(_kCal ? 'Durdur' : 'Sesimi çal', icon: _kCal ? Icons.pause_rounded : Icons.play_arrow_rounded, on: _kCal, onTap: _kOynat),
+          Cip('Ezberlerime ekle', icon: Icons.bookmark_add_rounded, onTap: () => ezbereEkle(context, a)),
           if (kendiSes.kullanilabilir) _sesimCipi(a),
         ]),
       ]),
@@ -779,6 +788,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
           Cip('Takip', icon: Icons.my_location_rounded, on: tercih.mushafTakip, onTap: () => tercih.degistir((t) => t.mushafTakip = !t.mushafTakip)),
           Cip('Arka planda', icon: Icons.phonelink_lock_rounded, on: tercih.arkaPlan, onTap: () => tercih.degistir((t) => t.arkaPlan = !t.arkaPlan)),
           Cip('Otomatik sayfa', icon: Icons.playlist_play_rounded, on: tercih.auto, onTap: () => tercih.degistir((t) => t.auto = !t.auto)),
+          if (_gecerli != null) Cip('Ezberlerime ekle', icon: Icons.bookmark_add_rounded, onTap: () => ezbereEkle(context, _gecerli!)),
           if (kendiSes.kullanilabilir && _gecerli != null) _sesimCipi(_gecerli!),
         ]),
       ]),

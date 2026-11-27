@@ -47,8 +47,8 @@ class HafizDunyasi extends StatelessWidget {
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: R.surface,
           indicatorColor: R.primarySoft,
-          height: 68,
-          labelTextStyle: WidgetStateProperty.resolveWith((s) => ts(s.contains(WidgetState.selected) ? R.text : R.sub, 12.5, FontWeight.w600)),
+          height: 72,
+          labelTextStyle: WidgetStateProperty.resolveWith((s) => ts(s.contains(WidgetState.selected) ? R.text : R.sub, 11, FontWeight.w600), maxLines: 1, overflow: TextOverflow.visible),
           iconTheme: WidgetStateProperty.resolveWith((s) => IconThemeData(color: s.contains(WidgetState.selected) ? R.primary : R.sub)),
         ),
         segmentedButtonTheme: SegmentedButtonThemeData(
@@ -226,7 +226,7 @@ class _KokState extends State<Kok> {
           : NavigationBar(
               key: turAnahtar['nav'],
               selectedIndex: acik.indexOf(su),
-              labelBehavior: acik.length > 5 ? NavigationDestinationLabelBehavior.onlyShowSelected : NavigationDestinationLabelBehavior.alwaysShow,
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow, // sekme adları hep görünür
               onDestinationSelected: (i) => setState(() => _sekme = acik[i]),
               destinations: [for (final b in acik) hedef(b)],
             ),
