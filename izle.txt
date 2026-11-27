@@ -1,7 +1,46 @@
-Fri Nov 27 09:10:12 UTC 2026
-/dev/root       145G   55G   90G  39% /
-Mem:           15983        3721         369          51       12287       12261
+Fri Nov 27 09:11:13 UTC 2026
+/dev/root       145G   58G   87G  41% /
+Mem:           15983        5010         565          51       10804       10972
 --- du
-1224	/home/runner/.gradle
+2012	/home/runner/.gradle
 --- build.txt son
-Running Gradle task 'bundleRelease'...                          
+[=============                          ] 33% Unzipping... android-ndk-r28c/tool
+[=============                          ] 34% Unzipping... android-ndk-r28c/tool
+[=============                          ] 35% Unzipping... android-ndk-r28c/tool
+[==============                         ] 35% Unzipping... android-ndk-r28c/tool
+[==============                         ] 36% Unzipping... android-ndk-r28c/tool
+[==============                         ] 37% Unzipping... android-ndk-r28c/tool
+[===============                        ] 38% Unzipping... android-ndk-r28c/tool
+[===============                        ] 39% Unzipping... android-ndk-r28c/tool
+[===============                        ] 40% Unzipping... android-ndk-r28c/tool
+[================                       ] 40% Unzipping... android-ndk-r28c/tool
+[================                       ] 41% Unzipping... android-ndk-r28c/tool
+[================                       ] 42% Unzipping... android-ndk-r28c/tool
+[=================                      ] 43% Unzipping... android-ndk-r28c/tool
+[=================                      ] 44% Unzipping... android-ndk-r28c/tool
+[=================                      ] 45% Unzipping... android-ndk-r28c/tool
+[==================                     ] 45% Unzipping... android-ndk-r28c/tool
+[==================                     ] 46% Unzipping... android-ndk-r28c/tool
+[==================                     ] 47% Unzipping... android-ndk-r28c/tool
+[===================                    ] 48% Unzipping... android-ndk-r28c/tool
+[===================                    ] 49% Unzipping... android-ndk-r28c/tool
+[===================                    ] 50% Unzipping... android-ndk-r28c/tool
+[====================                   ] 50% Unzipping... android-ndk-r28c/tool
+[====================                   ] 51% Unzipping... android-ndk-r28c/tool
+[====================                   ] 52% Unzipping... android-ndk-r28c/tool
+[=====================                  ] 53% Unzipping... android-ndk-r28c/tool
+[=====================                  ] 54% Unzipping... android-ndk-r28c/tool
+[=====================                  ] 54% Unzipping... android-ndk-r28c/buil
+[=====================                  ] 54% Unzipping... android-ndk-r28c/sour
+[=====================                  ] 54% Unzipping... android-ndk-r28c/NOTI
+[=====================                  ] 54% Unzipping... android-ndk-r28c/ndk-
+[=====================                  ] 54% Unzipping... android-ndk-r28c/NOTI
+[=====================                  ] 54% Unzipping... android-ndk-r28c/pyth
+[=====================                  ] 54% Unzipping... android-ndk-r28c/preb
+[=====================                  ] 54% Unzipping... android-ndk-r28c/ndk-
+[=====================                  ] 54% Unzipping... android-ndk-r28c/sour
+[=====================                  ] 54% Unzipping... android-ndk-r28c/simp
+[=====================                  ] 55% Unzipping... android-ndk-r28c/simp
+[=====================                  ] 55% Unzipping... android-ndk-r28c/CHAN
+[=======================================] 100% Unzipping... android-ndk-r28c/CHA
+
