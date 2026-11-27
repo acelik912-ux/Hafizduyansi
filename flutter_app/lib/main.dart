@@ -48,7 +48,7 @@ class HafizDunyasi extends StatelessWidget {
           backgroundColor: R.surface,
           indicatorColor: R.primarySoft,
           height: 72,
-          labelTextStyle: WidgetStateProperty.resolveWith((s) => ts(s.contains(WidgetState.selected) ? R.text : R.sub, 11, FontWeight.w600), maxLines: 1, overflow: TextOverflow.visible),
+          labelTextStyle: WidgetStateProperty.resolveWith((s) => ts(s.contains(WidgetState.selected) ? R.text : R.sub, 11, FontWeight.w600)),
           iconTheme: WidgetStateProperty.resolveWith((s) => IconThemeData(color: s.contains(WidgetState.selected) ? R.primary : R.sub)),
         ),
         segmentedButtonTheme: SegmentedButtonThemeData(
