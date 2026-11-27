@@ -25,6 +25,12 @@ Future<void> ezbereEkle(BuildContext context, Ayet a) async {
   if (context.mounted) bilgi(context, yeni ? '${a.sname} ${a.no} Ezberlerim listesine eklendi' : 'Bu ayet zaten Ezberlerim listesinde');
 }
 
+/// Sayfayı "Ezberlerim" listesine ekler.
+Future<void> sayfayiEzbereEkle(BuildContext context, int cuz, int sayfa) async {
+  final yeni = await ezber.ekle(EzberKayit('sayfa', c: cuz, p: sayfa));
+  if (context.mounted) bilgi(context, yeni ? '$cuz. cüz, ${sayfa + 1}. sayfa Ezberlerim listesine eklendi' : 'Bu sayfa zaten Ezberlerim listesinde');
+}
+
 const _tekrarlar = [1, 2, 3, 5, 10, 0]; // 0 = sürekli
 const _hizlar = [0.75, 1.0, 1.25, 1.5];
 String tekrarAd(int n) => n == 0 ? '∞' : '$n×';
@@ -532,6 +538,8 @@ class _MushafKitapState extends State<MushafKitap> {
           onSonraki: i < tum.length - 1 ? () => _git(1) : null,
           depo: widget.depo,
           ayat: cd.pages[p].ayat,
+          cuzNo: cn,
+          sayfaNo: p,
           otoBasla: _devamIdx == i,
           onBasladi: () => _devamIdx = -1,
           onBitti: tercih.auto && i < tum.length - 1 ? () { _devamIdx = i + 1; _git(1); } : null,
@@ -554,9 +562,10 @@ class MushafSayfasi extends StatefulWidget {
   final VoidCallback? onOnceki, onSonraki; // başlıktaki sayfa düğmeleri (büyütülmüşken yana kaydırma sayfayı çevirmez)
   final Depo? depo; // sesli okuma için (sesli sürümde)
   final List<Ayet> ayat; // bu sayfanın ayetleri (sırayla okunur)
+  final int cuzNo, sayfaNo; // Ezberlerim'e sayfa eklemek için (cuzNo 0 = bilinmiyor)
   final bool otoBasla; // önceki sayfadan otomatik geçişte okuma kendiliğinden başlar
   final VoidCallback? onBasladi, onBitti;
-  const MushafSayfasi({super.key, required this.sheets, required this.baslik, this.focus, this.gizle = false, required this.onClose, this.capaAnahtar = 'mushaf', this.zoom0 = 1, this.onDurum, this.onOnceki, this.onSonraki, this.depo, this.ayat = const [], this.otoBasla = false, this.onBasladi, this.onBitti});
+  const MushafSayfasi({super.key, required this.sheets, required this.baslik, this.focus, this.gizle = false, required this.onClose, this.capaAnahtar = 'mushaf', this.zoom0 = 1, this.onDurum, this.onOnceki, this.onSonraki, this.depo, this.ayat = const [], this.cuzNo = 0, this.sayfaNo = 0, this.otoBasla = false, this.onBasladi, this.onBitti});
   @override
   State<MushafSayfasi> createState() => _MushafSayfasiState();
 }
@@ -695,6 +704,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
         const SizedBox(height: 8),
         Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
           if (var_) Cip(_kCal ? 'Durdur' : 'Sesimi çal', icon: _kCal ? Icons.pause_rounded : Icons.play_arrow_rounded, on: _kCal, onTap: _kOynat),
+          if (widget.cuzNo > 0) Cip('Sayfayı ezberlerime ekle', icon: Icons.bookmark_added_rounded, onTap: () => sayfayiEzbereEkle(context, widget.cuzNo, widget.sayfaNo)),
           Cip('Ezberlerime ekle', icon: Icons.bookmark_add_rounded, onTap: () => ezbereEkle(context, a)),
           if (kendiSes.kullanilabilir) _sesimCipi(a),
         ]),
@@ -788,6 +798,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
           Cip('Takip', icon: Icons.my_location_rounded, on: tercih.mushafTakip, onTap: () => tercih.degistir((t) => t.mushafTakip = !t.mushafTakip)),
           Cip('Arka planda', icon: Icons.phonelink_lock_rounded, on: tercih.arkaPlan, onTap: () => tercih.degistir((t) => t.arkaPlan = !t.arkaPlan)),
           Cip('Otomatik sayfa', icon: Icons.playlist_play_rounded, on: tercih.auto, onTap: () => tercih.degistir((t) => t.auto = !t.auto)),
+          if (widget.cuzNo > 0) Cip('Sayfayı ezberlerime ekle', icon: Icons.bookmark_added_rounded, onTap: () => sayfayiEzbereEkle(context, widget.cuzNo, widget.sayfaNo)),
           if (_gecerli != null) Cip('Ezberlerime ekle', icon: Icons.bookmark_add_rounded, onTap: () => ezbereEkle(context, _gecerli!)),
           if (kendiSes.kullanilabilir && _gecerli != null) _sesimCipi(_gecerli!),
         ]),
@@ -823,7 +834,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
           color: R.bg,
           child: Row(children: [
             IconButton(onPressed: widget.onClose, icon: const Icon(Icons.arrow_back_rounded, color: R.text), tooltip: 'Geri'),
-            Expanded(child: Text(widget.baslik, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.text, 16, FontWeight.w700))),
+            Expanded(child: GestureDetector(onLongPress: widget.cuzNo > 0 ? () => sayfayiEzbereEkle(context, widget.cuzNo, widget.sayfaNo) : null, child: Text(widget.baslik, maxLines: 1, overflow: TextOverflow.ellipsis, style: ts(R.text, 16, FontWeight.w700)))),
             IconButton(onPressed: _capaEkle, icon: const Text('📌', style: TextStyle(fontSize: 20)), tooltip: 'Çapa bırak (sayfaya basılı tutarak da bırakabilirsin)'),
             IconButton(onPressed: () { setState(() => zoom = (zoom - 0.25).clamp(1, 3)); _bildir(); }, icon: const Icon(Icons.zoom_out_rounded, color: R.text), tooltip: 'Küçült'),
             IconButton(onPressed: () { setState(() => zoom = (zoom + 0.25).clamp(1, 3)); _bildir(); }, icon: const Icon(Icons.zoom_in_rounded, color: R.text), tooltip: 'Büyüt'),

@@ -363,6 +363,7 @@ class _CuzOkuyucuState extends State<CuzOkuyucu> {
         ),
         const SizedBox(width: 8),
         CamIkon(Icons.menu_book_rounded, page.kind == 'ayat' && page.sheets.isNotEmpty ? () => setState(() { sheetFor = Duz(it.p, 0, 0, page.ayat.first); sheetGizle = false; }) : null, ipucu: 'Mushaf sayfası'),
+        CamIkon(Icons.bookmark_add_rounded, () => sayfayiEzbereEkle(context, widget.cd.no, it.p), ipucu: 'Bu sayfayı Ezberlerim listesine ekle'),
       ]),
     );
     final children = <Widget>[const Positioned.fill(child: ColoredBox(color: Color(0x14000000)))];
