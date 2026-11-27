@@ -1,0 +1,35 @@
+name: Ana ekran görüntüsü (geçici, yalnızca ana-ekran dalı)
+on:
+  push:
+    branches: [ana-ekran]
+permissions:
+  contents: write
+jobs:
+  ekran:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: cd flutter_app && flutter pub get
+      - run: cd flutter_app && (flutter build web --release > ../derleme.txt 2>&1 || echo FAIL >> ../derleme.txt)
+      - name: Ekran
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+          (cd flutter_app/build/web && python3 -m http.server 8765 >/dev/null 2>&1 &)
+          sleep 3
+          python3 tools/ana_ekran_cek.py sonuc || true
+          ls -la sonuc || true
+      - name: Dala yaz
+        run: |
+          git config user.name "ekran-bot"; git config user.email "bot@example.com"
+          mkdir -p /tmp/o; cp sonuc/*.png /tmp/o/ 2>/dev/null || true; cp derleme.txt /tmp/o/
+          git checkout --orphan ekran-sonuc
+          git rm -rf --cached . >/dev/null 2>&1 || true
+          cp /tmp/o/* .
+          git add -f derleme.txt; git add -f *.png 2>/dev/null || true
+          git commit -qm "ana ekran $GITHUB_RUN_NUMBER"
+          git push -f origin ekran-sonuc
