@@ -10,6 +10,10 @@ import io.flutter.plugin.common.MethodChannel
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.provider.Settings
 import java.util.concurrent.ConcurrentHashMap
 
@@ -23,6 +27,51 @@ class MainActivity : FlutterActivity() {
     private var yonetici: AssetPackManager? = null
     private val durumlar = ConcurrentHashMap<String, Map<String, Any>>()
     private var onayGosterildi = false
+
+    // Ezber modunda "Okuyarak aç": telefonun kendi ses tanıyıcısı ("hd/konus"). Sonuçlar Dart'a 'sonuc'/'hata' ile gider.
+    private var tanici: SpeechRecognizer? = null
+    private var konusKanal: MethodChannel? = null
+
+    private fun konusBaslat(dil: String): Boolean {
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) return false
+        konusDurdur()
+        val t = SpeechRecognizer.createSpeechRecognizer(this)
+        t.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(p: Bundle?) {}
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(v: Float) {}
+            override fun onBufferReceived(b: ByteArray?) {}
+            override fun onEndOfSpeech() {}
+            override fun onEvent(a: Int, b: Bundle?) {}
+            override fun onPartialResults(r: Bundle?) { gonder(r, false) }
+            override fun onResults(r: Bundle?) { gonder(r, true) }
+            override fun onError(kod: Int) { konusKanal?.invokeMethod("hata", kod) }
+            private fun gonder(r: Bundle?, son: Boolean) {
+                val l = r?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION) ?: return
+                if (l.isEmpty()) return
+                konusKanal?.invokeMethod("sonuc", mapOf("t" to l[0], "son" to son))
+            }
+        })
+        val i = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, dil)
+        i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+        i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        i.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
+        tanici = t
+        t.startListening(i)
+        return true
+    }
+
+    private fun konusDurdur() {
+        try { tanici?.cancel(); tanici?.destroy() } catch (_: Exception) {}
+        tanici = null
+    }
+
+    override fun onDestroy() {
+        konusDurdur()
+        super.onDestroy()
+    }
 
     private val dinleyici = AssetPackStateUpdateListener { st ->
         durumlar[st.name()] = mapOf(
@@ -51,6 +100,14 @@ class MainActivity : FlutterActivity() {
             yonetici = AssetPackManagerFactory.getInstance(applicationContext)
             yonetici?.registerListener(dinleyici)
         } catch (_: Exception) {
+        }
+        konusKanal = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hd/konus")
+        konusKanal?.setMethodCallHandler { cagri, sonuc ->
+            when (cagri.method) {
+                "baslat" -> sonuc.success(try { konusBaslat(cagri.arguments as? String ?: "ar-SA") } catch (e: Exception) { false })
+                "durdur" -> { konusDurdur(); sonuc.success(null) }
+                else -> sonuc.notImplemented()
+            }
         }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hd/paket").setMethodCallHandler { cagri, sonuc ->
             val m = yonetici

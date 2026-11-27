@@ -17,6 +17,8 @@ import 'veri.dart';
 import 'kendi_ses_ekran.dart';
 import 'kendi_ses.dart';
 import 'okuma.dart';
+import 'ezber_dinle.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'ezber.dart' show ezber, EzberKayit;
 
 /// Ayeti "Ezberlerim" listesine ekler (aynısı varsa eklemez).
@@ -573,6 +575,26 @@ class MushafSayfasi extends StatefulWidget {
 class _MushafSayfasiState extends State<MushafSayfasi> {
   late bool hide = widget.gizle;
   Map<String, bool> shown = {};
+  final EzberDinle _dinle = EzberDinle(); // "Okuyarak aç" (yalnızca sesli sürüm)
+  bool get _dinleVar => !sessizSurum && !kIsWeb;
+
+  // sayfadaki sıradaki kapalı ayet (sayfa sırasıyla)
+  String? _siradaki() {
+    for (final a in widget.ayat) {
+      final k = '${a.sura}:${a.no}';
+      if (shown[k] != true) return k;
+    }
+    return null;
+  }
+
+  Future<void> _dinleDegistir() async {
+    if (_dinle.dinliyor) { await _dinle.durdur(); return; }
+    await _dinle.baslat(
+      hedef: () async => _siradaki(),
+      ac: (k) { if (mounted) setState(() => shown = {...shown, k: true}); },
+      bitti: () { if (mounted) setState(() {}); },
+    );
+  }
   late double zoom = widget.zoom0;
   final sc = ScrollController();
   void _bildir() => widget.onDurum?.call(hide, zoom);
@@ -602,6 +624,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
     super.initState();
     tercih.addListener(_yenile);
     kendiSes.addListener(_yenile);
+    _dinle.addListener(_yenile);
     Future.delayed(const Duration(milliseconds: 250), _odakla);
     final d = widget.depo;
     if (d != null && !sessizSurum && widget.ayat.isNotEmpty) {
@@ -749,6 +772,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
   @override
   void dispose() {
     tercih.removeListener(_yenile);
+    _dinle.dispose();
     kendiSes.removeListener(_yenile);
     final kp = _kp;
     _kp = null;
@@ -849,6 +873,10 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
             const SizedBox(width: 8),
             if (hide) ...[
               Cip('Hepsini aç', icon: Icons.lock_open_rounded, onTap: () => setState(() => shown = {for (final s in widget.sheets) for (final r in s.rects) r.key: true})),
+              if (_dinleVar) ...[
+                const SizedBox(width: 8),
+                Cip(_dinle.dinliyor ? 'Dinliyorum…' : 'Okuyarak aç', icon: _dinle.dinliyor ? Icons.mic_rounded : Icons.mic_none_rounded, on: _dinle.dinliyor, onTap: _dinleDegistir),
+              ],
             ],
             const Spacer(),
             if (widget.onOnceki != null) IconButton(onPressed: widget.onOnceki, icon: const Icon(Icons.skip_previous_rounded, color: R.text), tooltip: 'Önceki sayfa'),
@@ -858,7 +886,14 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
         if (hide)
           Container(
             color: R.surface, padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-            child: Text('Kapalı ayete dokun: açılır · açık ayete dokun: tekrar kapanır', textAlign: TextAlign.center, style: ts(R.sub, 12, FontWeight.w500)),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(_dinle.mesaj.isNotEmpty ? _dinle.mesaj : 'Kapalı ayete dokun: açılır · açık ayete dokun: tekrar kapanır', textAlign: TextAlign.center, style: ts(_dinle.dinliyor ? R.primary : R.sub, 12, FontWeight.w600)),
+              if (_dinle.dinliyor && _dinle.sonMetin.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text('Duyulan: ${_dinle.sonMetin}', maxLines: 2, overflow: TextOverflow.ellipsis, textDirection: TextDirection.rtl, textAlign: TextAlign.center, style: ts(R.sub, 13, FontWeight.w500)),
+                ),
+            ]),
           ),
         Expanded(
           child: SingleChildScrollView(
@@ -909,7 +944,7 @@ class _MushafSayfasiState extends State<MushafSayfasi> {
       decoration: BoxDecoration(
         color: covered ? const Color(0xFFEADFB6) : isF ? const Color(0x401FA971) : Colors.transparent,
         borderRadius: BorderRadius.circular(covered ? 6 : 3),
-        border: covered ? Border.all(color: const Color(0xFFC9B77A)) : isF ? Border.all(color: R.primary, width: 1.5) : null,
+        border: covered ? Border.all(color: _dinle.dinliyor && r.key == _siradaki() ? R.primary : const Color(0xFFC9B77A), width: _dinle.dinliyor && r.key == _siradaki() ? 2.5 : 1) : isF ? Border.all(color: R.primary, width: 1.5) : null,
       ),
     );
     return Positioned(

@@ -75,6 +75,7 @@ flutter:
     - assets/ozel/
     - assets/doku/
     - assets/merasim/
+    - assets/ezber_metin/
     - assets/dedup.json
     # PAKET-BAŞ
     - assets/paket/cuz1/
