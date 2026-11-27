@@ -68,11 +68,6 @@ class MainActivity : FlutterActivity() {
         tanici = null
     }
 
-    override fun onDestroy() {
-        konusDurdur()
-        super.onDestroy()
-    }
-
     private val dinleyici = AssetPackStateUpdateListener { st ->
         durumlar[st.name()] = mapOf(
             "durum" to st.status(),
@@ -216,6 +211,7 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        konusDurdur()
         try {
             yonetici?.unregisterListener(dinleyici)
         } catch (_: Exception) {
