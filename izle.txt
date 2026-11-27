@@ -1,17 +1,10 @@
-Fri Nov 27 09:14:19 UTC 2026
-/dev/root       145G   62G   83G  43% /
-Mem:           15983        6822         154          51        9403        9160
+Fri Nov 27 09:15:21 UTC 2026
+/dev/root       145G   64G   82G  44% /
+Mem:           15983        8672         296          51        7410        7310
 --- du
-1408	/home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/build
-4700	/home/runner/.gradle
+2077	/home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/build
+5289	/home/runner/.gradle
 --- build.txt son
-[=====================                  ] 54% Unzipping... android-ndk-r28c/tool
-[=====================                  ] 54% Unzipping... android-ndk-r28c/buil
-[=====================                  ] 54% Unzipping... android-ndk-r28c/sour
-[=====================                  ] 54% Unzipping... android-ndk-r28c/NOTI
-[=====================                  ] 54% Unzipping... android-ndk-r28c/ndk-
-[=====================                  ] 54% Unzipping... android-ndk-r28c/NOTI
-[=====================                  ] 54% Unzipping... android-ndk-r28c/pyth
 [=====================                  ] 54% Unzipping... android-ndk-r28c/preb
 [=====================                  ] 54% Unzipping... android-ndk-r28c/ndk-
 [=====================                  ] 54% Unzipping... android-ndk-r28c/sour
@@ -45,3 +38,10 @@ Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184
 Caught exception: Already watching path: /home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/android
 Note: /home/runner/.pub-cache/hosted/pub.dev/geolocator_android-5.2.1/android/src/main/java/com/baseflow/geolocator/location/LocationMapper.java uses or overrides a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
+Checking the license for package CMake 3.22.1 in /usr/local/lib/android/sdk/licenses
+License for package CMake 3.22.1 accepted.
+Preparing "Install CMake 3.22.1 v.3.22.1".
+"Install CMake 3.22.1 v.3.22.1" ready.
+Installing CMake 3.22.1 in /usr/local/lib/android/sdk/cmake/3.22.1
+"Install CMake 3.22.1 v.3.22.1" complete.
+"Install CMake 3.22.1 v.3.22.1" finished.
