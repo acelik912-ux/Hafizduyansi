@@ -1,8 +1,8 @@
-Fri Nov 27 09:15:21 UTC 2026
-/dev/root       145G   64G   82G  44% /
-Mem:           15983        8672         296          51        7410        7310
+Fri Nov 27 09:16:25 UTC 2026
+/dev/root       145G   66G   79G  46% /
+Mem:           15983       12389         235          51        3754        3593
 --- du
-2077	/home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/build
+4443	/home/runner/work/Hafizduyansi/Hafizduyansi/flutter_app/build
 5289	/home/runner/.gradle
 --- build.txt son
 [=====================                  ] 54% Unzipping... android-ndk-r28c/preb
