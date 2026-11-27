@@ -89,6 +89,15 @@ class MainActivity : FlutterActivity() {
         }
 
         // Ezanda sessize alma köprüsü ("hd/ezan"): ayarla, durum, dene, sesliYap, kontrol, dndAyar, alarmAyar
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hd/vakitwidget").setMethodCallHandler { cagri, sonuc ->
+            try {
+                if (cagri.method == "yaz") {
+                    VakitDepo.yaz(applicationContext, cagri.argument<String>("sahne") ?: "ayasofya", cagri.argument<String>("konum") ?: "",
+                        (cagri.argument<Number>("baslangic") ?: 0).toLong(), cagri.argument<String>("gunler") ?: "[]")
+                    sonuc.success(null)
+                } else sonuc.notImplemented()
+            } catch (e: Exception) { sonuc.error("hata", e.message, null) }
+        }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hd/okuma").setMethodCallHandler { cagri, sonuc ->
             try {
                 when (cagri.method) {

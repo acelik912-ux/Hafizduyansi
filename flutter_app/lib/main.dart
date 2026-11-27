@@ -18,6 +18,7 @@ import 'ozel_gorsel.dart';
 import 'kendi_ses.dart';
 import 'merasim.dart';
 import 'ezan.dart';
+import 'vakit_widget.dart';
 import 'ezber.dart';
 import 'namaz.dart';
 import 'yardim.dart';
@@ -105,6 +106,7 @@ class _KokState extends State<Kok> {
       await ezber.yukle();
       await namaz.yukle();
       await ezan.yukle();
+      await vakitWidget.yukle();
       profilAdi = await Kayit.profilAdi();
       final d = await Depo.yukle();
       setState(() => depo = d);
