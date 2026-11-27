@@ -17,7 +17,7 @@ const _arkaKanal = MethodChannel('hd/okuma');
 class OkumaArka {
   static bool _acik = false;
   static Future<void> ac() async {
-    if (_acik || !tercih.arkaPlan || kIsWeb || !paketAndroid) return;
+    if (_acik || sessizSurum || !tercih.arkaPlan || kIsWeb || !paketAndroid) return;
     _acik = true;
     try {
       await _arkaKanal.invokeMethod('ac');

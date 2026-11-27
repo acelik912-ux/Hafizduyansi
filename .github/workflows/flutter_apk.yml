@@ -48,6 +48,9 @@ jobs:
           grep -c "assets/paket/ses" pubspec.yaml || true
           sed -i 's|android:label="Hafız Dünyası"|android:label="Hafız Dünyası (Sessiz)"|' android/app/src/main/AndroidManifest.xml
           sed -i 's|applicationId = "com.hafizdunyasi.gezgin"|applicationId = "com.hafizdunyasi.gezgin.sessiz"|' android/app/build.gradle.kts
+          # sessiz sürümde ses okuma servisi yok: kullanılmayan izinler ve servis manifestten çıkarılır (Play'de ön plan servisi beyanı gerekmesin)
+          sed -i -e '/FOREGROUND_SERVICE/d' -e '/POST_NOTIFICATIONS/d' -e '/android.permission.WAKE_LOCK/d' -e '/<service android:name=".OkumaServisi"/d' android/app/src/main/AndroidManifest.xml
+          python3 -c "import xml.dom.minidom as x;x.parse('android/app/src/main/AndroidManifest.xml')"
           grep -n "label\|applicationId" android/app/src/main/AndroidManifest.xml android/app/build.gradle.kts | head
           du -sh assets | while read -r l; do echo "::notice::sessiz varlık boyutu: $l"; done
       - run: flutter pub get
