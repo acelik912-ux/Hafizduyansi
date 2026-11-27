@@ -110,6 +110,8 @@ class _KokState extends State<Kok> {
       profilAdi = await Kayit.profilAdi();
       final d = await Depo.yukle();
       setState(() => depo = d);
+      final qc = Uri.base.queryParameters['c']; // geçici (tanıtım görüntüsü): ?c=N cüzü doğrudan açar
+      if (qc != null) { WidgetsBinding.instance.addPostFrameCallback((_) => _cuzAc(int.parse(qc))); return; }
       _anaTur();
     } catch (e) {
       setState(() => hata = '$e');

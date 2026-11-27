@@ -1,0 +1,36 @@
+name: Tanıtım görselleri (geçici, yalnızca tanitim-gorsel dalı)
+on:
+  push:
+    branches: [tanitim-gorsel]
+permissions:
+  contents: write
+jobs:
+  ekran:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: cd flutter_app && flutter pub get
+      - run: cd flutter_app && (flutter build web --release > ../derleme.txt 2>&1 || echo FAIL >> ../derleme.txt)
+      - name: Video
+        run: |
+          sudo apt-get install -y ffmpeg >/dev/null 2>&1 || true
+          pip install playwright
+          playwright install --with-deps chromium
+          (cd flutter_app/build/web && python3 -m http.server 8765 >/dev/null 2>&1 &)
+          sleep 3
+          python3 tools/tanitim_video.py sonuc > gunluk.txt 2>&1 || true
+          cat gunluk.txt; find sonuc -type f | head -50
+      - name: Dala yaz
+        run: |
+          git config user.name "ekran-bot"; git config user.email "bot@example.com"
+          mkdir -p /tmp/o; cp -r sonuc /tmp/o/; cp derleme.txt gunluk.txt /tmp/o/
+          git checkout --orphan ekran-sonuc
+          git rm -rf --cached . >/dev/null 2>&1 || true
+          rm -rf sonuc; cp -r /tmp/o/* .
+          git add -f derleme.txt gunluk.txt; git add -f sonuc 2>/dev/null || true
+          git commit -qm "tanitim gorsel $GITHUB_RUN_NUMBER"
+          git push -f origin ekran-sonuc
