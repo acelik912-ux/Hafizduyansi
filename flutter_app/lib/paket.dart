@@ -6,6 +6,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -135,6 +136,16 @@ class PaketBundle extends AssetBundle {
       return ByteData.sublistView(b);
     }
     return rootBundle.load(key);
+  }
+
+  // Görseller (Image.asset) buradan okunur. Varsayılan loadBuffer tüm baytları load() ile Dart'a kopyalar (Android'de
+  // platform iş parçacığından geçer; 1,5 GB'lık uygulamada ana ekranı kilitler, "uygulama yanıt vermiyor" çıkar).
+  // Paket dışı varlıklar rootBundle'ın yerel (iş parçacığı dışı) okumasına bırakılır.
+  @override
+  Future<ui.ImmutableBuffer> loadBuffer(String key) async {
+    if (paket.dosyaYolu(key) == null) return rootBundle.loadBuffer(key);
+    final d = await load(key);
+    return ui.ImmutableBuffer.fromUint8List(d.buffer.asUint8List(d.offsetInBytes, d.lengthInBytes));
   }
 
   @override
