@@ -47,9 +47,14 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // Play asset-delivery yalnızca Play'den kurulan sürümde başlatılır (doğrudan kurulan APK'da ana iş parçacığını meşgul etmesin)
         try {
-            yonetici = AssetPackManagerFactory.getInstance(applicationContext)
-            yonetici?.registerListener(dinleyici)
+            val kuran = if (Build.VERSION.SDK_INT >= 30) packageManager.getInstallSourceInfo(packageName).installingPackageName
+                        else @Suppress("DEPRECATION") packageManager.getInstallerPackageName(packageName)
+            if (kuran == "com.android.vending") {
+                yonetici = AssetPackManagerFactory.getInstance(applicationContext)
+                yonetici?.registerListener(dinleyici)
+            }
         } catch (_: Exception) {
         }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hd/paket").setMethodCallHandler { cagri, sonuc ->
